@@ -121,12 +121,15 @@ data-aria-dark="Switch to auto color mode">
 </li>
 <li><a class="reference internal" href="#comparison-mode">Comparison Mode</a></li>
 <li><a class="reference internal" href="#yaml-based-pipeline-inputs">YAML-Based Pipeline Inputs</a><ul>
+<li><a class="reference internal" href="#init-command">Init command</a></li>
+<li><a class="reference internal" href="#build-pattern-c-fortran-rust">Build pattern (C++, Fortran, Rust)</a></li>
 <li><a class="reference internal" href="#wrapper-pattern-pixi-conda-nix">Wrapper pattern (pixi, conda, nix)</a></li>
 <li><a class="reference internal" href="#source-pattern-virtualenv-shell-scripts">Source pattern (virtualenv, shell scripts)</a></li>
 <li><a class="reference internal" href="#combined-e-g-env-vars-wrapper">Combined (e.g. env vars + wrapper)</a></li>
 <li><a class="reference internal" href="#field-reference">Field Reference</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#full-pipeline-with-c-build-setup-run-prefix">Full Pipeline with C++ Build (setup + run-prefix)</a></li>
 <li><a class="reference internal" href="#pre-computed-output">Pre-computed Output</a></li>
 <li><a class="reference internal" href="#comparison-options">Comparison Options</a></li>
 <li><a class="reference internal" href="#regression-detection">Regression Detection</a></li>
@@ -316,12 +319,41 @@ tools like pixi, conda, or nix that wrap the command.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">setup</span></code> – A shell command prepended with <code class="docutils literal notranslate"><span class="pre">&amp;&amp;</span></code>. Use this for sourcing
 scripts, exporting variables, or activating virtualenvs.</p></li>
 </ul>
-<p>Both can be combined. The constructed shell command is:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">bash</span> <span class="o">-</span><span class="n">c</span> <span class="s1">&#39;&lt;setup&gt; &amp;&amp; &lt;run-prefix&gt; &lt;benchmark-command with </span><span class="si">{sha}</span><span class="s1"> replaced&gt;&#39;</span>
+<p>Both can be combined. The <code class="docutils literal notranslate"><span class="pre">{sha}</span></code> placeholder is replaced in all three
+fields. The constructed shell command is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">bash</span> <span class="o">-</span><span class="n">c</span> <span class="s1">&#39;&lt;setup with </span><span class="si">{sha}</span><span class="s1">&gt; &amp;&amp; &lt;run-prefix with </span><span class="si">{sha}</span><span class="s1">&gt; &lt;benchmark-command with </span><span class="si">{sha}</span><span class="s1">&gt;&#39;</span>
 </span></pre></div>
 </div>
 <p>Each part is optional – omit what you don’t need. If an entry has no <code class="docutils literal notranslate"><span class="pre">sha</span></code>,
 benchmarking is skipped for that entry (useful when results already exist).</p>
+<p>Contender benchmarks run in parallel via <code class="docutils literal notranslate"><span class="pre">Promise.all</span></code>. If your builds
+modify shared state (same build directory), use <code class="docutils literal notranslate"><span class="pre">setup</span></code> to isolate them.</p>
+<section id="init-command">
+<h4>Init command<a class="headerlink" href="#init-command" title="Link to this heading">¶</a></h4>
+<p>Use <code class="docutils literal notranslate"><span class="pre">init-command</span></code> to run a one-time setup before any benchmarks:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nt">init-command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pixi run bash -c &quot;pip install asv &amp;&amp; asv machine --yes&quot;</span>
+</span></pre></div>
+</div>
+<p>This runs once, before any baseline or contender benchmarks.</p>
+</section>
+<section id="build-pattern-c-fortran-rust">
+<h4>Build pattern (C++, Fortran, Rust)<a class="headerlink" href="#build-pattern-c-fortran-rust" title="Link to this heading">¶</a></h4>
+<p>Use <code class="docutils literal notranslate"><span class="pre">setup</span></code> with <code class="docutils literal notranslate"><span class="pre">{sha}</span></code> to checkout and build per-commit:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nt">baseline</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="2"><span class="w">  </span><span class="no">label: main</span>
+</span><span data-line="3"><span class="w">  </span><span class="no">sha: abc123def</span>
+</span><span data-line="4"><span class="w">  </span><span class="no">setup: &gt;-</span>
+</span><span data-line="5"><span class="w">    </span><span class="no">git checkout -f {sha} &amp;&amp; git clean -fd &amp;&amp;</span>
+</span><span data-line="6"><span class="w">    </span><span class="no">meson setup bbdir --prefix=$CONDA_PREFIX --buildtype release --wipe 2&gt;/dev/null ||</span>
+</span><span data-line="7"><span class="w">    </span><span class="no">meson setup bbdir --prefix=$CONDA_PREFIX --buildtype release &amp;&amp;</span>
+</span><span data-line="8"><span class="w">    </span><span class="no">meson install -C bbdir</span>
+</span><span data-line="9"><span class="w">  </span><span class="no">run-prefix: pixi run</span>
+</span></pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">{sha}</span></code> placeholder is replaced in <code class="docutils literal notranslate"><span class="pre">setup</span></code>, <code class="docutils literal notranslate"><span class="pre">run-prefix</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">benchmark-command</span></code>. This enables one action step to handle checkout,
+build, and benchmark for each entry.</p>
+</section>
 <section id="wrapper-pattern-pixi-conda-nix">
 <h4>Wrapper pattern (pixi, conda, nix)<a class="headerlink" href="#wrapper-pattern-pixi-conda-nix" title="Link to this heading">¶</a></h4>
 <p>Use <code class="docutils literal notranslate"><span class="pre">run-prefix</span></code>. The tool wraps the entire benchmark command:</p>
@@ -378,11 +410,14 @@ Each object accepts the same fields as <code class="docutils literal notranslate
 run-prefix, setup, env, description). When provided, this overrides
 <code class="docutils literal notranslate"><span class="pre">contender-shas</span></code>, <code class="docutils literal notranslate"><span class="pre">contender-files</span></code>, and <code class="docutils literal notranslate"><span class="pre">contender-labels</span></code>.</p>
 </dd>
+<dt><code class="docutils literal notranslate"><span class="pre">init-command</span></code></dt><dd><p>Shell command run once before any benchmarks. Use for
+one-time setup like <code class="docutils literal notranslate"><span class="pre">asv</span> <span class="pre">machine</span> <span class="pre">--yes</span></code> or stashing benchmark suites.</p>
+</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">benchmark-command</span></code></dt><dd><p>Shell command template for running benchmarks.
 Default: <code class="docutils literal notranslate"><span class="pre">asv</span> <span class="pre">run</span> <span class="pre">--record-samples</span> <span class="pre">{sha}^!</span></code>. The placeholder <code class="docutils literal notranslate"><span class="pre">{sha}</span></code> is
-replaced with the entry’s commit SHA. Each entry’s <code class="docutils literal notranslate"><span class="pre">run-prefix</span></code> is prepended
-and <code class="docutils literal notranslate"><span class="pre">setup</span></code> is sourced before this command. Entries without a <code class="docutils literal notranslate"><span class="pre">sha</span></code> field
-skip benchmarking.</p>
+replaced in this field, <code class="docutils literal notranslate"><span class="pre">setup</span></code>, and <code class="docutils literal notranslate"><span class="pre">run-prefix</span></code>. Each entry’s
+<code class="docutils literal notranslate"><span class="pre">run-prefix</span></code> is prepended and <code class="docutils literal notranslate"><span class="pre">setup</span></code> is sourced before this command.
+Entries without a <code class="docutils literal notranslate"><span class="pre">sha</span></code> field skip benchmarking.</p>
 <p>Example with a custom command:</p>
 </dd>
 </dl>
@@ -390,6 +425,54 @@ skip benchmarking.</p>
 </span></pre></div>
 </div>
 </section>
+</section>
+<section id="full-pipeline-with-c-build-setup-run-prefix">
+<h3>Full Pipeline with C++ Build (setup + run-prefix)<a class="headerlink" href="#full-pipeline-with-c-build-setup-run-prefix" title="Link to this heading">¶</a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prefix-dev/setup-pixi@v0.8.10</span>
+</span><span data-line="2"><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="3"><span class="w">    </span><span class="nt">activate-environment</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span data-line="4"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Stash benchmarks</span>
+</span><span data-line="5"><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cp -r benchmarks /tmp/benchmarks &amp;&amp; cp asv.conf.json /tmp/asv.conf.json</span>
+</span><span data-line="6"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Benchmark and compare</span>
+</span><span data-line="7"><span class="w">  </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HaoZeke/asv-benchmark-commenter@v1</span>
+</span><span data-line="8"><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="9"><span class="w">    </span><span class="nt">github-token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
+</span><span data-line="10"><span class="w">    </span><span class="nt">results-path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.asv/results/</span>
+</span><span data-line="11"><span class="w">    </span><span class="nt">init-command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pixi run bash -c &quot;pip install asv &amp;&amp; asv machine --yes&quot;</span>
+</span><span data-line="12"><span class="w">    </span><span class="nt">benchmark-command</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">&gt;-</span>
+</span><span data-line="13"><span class="w">      </span><span class="no">asv run -E &quot;existing:$(which python)&quot;</span>
+</span><span data-line="14"><span class="w">      </span><span class="no">--set-commit-hash {sha} --record-samples --quick</span>
+</span><span data-line="15"><span class="w">    </span><span class="nt">baseline</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="16"><span class="w">      </span><span class="no">label: main</span>
+</span><span data-line="17"><span class="w">      </span><span class="no">sha: ${{ github.event.pull_request.base.sha }}</span>
+</span><span data-line="18"><span class="w">      </span><span class="no">setup: &gt;-</span>
+</span><span data-line="19"><span class="w">        </span><span class="no">git checkout -f {sha} &amp;&amp; git clean -fd &amp;&amp;</span>
+</span><span data-line="20"><span class="w">        </span><span class="no">cp -r /tmp/benchmarks benchmarks &amp;&amp;</span>
+</span><span data-line="21"><span class="w">        </span><span class="no">cp /tmp/asv.conf.json asv.conf.json &amp;&amp;</span>
+</span><span data-line="22"><span class="w">        </span><span class="no">pixi run meson setup bbdir --prefix=$CONDA_PREFIX</span>
+</span><span data-line="23"><span class="w">        </span><span class="no">--buildtype release --wipe 2&gt;/dev/null ||</span>
+</span><span data-line="24"><span class="w">        </span><span class="no">pixi run meson setup bbdir --prefix=$CONDA_PREFIX</span>
+</span><span data-line="25"><span class="w">        </span><span class="no">--buildtype release &amp;&amp;</span>
+</span><span data-line="26"><span class="w">        </span><span class="no">pixi run meson install -C bbdir</span>
+</span><span data-line="27"><span class="w">      </span><span class="no">run-prefix: pixi run</span>
+</span><span data-line="28"><span class="w">    </span><span class="nt">contenders</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="29"><span class="w">      </span><span class="no">- label: pr</span>
+</span><span data-line="30"><span class="w">        </span><span class="no">sha: ${{ github.event.pull_request.head.sha }}</span>
+</span><span data-line="31"><span class="w">        </span><span class="no">setup: &gt;-</span>
+</span><span data-line="32"><span class="w">          </span><span class="no">git checkout -f {sha} &amp;&amp; git clean -fd &amp;&amp;</span>
+</span><span data-line="33"><span class="w">          </span><span class="no">cp -r /tmp/benchmarks benchmarks &amp;&amp;</span>
+</span><span data-line="34"><span class="w">          </span><span class="no">cp /tmp/asv.conf.json asv.conf.json &amp;&amp;</span>
+</span><span data-line="35"><span class="w">          </span><span class="no">pixi run meson setup bbdir --prefix=$CONDA_PREFIX</span>
+</span><span data-line="36"><span class="w">          </span><span class="no">--buildtype release --wipe 2&gt;/dev/null ||</span>
+</span><span data-line="37"><span class="w">          </span><span class="no">pixi run meson setup bbdir --prefix=$CONDA_PREFIX</span>
+</span><span data-line="38"><span class="w">          </span><span class="no">--buildtype release &amp;&amp;</span>
+</span><span data-line="39"><span class="w">          </span><span class="no">pixi run meson install -C bbdir</span>
+</span><span data-line="40"><span class="w">        </span><span class="no">run-prefix: pixi run</span>
+</span><span data-line="41"><span class="w">    </span><span class="nt">label-before</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">main</span>
+</span><span data-line="42"><span class="w">    </span><span class="nt">label-after</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pr</span>
+</span><span data-line="43"><span class="w">    </span><span class="nt">runner-info</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-22.04</span>
+</span></pre></div>
+</div>
 </section>
 <section id="pre-computed-output">
 <h3>Pre-computed Output<a class="headerlink" href="#pre-computed-output" title="Link to this heading">¶</a></h3>

@@ -402,6 +402,10 @@ instead of <code class="docutils literal notranslate"><span class="pre">run-pref
 when comparing the same commit across different environments</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">run-prefix</span></code> works with wrapper tools (pixi, conda, nix) –
 <code class="docutils literal notranslate"><span class="pre">setup</span></code> works with source-based activation (virtualenv, shell scripts)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{sha}</span></code> is replaced in <code class="docutils literal notranslate"><span class="pre">setup</span></code>, <code class="docutils literal notranslate"><span class="pre">run-prefix</span></code>, and <code class="docutils literal notranslate"><span class="pre">benchmark-command</span></code> –
+use it for <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">-f</span> <span class="pre">{sha}</span></code> or similar patterns</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">init-command</span></code> runs once before any benchmarks (e.g. <code class="docutils literal notranslate"><span class="pre">asv</span> <span class="pre">machine</span> <span class="pre">--yes</span></code>)</p></li>
+<li><p>Contender benchmarks run in parallel when possible</p></li>
 <li><p>The action imposes no constraints on environments. Use conda, pixi,
 virtualenv, nix, Docker, bare metal GPU runners – whatever you need.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--record-samples</span></code> in ASV enables statistical significance testing.

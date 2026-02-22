@@ -246,6 +246,13 @@ Key Points
 - ``run-prefix`` works with wrapper tools (pixi, conda, nix) --
   ``setup`` works with source-based activation (virtualenv, shell scripts)
 
+- ``{sha}`` is replaced in ``setup``, ``run-prefix``, and ``benchmark-command`` --
+  use it for ``git checkout -f {sha}`` or similar patterns
+
+- ``init-command`` runs once before any benchmarks (e.g. ``asv machine --yes``)
+
+- Contender benchmarks run in parallel when possible
+
 - The action imposes no constraints on environments. Use conda, pixi,
   virtualenv, nix, Docker, bare metal GPU runners -- whatever you need.
 
