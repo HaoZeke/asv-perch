@@ -1,0 +1,104 @@
+#+TITLE: How ASV Works
+#+AUTHOR: [[https://rgoswami.me][Rohit Goswami]]
+#+OPTIONS: toc:nil todo:nil num:nil author:nil title:nil ^:nil
+
+#+begin_export rst
+=============
+How ASV Works
+=============
+#+end_export
+
+How the ASV -> asv-spyglass -> action pipeline works, and why ASV is suitable
+for C++, GPU, and Fortran projects.
+
+* The Pipeline
+
+#+begin_example
+[Your build system]
+        |
+        v
+[ASV: run benchmarks, produce JSON results]
+        |
+        v
+[asv-spyglass: compare results, produce table]
+        |
+        v
+[This action: parse table, render comment, post to PR]
+#+end_example
+
+Each stage is independent. You can replace any stage without affecting the
+others. The action only depends on the asv-spyglass table format, not on ASV
+itself -- if you produce a compatible table from another tool, the action will
+parse it.
+
+* ASV for Non-Python Projects
+
+ASV benchmarks are written in Python, but the code under test can be anything.
+Common patterns:
+
+** C/C++ via Python bindings
+
+Projects like [[https://github.com/TheochemUI/eOn][eOn]] use pybind11 to expose
+C++ code to Python. ASV benchmarks import the Python module and call functions
+that execute C++ code. The build step compiles the C++ code; the benchmark
+step measures it through the Python interface.
+
+** Fortran via f2py or ctypes
+
+Same pattern: compile Fortran, expose via f2py, benchmark the Python wrapper.
+
+** GPU code
+
+CUDA/HIP/OpenCL code compiled into a shared library, exposed to Python via
+CuPy, PyTorch, or custom bindings. ASV benchmarks call the GPU kernels through
+Python. The benchmark runner needs GPU access (self-hosted runner or GPU-enabled
+CI).
+
+** Why not benchmark in the native language?
+
+You could -- but ASV provides:
+- Structured output format (JSON) that tools like asv-spyglass can parse
+- Historical tracking across commits
+- Sample recording for statistical analysis
+- Parametrized benchmarks
+- Integration with this action for PR comments
+
+* Existing Environments
+
+ASV can use existing environments (=--existing=) instead of creating isolated
+virtualenvs. This is important for projects that use:
+- conda/pixi environments with compiled dependencies
+- System-installed libraries (MKL, CUDA, OpenBLAS)
+- Custom compiler toolchains
+
+With =--existing=, ASV runs benchmarks in your current environment as-is. You
+control the environment completely.
+
+* asv-spyglass
+
+asv-spyglass is a comparison tool that reads ASV's JSON result files and
+produces formatted tables. It adds:
+
+- *compare:* Two-way comparison (base vs PR) with significance marks
+- *compare-many:* Multi-way comparison (baseline vs multiple contenders)
+- *Labels:* Name the columns (e.g., "py311", "py312", "conda", "pixi")
+- *Statistical marks:* =+= regressed, =-= improved, =~= insignificant
+- *Split output:* Separate tables by change type
+
+The output is a pipe-delimited table (=tabulate(tablefmt="github")=) that this
+action parses.
+
+* The Action's Role
+
+The action is purely a presentation and delivery layer:
+
+1. *Input:* Receives result files or pre-computed comparison text
+2. *Compare:* Runs =asv-spyglass= (or reads pre-computed output)
+3. *Parse:* Extracts structured data from the table
+4. *Render:* Builds a rich GFM comment with emoji, groups, collapsible sections
+5. *Post:* Creates/updates the PR comment via GitHub API
+6. *Gate:* Optionally fails CI or converts PR to draft on regression
+
+It does not build code, create environments, or run benchmarks. This separation
+means you can use any build system, any runner, any toolchain -- the action
+will format and post the results regardless.

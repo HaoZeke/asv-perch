@@ -1,0 +1,178 @@
+#+TITLE: Migration Guide
+#+AUTHOR: [[https://rgoswami.me][Rohit Goswami]]
+#+OPTIONS: toc:nil todo:nil num:nil author:nil title:nil ^:nil
+
+#+begin_export rst
+===============
+Migration Guide
+===============
+#+end_export
+
+This guide helps projects that currently use inline benchmark commenting logic
+migrate to the =asv-benchmark-commenter= action.
+
+* From eOn's ci_bench_commenter.yml
+
+The [[https://github.com/TheochemUI/eOn][eOn]] project uses a =workflow_run=
+workflow with =actions/github-script= steps to:
+
+1. Download the benchmark artifact
+2. Read =comparison.txt= and =metadata.txt=
+3. Check for 10x regressions via bash regex
+4. Find the PR by SHA via =github.rest.search.issuesAndPullRequests=
+5. Convert to draft on regression via GraphQL mutation
+6. Post/update idempotent comment with HTML marker
+
+All of this is now handled by a single action step.
+
+** Before (eOn)
+
+#+begin_src yaml
+steps:
+  - name: Download benchmark artifact
+    uses: actions/download-artifact@v4
+    with:
+      name: benchmark-results
+      path: results
+      run-id: ${{ github.event.workflow_run.id }}
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  - name: Read results
+    id: data
+    run: |
+      TABLE=$(cat results/comparison.txt)
+      MAIN_SHA=$(grep main_sha results/metadata.txt | cut -d= -f2)
+      PR_SHA=$(grep pr_sha results/metadata.txt | cut -d= -f2)
+      echo "main_sha=$MAIN_SHA" >> "$GITHUB_OUTPUT"
+      echo "pr_sha=$PR_SHA" >> "$GITHUB_OUTPUT"
+      echo "table<<EOF" >> "$GITHUB_OUTPUT"
+      echo "$TABLE" >> "$GITHUB_OUTPUT"
+      echo "EOF" >> "$GITHUB_OUTPUT"
+      REGRESSION="false"
+      while read -r line; do
+        if [[ "$line" =~ \|.*\|.*\|.*\|[[:space:]]*([0-9.]+)[[:space:]]*\| ]]; then
+          RATIO="${BASH_REMATCH[1]}"
+          if (( $(echo "$RATIO > 10.0" | bc -l) )); then
+            REGRESSION="true"
+          fi
+        fi
+      done <<< "$TABLE"
+      echo "regression=$REGRESSION" >> "$GITHUB_OUTPUT"
+
+  - name: Find associated PR
+    id: pr
+    uses: actions/github-script@v7
+    with:
+      script: |
+        const sha = '${{ steps.data.outputs.pr_sha }}';
+        const { data } = await github.rest.search.issuesAndPullRequests({
+          q: `repo:${context.repo.owner}/${context.repo.repo} is:pr sha:${sha}`,
+          per_page: 1,
+        });
+        if (data.items.length < 1) {
+          core.setFailed(`No PR found for SHA ${sha}`);
+          return;
+        }
+        core.setOutput('number', data.items[0].number);
+        core.setOutput('node_id', data.items[0].node_id);
+
+  - name: Convert PR to draft on critical regression
+    if: steps.data.outputs.regression == 'true'
+    uses: actions/github-script@v7
+    with:
+      script: |
+        # ... GraphQL mutation ...
+
+  - name: Post PR comment
+    uses: actions/github-script@v7
+    with:
+      script: |
+        const marker = '<!-- asv-benchmark-result -->';
+        const body = [marker, '## Benchmark results', '', '```',
+          process.env.TABLE, '```', '', '<details>...'].join('\n');
+        # ... create/update comment ...
+#+end_src
+
+** After
+
+#+begin_src yaml
+steps:
+  - name: Set up uv
+    uses: astral-sh/setup-uv@v5
+
+  - name: Download benchmark artifact
+    uses: actions/download-artifact@v4
+    with:
+      name: benchmark-results
+      path: results
+      run-id: ${{ github.event.workflow_run.id }}
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  - name: Post benchmark comment
+    uses: HaoZeke/asv-benchmark-commenter@v1
+    with:
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+      results-path: results/
+      metadata-file: results/metadata.txt
+      regression-threshold: '10'
+      auto-draft-on-regression: 'true'
+      runner-info: ubuntu-22.04
+#+end_src
+
+** What Changes
+
+| Before | After |
+|--------+-------|
+| 5 workflow steps | 3 workflow steps (uv setup, download, comment) |
+| Bash regex for regression detection | Typed parser with proper threshold |
+| Plain code block comment | Rich GFM with emoji, groups, collapsible sections |
+| Manual PR search + comment logic | Built into the action |
+| GraphQL draft conversion inline | =auto-draft-on-regression= input |
+| No step summary | Written to =GITHUB_STEP_SUMMARY= |
+
+** Metadata Compatibility
+
+The action reads the same =metadata.txt= format:
+
+#+begin_example
+main_sha=<sha>
+pr_sha=<sha>
+#+end_example
+
+No changes needed to the benchmark workflow that produces this file.
+
+* From metatensor/gromacs
+
+The metatensor and gromacs projects use a similar pattern to eOn. The migration
+is the same -- replace the inline =actions/github-script= steps with the single
+action step.
+
+If your project uses =base_sha== instead of =main_sha== in the metadata file,
+that is also supported.
+
+* Comment Marker Compatibility
+
+The default =comment-marker= is =<!-- asv-benchmark-result -->=, which matches
+the marker used in eOn. When migrating, the action will update existing comments
+that use this marker rather than creating duplicates.
+
+If your project uses a different marker, set the =comment-marker= input
+accordingly.
+
+* Pre-computed comparison.txt
+
+If your benchmark workflow already runs =asv-spyglass compare= and includes the
+output as =comparison.txt= in the artifact, the action will use that directly
+instead of re-running the comparison. This means:
+
+- You do not need =uv= on the commenter runner
+- You do not need =astral-sh/setup-uv=
+- The action just parses and formats the existing output
+
+* Keeping the Old Behavior
+
+If you prefer the old code-block style while migrating incrementally, note that
+the raw output is still available:
+
+- In the collapsible "Raw asv-spyglass output" section of the comment
+- Via the =comparison= output of the action step

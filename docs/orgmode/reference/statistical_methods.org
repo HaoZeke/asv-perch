@@ -1,0 +1,106 @@
+#+TITLE: Statistical Methods
+#+AUTHOR: [[https://rgoswami.me][Rohit Goswami]]
+#+OPTIONS: toc:nil todo:nil num:nil author:nil title:nil ^:nil
+
+#+begin_export rst
+====================
+Statistical Methods
+====================
+#+end_export
+
+This page documents the statistical methods used by ASV and asv-spyglass to
+determine benchmark significance.
+
+* Mann-Whitney U Test
+
+ASV uses the Mann-Whitney U test (also called the Wilcoxon rank-sum test) to
+determine if two sets of benchmark samples come from different distributions.
+
+Properties:
+- Non-parametric: works for any distribution shape (not just normal)
+- Compares medians rather than means
+- Robust to outliers
+- Requires =--record-samples= to collect multiple measurements
+
+The null hypothesis is that both sample sets are drawn from the same
+distribution. A low p-value rejects this hypothesis, indicating a statistically
+significant difference.
+
+* P-Value Threshold
+
+ASV uses a p-value threshold of 0.002 (0.2%). This is much stricter than the
+common 0.05 (5%) threshold, reducing false positives at the cost of requiring
+larger or more consistent differences to register as significant.
+
+With a threshold of 0.002 and multiple benchmarks, the chance of at least one
+false positive is kept low even without formal multiple-comparison correction.
+
+* 99% Confidence Intervals
+
+ASV computes 99% confidence intervals for the ratio between two measurements
+using two methods:
+
+- *Binomial quantile method:* when enough samples exist, uses the binomial
+  distribution to find the sample quantiles that bound the 99% interval
+- *Laplace posterior fallback:* when sample counts are low, falls back to a
+  Bayesian approach using a Laplace prior
+
+The confidence interval is reported as the =+/-= value after measurements
+(e.g., =167+/-3ns= means the 99% CI spans 3ns around the median).
+
+* The Factor Parameter
+
+The =factor= parameter (default: 1.1, meaning 10%) sets the minimum ratio
+change that asv-spyglass considers noteworthy. A benchmark with ratio 1.05
+and factor 1.1 is not flagged, even if statistically significant.
+
+The interaction between factor and statistical significance:
+
+| Ratio vs Factor | Significant? | Mark | Meaning |
+|-----------------+--------------+------+---------|
+| Above factor | Yes | =+= or =-= | Real, meaningful change |
+| Above factor | No | =~= prefix | Uncertain -- might be noise |
+| Below factor | Yes | (space) | Statistically real but too small to matter |
+| Below factor | No | (space) | No meaningful change |
+
+* Why =~= Prefix Matters
+
+A ratio like =~1.15= means the change exceeds the factor threshold (1.1) but
+failed the Mann-Whitney U test. This is an important signal: the benchmark
+*might* be regressing, but the evidence is not strong enough to be confident.
+
+This is different from a simple =ratio > threshold= approach (which is what
+inline bash regex patterns typically do). The statistical test accounts for
+measurement noise and sample size.
+
+* Why This Beats Naive Ratio Comparison
+
+Many CI setups compare ratios with a simple threshold:
+
+#+begin_src bash
+if (( $(echo "$RATIO > 10.0" | bc -l) )); then
+  REGRESSION="true"
+fi
+#+end_src
+
+This has several problems:
+- Ignores measurement variance (a 2x ratio from noisy data may be meaningless)
+- Ignores sample size (single-sample ratios are unreliable)
+- Cannot distinguish real regressions from noise
+- No confidence intervals
+
+ASV + asv-spyglass addresses all of these by requiring =--record-samples=,
+applying Mann-Whitney U, and computing confidence intervals. The action
+preserves this rigor in its PR comments.
+
+* Practical Recommendations
+
+- Always use =--record-samples= in ASV. Without it, no statistical testing
+  is possible and asv-spyglass falls back to simple ratios.
+- Use at least 3-5 samples per benchmark (ASV's default repetition count).
+  More samples improve statistical power.
+- Set =--factor= based on your project's noise floor. If benchmarks typically
+  vary by +/-5%, a factor of 1.1 (10%) is appropriate. For lower-noise
+  setups, 1.05 works.
+- The =~= prefix is not a false alarm -- it is a signal to investigate
+  further, not to ignore.

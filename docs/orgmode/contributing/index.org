@@ -1,0 +1,92 @@
+#+TITLE: Contributing
+#+AUTHOR: [[https://rgoswami.me][Rohit Goswami]]
+#+OPTIONS: toc:nil todo:nil num:nil author:nil title:nil ^:nil
+
+#+begin_export rst
+============
+Contributing
+============
+#+end_export
+
+Contributions are welcome. This page covers setting up a development
+environment and the project conventions.
+
+* Development Setup
+
+The project uses [[https://bun.sh][bun]] as the package manager and script
+runner.
+
+#+begin_src bash
+git clone https://github.com/HaoZeke/asv-benchmark-commenter
+cd asv-benchmark-commenter
+bun install
+#+end_src
+
+* Available Commands
+
+| Command | Description |
+|---------+-------------|
+| =bun run build= | TypeScript check + Vite bundle to =dist/index.js= |
+| =bun run test= | Run all tests with vitest |
+| =bun run lint= | Run ESLint |
+| =bun run lint:fix= | Run ESLint with auto-fix |
+| =bun run typecheck= | TypeScript type checking (no emit) |
+
+* Project Structure
+
+- =src/parse.ts= :: Parses asv-spyglass tabulated output into typed rows.
+  Pure function, no side effects.
+- =src/render.ts= :: Renders parsed rows into the GFM comment body.
+  Pure function, no side effects.
+- =src/run.ts= :: Orchestration logic. Calls GitHub APIs, runs commands,
+  coordinates the steps.
+- =src/index.ts= :: Entry point. Imports and calls =run()=.
+
+* Testing
+
+Tests use vitest and are located in =test/=:
+
+- =test/parse.test.ts= :: Unit tests for the parser (happy path, edge cases,
+  malformed input)
+- =test/render.test.ts= :: Unit tests for comment rendering (all result
+  combinations)
+- =test/run.test.ts= :: Integration tests with mocked =@actions/*= packages
+
+The =test/fixtures/comparison.txt= file contains a sample asv-spyglass output
+used across tests.
+
+* Build Pipeline
+
+The build pipeline:
+
+1. =tsc= runs type checking (=noEmit: true=, does not produce files)
+2. =vite build= bundles all TypeScript + npm dependencies into a single
+   =dist/index.js= (ESM format)
+
+Node.js builtins are marked as external. All =@actions/*= packages are inlined
+since the GitHub runner does not install dependencies.
+
+The =dist/index.js= file must be committed to the repository -- GitHub reads it
+directly when running the action.
+
+* Conventions
+
+- Commits follow [[https://www.conventionalcommits.org/][Conventional Commits]]
+- ESLint uses =@antfu/eslint-config= with 1TBS brace style and required parens
+- TypeScript strict mode is enabled
+- Documentation source files are Org-mode (=docs/orgmode/=), converted to RST
+  for Sphinx
+
+* Documentation
+
+Documentation uses the org-to-sphinx pattern:
+
+1. Edit =.org= files in =docs/orgmode/=
+2. Run =emacs --batch --load docs/export.el= to convert to RST
+3. Run =sphinx-build docs/source/ docs/build= to build HTML
+
+Or with pixi:
+
+#+begin_src bash
+pixi run docbld
+#+end_src

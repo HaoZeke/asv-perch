@@ -1,0 +1,95 @@
+#+TITLE: Table Format Reference
+#+AUTHOR: [[https://rgoswami.me][Rohit Goswami]]
+#+OPTIONS: toc:nil todo:nil num:nil author:nil title:nil ^:nil
+
+#+begin_export rst
+======================
+Table Format Reference
+======================
+#+end_export
+
+This page documents the asv-spyglass output formats that the action parses.
+
+* compare Format (Two-Way)
+
+The =asv-spyglass compare= command produces a table with these columns:
+
+| Column | Content |
+|--------+---------|
+| Change | Mark: =+= regressed, =-= improved, space unchanged, =x= incomparable, =!= failed |
+| Before | Value with uncertainty (e.g., =167+/-3ns=) |
+| After | Value with uncertainty |
+| Ratio | Decimal ratio. =~= prefix means statistically insignificant. =n/a= if incomparable |
+| Benchmark (Parameter) | Full benchmark name with optional =[env -> env]= suffix |
+
+Example:
+
+#+begin_example
+| Change   | Before      | After       |   Ratio | Benchmark (Parameter)                                    |
+|----------|-------------|-------------|---------|----------------------------------------------------------|
+| +        | 167+/-3ns   | 187+/-3ns   |    1.12 | benchmarks.TimeSuite.time_values(10) [env1 -> env1]      |
+| -        | 157+/-3ns   | 137+/-3ns   |    0.87 | benchmarks.TimeSuite.time_keys(10) [env1 -> env1]        |
+|          | 1.17+/-0us  | 1.07+/-0us  |   ~0.91 | benchmarks.TimeSuite.time_keys(200) [env1 -> env1]       |
+| x        | 50+/-2ns    | n/a         |     n/a | benchmarks.TimeSuite.time_broken [env1 -> env1]          |
+#+end_example
+
+* compare-many Format (Multi-Way)
+
+The =asv-spyglass compare-many= command produces a multi-column table:
+
+| Column | Content |
+|--------+---------|
+| Benchmark (Parameter) | Full benchmark name |
+| Baseline (label) | Baseline value with uncertainty |
+| Contender N (Ratio) | Value followed by =(mark ratio)= in parentheses |
+
+Each contender cell has the format: =value (mark ratio)=
+
+- =187+/-3ns (+ 1.12)= -- regressed, ratio 1.12
+- =137+/-3ns (- 0.87)= -- improved, ratio 0.87
+- =1.07+/-0us (~0.91)= -- unchanged (statistically insignificant)
+- =n/a (x n/a)= -- incomparable
+
+Example:
+
+#+begin_example
+| Benchmark (Parameter)      | baseline (py311)  | opt-build (Ratio)    | debug-build (Ratio)   |
+|----------------------------|-------------------|----------------------|-----------------------|
+| benchmarks.TimeSuite.foo   | 167+/-3ns         | 187+/-3ns (+ 1.12)   | 150+/-2ns (- 0.90)    |
+| benchmarks.TimeSuite.bar   | 200+/-5ns         | 195+/-4ns (~0.98)    | 350+/-5ns (+ 1.75)    |
+#+end_example
+
+* Change Marks
+
+| Mark | Meaning | Description |
+|------+---------+-------------|
+| =+= | Regressed | Performance got worse (statistically significant) |
+| =-= | Improved | Performance got better (statistically significant) |
+| (space) | Unchanged | No statistically significant change |
+| =x= | Incomparable | Results cannot be compared (e.g., one failed) |
+| =!= | Failed | Benchmark execution failed |
+
+* The =~= Prefix
+
+A ratio prefixed with =~= means the change exceeds the configured factor
+threshold but fails the Mann-Whitney U statistical significance test. This
+indicates the difference is uncertain -- it might be real or might be noise.
+
+* Uncertainty Values
+
+Values like =167+/-3ns= show the measurement with its interquartile range
+divided by 2 (IQR/2). This provides a robust measure of spread that is less
+sensitive to outliers than standard deviation.
+
+* --record-samples
+
+ASV's =--record-samples= flag is required for statistical significance testing.
+Without it, asv-spyglass falls back to simple ratio comparison without
+confidence intervals or Mann-Whitney U tests.
+
+* --split Output
+
+When =--split= is used, asv-spyglass outputs multiple tables separated by
+section headers (e.g., "Benchmarks that have improved:", "Benchmarks that have
+got worse:"). Each table has the same column format. The action's parser
+handles this by skipping non-table lines.

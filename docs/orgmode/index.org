@@ -1,0 +1,74 @@
+#+TITLE: ASV Benchmark Commenter
+#+AUTHOR: [[https://rgoswami.me][Rohit Goswami]]
+#+OPTIONS: toc:nil todo:nil num:nil author:nil title:nil ^:nil
+
+#+begin_export rst
+===========================
+ASV Benchmark Commenter
+===========================
+
+:Author: `Rohit Goswami <https://rgoswami.me>`_
+#+end_export
+
+A GitHub Action that posts formatted ASV benchmark comparison results as PR
+comments with statistical significance testing, emoji indicators, and
+multi-way comparison support.
+
+The action is a presentation layer -- it does not build your project or manage
+environments. Run ASV in whatever environment you need (conda, pixi,
+virtualenv, Docker, bare metal GPU runners) and hand the result files to the
+action.
+
+* Quick Start
+
+#+begin_src yaml
+- uses: HaoZeke/asv-benchmark-commenter@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    results-path: results/
+    metadata-file: results/metadata.txt
+#+end_src
+
+#+begin_export rst
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Tutorials
+
+   tutorials/asv_getting_started
+   tutorials/cross_environment
+   tutorials/multi_way_comparison
+
+.. toctree::
+   :maxdepth: 2
+   :caption: How-To Guides
+
+   howto/migration
+   howto/regression_gating
+   howto/precomputed_output
+   howto/custom_asv_flags
+   howto/compare_across_machines
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Reference
+
+   reference/configuration
+   reference/comment_format
+   reference/table_format
+   reference/statistical_methods
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Explanation
+
+   explanation/why_this_action
+   explanation/how_asv_works
+   explanation/fork_security
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Development
+
+   contributing/index
+#+end_export
