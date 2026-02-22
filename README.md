@@ -1,19 +1,19 @@
 
 # Table of Contents
 
-1.  [About](#org1138be5)
-2.  [Quick Start (Two-Way)](#org9ef4a34)
-3.  [Quick Start (Multi-Way)](#orgb4a140c)
-4.  [Quick Start (Full Pipeline)](#org37fd5e1)
-5.  [Essential Inputs](#org1e3a219)
-6.  [Why This Action](#orgd24b190)
-    1.  [Outputs](#org58f9e53)
-7.  [Development](#orgd0b0ad1)
-8.  [License](#org40fa3e1)
+1.  [About](#org77c0cff)
+2.  [Quick Start (Two-Way)](#org12a7b50)
+3.  [Quick Start (Multi-Way)](#orgf930834)
+4.  [Quick Start (Full Pipeline)](#org3d36dca)
+5.  [Essential Inputs](#org99995aa)
+6.  [Why This Action](#org349966c)
+    1.  [Outputs](#org1e6c75c)
+7.  [Development](#orgd2426ed)
+8.  [License](#org63d985b)
 
 
 
-<a id="org1138be5"></a>
+<a id="org77c0cff"></a>
 
 # About
 
@@ -27,7 +27,7 @@ your build environment &#x2013; use conda, pixi, virtualenv, nix, Docker, GPU
 runners, or whatever you need.
 
 
-<a id="org9ef4a34"></a>
+<a id="org12a7b50"></a>
 
 # Quick Start (Two-Way)
 
@@ -38,7 +38,7 @@ runners, or whatever you need.
         metadata-file: results/metadata.txt
 
 
-<a id="orgb4a140c"></a>
+<a id="orgf930834"></a>
 
 # Quick Start (Multi-Way)
 
@@ -52,7 +52,7 @@ runners, or whatever you need.
         contender-labels: 'optimized, debug'
 
 
-<a id="org37fd5e1"></a>
+<a id="org3d36dca"></a>
 
 # Quick Start (Full Pipeline)
 
@@ -98,7 +98,7 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
             setup: source ./envs/bench.sh
 
 
-<a id="org1e3a219"></a>
+<a id="org99995aa"></a>
 
 # Essential Inputs
 
@@ -122,6 +122,7 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
 <th scope="col" class="org-left">Description</th>
 </tr>
 </thead>
+
 <tbody>
 <tr>
 <td class="org-left"><code>github-token</code></td>
@@ -130,12 +131,14 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
 <td class="org-left">GitHub token for API access</td>
 </tr>
 
+
 <tr>
 <td class="org-left"><code>results-path</code></td>
 <td class="org-left">conditional</td>
 <td class="org-left">--</td>
 <td class="org-left">Path to ASV results dir (not needed with <code>comparison-text-file</code>)</td>
 </tr>
+
 
 <tr>
 <td class="org-left"><code>comparison-text-file</code></td>
@@ -144,12 +147,14 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
 <td class="org-left">Pre-computed comparison output (skips asv-spyglass)</td>
 </tr>
 
+
 <tr>
 <td class="org-left"><code>comparison-mode</code></td>
 <td class="org-left">no</td>
 <td class="org-left"><code>compare</code></td>
 <td class="org-left"><code>compare</code> (two-way) or <code>compare-many</code> (multi-way)</td>
 </tr>
+
 
 <tr>
 <td class="org-left"><code>base-sha</code> / <code>pr-sha</code></td>
@@ -158,12 +163,14 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
 <td class="org-left">SHAs for <code>compare</code> mode</td>
 </tr>
 
+
 <tr>
 <td class="org-left"><code>base-file</code> / <code>pr-file</code></td>
 <td class="org-left">conditional</td>
 <td class="org-left">--</td>
 <td class="org-left">Direct file paths for <code>compare</code> mode</td>
 </tr>
+
 
 <tr>
 <td class="org-left"><code>baseline-sha</code></td>
@@ -172,12 +179,14 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
 <td class="org-left">SHA for <code>compare-many</code> baseline</td>
 </tr>
 
+
 <tr>
 <td class="org-left"><code>contender-shas</code></td>
 <td class="org-left">conditional</td>
 <td class="org-left">--</td>
 <td class="org-left">Comma-separated SHAs for <code>compare-many</code> contenders</td>
 </tr>
+
 
 <tr>
 <td class="org-left"><code>baseline-file</code></td>
@@ -186,12 +195,14 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
 <td class="org-left">Direct path to baseline result JSON</td>
 </tr>
 
+
 <tr>
 <td class="org-left"><code>contender-files</code></td>
 <td class="org-left">conditional</td>
 <td class="org-left">--</td>
 <td class="org-left">Comma-separated direct paths to contender JSONs</td>
 </tr>
+
 
 <tr>
 <td class="org-left"><code>contender-labels</code></td>
@@ -200,12 +211,14 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
 <td class="org-left">Comma-separated labels for contenders</td>
 </tr>
 
+
 <tr>
 <td class="org-left"><code>baseline</code></td>
 <td class="org-left">no</td>
 <td class="org-left">--</td>
 <td class="org-left">YAML config for baseline (label, sha, run-prefix/setup)</td>
 </tr>
+
 
 <tr>
 <td class="org-left"><code>contenders</code></td>
@@ -214,12 +227,22 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
 <td class="org-left">YAML list of contenders (label, sha, run-prefix/setup)</td>
 </tr>
 
+
 <tr>
 <td class="org-left"><code>benchmark-command</code></td>
 <td class="org-left">no</td>
 <td class="org-left"><code>asv run --record-samples {sha}^!</code></td>
-<td class="org-left">Shell command template; <code>{sha}</code> is replaced per entry</td>
+<td class="org-left">Shell command template; <code>{sha}</code> replaced in all fields</td>
 </tr>
+
+
+<tr>
+<td class="org-left"><code>init-command</code></td>
+<td class="org-left">no</td>
+<td class="org-left">--</td>
+<td class="org-left">One-time setup before benchmarks (e.g. <code>asv machine --yes</code>)</td>
+</tr>
+
 
 <tr>
 <td class="org-left"><code>asv-spyglass-args</code></td>
@@ -228,12 +251,14 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
 <td class="org-left">Extra flags for asv-spyglass CLI</td>
 </tr>
 
+
 <tr>
 <td class="org-left"><code>regression-threshold</code></td>
 <td class="org-left">no</td>
 <td class="org-left"><code>10</code></td>
 <td class="org-left">Ratio for critical regression</td>
 </tr>
+
 
 <tr>
 <td class="org-left"><code>auto-draft-on-regression</code></td>
@@ -248,7 +273,7 @@ See [full documentation](https://asv-benchmark-commenter.rgoswami.me) for all
 inputs, outputs, and configuration details.
 
 
-<a id="orgd24b190"></a>
+<a id="org349966c"></a>
 
 # Why This Action
 
@@ -263,7 +288,7 @@ See [the
 full comparison](https://asv-benchmark-commenter.rgoswami.me/explanation/why_this_action.html) with CodSpeed, benchmark-action, and inline scripts.
 
 
-<a id="org58f9e53"></a>
+<a id="org1e6c75c"></a>
 
 ## Outputs
 
@@ -281,21 +306,25 @@ full comparison](https://asv-benchmark-commenter.rgoswami.me/explanation/why_thi
 <th scope="col" class="org-left">Description</th>
 </tr>
 </thead>
+
 <tbody>
 <tr>
 <td class="org-left"><code>comparison</code></td>
 <td class="org-left">Raw asv-spyglass comparison output</td>
 </tr>
 
+
 <tr>
 <td class="org-left"><code>regression-detected</code></td>
 <td class="org-left"><code>'true'</code> or <code>'false'</code></td>
 </tr>
 
+
 <tr>
 <td class="org-left"><code>comment-id</code></td>
 <td class="org-left">ID of created/updated comment</td>
 </tr>
+
 
 <tr>
 <td class="org-left"><code>pr-number</code></td>
@@ -305,7 +334,7 @@ full comparison](https://asv-benchmark-commenter.rgoswami.me/explanation/why_thi
 </table>
 
 
-<a id="orgd0b0ad1"></a>
+<a id="orgd2426ed"></a>
 
 # Development
 
@@ -318,8 +347,9 @@ Built with [bun](https://bun.sh) and TypeScript.
     bun run typecheck  # tsc --noEmit
 
 
-<a id="org40fa3e1"></a>
+<a id="org63d985b"></a>
 
 # License
 
 MIT
+
