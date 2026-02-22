@@ -282,12 +282,10 @@ export async function runComparison(
     return readFileSync(precomputed, 'utf-8')
   }
 
-  // Find benchmarks.json for asv-spyglass
+  // Find benchmarks.json for asv-spyglass (BCONF is a positional arg)
   const benchGlobber = await createGlob(`${resultsPath}/**/benchmarks.json`)
   const benchFiles = await benchGlobber.glob()
-  const benchmarksArg = benchFiles.length > 0
-    ? ['--benchmarks-path', benchFiles[0]]
-    : []
+  const bconfArg = benchFiles.length > 0 ? [benchFiles[0]] : []
 
   const spyglassUrl = `git+https://github.com/HaoZeke/asv_spyglass.git@${asvSpyglassRef}`
 
@@ -299,7 +297,7 @@ export async function runComparison(
       'asv-spyglass', 'compare',
       baseFile,
       prFile,
-      ...benchmarksArg,
+      ...bconfArg,
       '--label-before', labelBefore,
       '--label-after', labelAfter,
       ...extraArgs,
@@ -339,21 +337,21 @@ export async function runCompareMany(
   baselineLabel?: string,
   contenderLabels?: string[],
 ): Promise<string> {
-  // Find benchmarks.json for asv-spyglass
+  // Find benchmarks.json for asv-spyglass (--bconf flag for compare-many)
   const benchGlobber = await createGlob(`${resultsPath}/**/benchmarks.json`)
   const benchFiles = await benchGlobber.glob()
-  const benchmarksArg = benchFiles.length > 0
-    ? ['--benchmarks-path', benchFiles[0]]
+  const bconfArg = benchFiles.length > 0
+    ? ['--bconf', benchFiles[0]]
     : []
 
-  // Build label arguments
+  // Build label arguments (--label/-l, baseline first)
   const labelArgs: string[] = []
   if (baselineLabel) {
-    labelArgs.push('--label-baseline', baselineLabel)
+    labelArgs.push('--label', baselineLabel)
   }
   if (contenderLabels && contenderLabels.length > 0) {
     for (const label of contenderLabels) {
-      labelArgs.push('--label-contender', label)
+      labelArgs.push('--label', label)
     }
   }
 
@@ -367,7 +365,7 @@ export async function runCompareMany(
       'asv-spyglass', 'compare-many',
       baselineFile,
       ...contenderFiles,
-      ...benchmarksArg,
+      ...bconfArg,
       ...labelArgs,
       ...extraArgs,
     ],

@@ -34279,7 +34279,7 @@ async function vy(e, s, t, r, A, i, n = []) {
   const g = kB(t, "comparison.txt");
   if (Na(g))
     return Ye.info("Using pre-computed comparison.txt"), Ua(g, "utf-8");
-  const E = await (await Vn.create(`${t}/**/benchmarks.json`)).glob(), o = E.length > 0 ? ["--benchmarks-path", E[0]] : [], a = `git+https://github.com/HaoZeke/asv_spyglass.git@${i}`;
+  const E = await (await Vn.create(`${t}/**/benchmarks.json`)).glob(), o = E.length > 0 ? [E[0]] : [], a = `git+https://github.com/HaoZeke/asv_spyglass.git@${i}`;
   return Ye.info(`Running: uvx --from "${a}" asv-spyglass compare`), (await vr.getExecOutput(
     "uvx",
     [
@@ -34307,10 +34307,10 @@ async function mQ(e, s) {
   throw new Error(`No result file found for SHA prefix ${t} in ${e}`);
 }
 async function Gy(e, s, t, r, A = [], i, n) {
-  const c = await (await Vn.create(`${t}/**/benchmarks.json`)).glob(), E = c.length > 0 ? ["--benchmarks-path", c[0]] : [], o = [];
-  if (i && o.push("--label-baseline", i), n && n.length > 0)
+  const c = await (await Vn.create(`${t}/**/benchmarks.json`)).glob(), E = c.length > 0 ? ["--bconf", c[0]] : [], o = [];
+  if (i && o.push("--label", i), n && n.length > 0)
     for (const Q of n)
-      o.push("--label-contender", Q);
+      o.push("--label", Q);
   const a = `git+https://github.com/HaoZeke/asv_spyglass.git@${r}`;
   return Ye.info(`Running: uvx --from "${a}" asv-spyglass compare-many`), (await vr.getExecOutput(
     "uvx",
