@@ -1,0 +1,154 @@
+name: ASV Benchmark Commenter
+description: >-
+  Post formatted ASV benchmark comparison results as PR comments with
+  regression detection, emoji indicators, and collapsible sections.
+author: Rohit Goswami
+
+inputs:
+  github-token:
+    description: GitHub token for API access
+    required: true
+    default: ${{ github.token }}
+  results-path:
+    description: Path to downloaded ASV results directory
+    required: false
+  comparison-text-file:
+    description: >-
+      Path to pre-computed comparison output file. When provided, skips
+      running asv-spyglass entirely and uses this file as the raw output.
+    required: false
+  comparison-mode:
+    description: >-
+      Comparison mode: 'compare' for two-way (default) or 'compare-many'
+      for multi-way baseline vs multiple contenders.
+    required: false
+    default: compare
+  baseline-sha:
+    description: >-
+      For compare-many mode: the baseline commit SHA. Used to find the
+      baseline result file by SHA prefix.
+    required: false
+  contender-shas:
+    description: >-
+      For compare-many mode: comma-separated contender commit SHAs.
+      Used to find contender result files by SHA prefix.
+    required: false
+  baseline-file:
+    description: >-
+      For compare-many mode: direct path to baseline result JSON file.
+      Bypasses SHA-based lookup. Use this when comparing different
+      environments that ran the same commit.
+    required: false
+  contender-files:
+    description: >-
+      For compare-many mode: comma-separated direct paths to contender
+      result JSON files. Bypasses SHA-based lookup. Order must match
+      contender-labels if both are provided.
+    required: false
+  baseline:
+    description: >-
+      YAML config for the baseline entry. Fields: label, sha, file,
+      run-prefix (wrapper command, e.g. "pixi run -e bench"),
+      setup (sourced before command, e.g. "source ./env.sh"),
+      env, description. Execution: setup && run-prefix benchmark-command.
+    required: false
+  contenders:
+    description: >-
+      YAML list of contender objects for compare-many mode. Each object
+      has: label (required), sha or file (one required for comparison),
+      run-prefix (wrapper command), setup (sourced before command),
+      env, description. When provided, overrides contender-files/
+      contender-shas/contender-labels.
+    required: false
+  benchmark-command:
+    description: >-
+      Default shell command to run benchmarks. Use {sha} as placeholder
+      for the commit SHA. Each entry's run-prefix is prepended and
+      setup is sourced before. Contenders inherit this unless they
+      provide no sha.
+    required: false
+    default: 'asv run --record-samples {sha}^!'
+  baseline-label:
+    description: >-
+      For compare-many mode: label for the baseline column.
+    required: false
+  contender-labels:
+    description: >-
+      For compare-many mode: comma-separated labels for each contender,
+      matching the order of contender-shas (e.g. "opt-build,debug-build").
+    required: false
+  asv-spyglass-args:
+    description: >-
+      Extra CLI flags passed through to asv-spyglass (e.g. --split,
+      --only-changed, --only-regressed, --factor 1.2, --sort ratio).
+    required: false
+  base-sha:
+    description: Base commit SHA (overrides metadata-file)
+    required: false
+  pr-sha:
+    description: PR head commit SHA (overrides metadata-file)
+    required: false
+  base-file:
+    description: >-
+      Direct path to base result JSON file. Bypasses SHA-based file
+      lookup. Useful when files are not named by SHA prefix.
+    required: false
+  pr-file:
+    description: >-
+      Direct path to PR result JSON file. Bypasses SHA-based file
+      lookup. Useful when files are not named by SHA prefix.
+    required: false
+  metadata-file:
+    description: >-
+      Path to metadata.txt with main_sha=/base_sha= and pr_sha= lines.
+      Alternative to explicit SHA inputs.
+    required: false
+  regression-threshold:
+    description: Ratio above which a benchmark is a critical regression
+    required: false
+    default: '10'
+  auto-draft-on-regression:
+    description: Convert PR to draft when critical regression detected
+    required: false
+    default: 'false'
+  comment-marker:
+    description: HTML comment marker for idempotent updates
+    required: false
+    default: '<!-- asv-benchmark-result -->'
+  label-before:
+    description: Label for the base/before column
+    required: false
+    default: main
+  label-after:
+    description: Label for the head/after column
+    required: false
+    default: pr
+  asv-spyglass-ref:
+    description: Git ref for asv-spyglass install
+    required: false
+    default: enh-multiple-comparisons
+  runner-info:
+    description: Runner name shown in details section
+    required: false
+    default: ubuntu-latest
+  dashboard-url:
+    description: Link to ASV dashboard (optional)
+    required: false
+
+outputs:
+  comparison:
+    description: Raw asv-spyglass comparison output
+  regression-detected:
+    description: Whether a critical regression was detected
+  comment-id:
+    description: ID of the created or updated comment
+  pr-number:
+    description: Number of the associated pull request
+
+branding:
+  icon: bar-chart-2
+  color: orange
+
+runs:
+  using: node20
+  main: dist/index.js
