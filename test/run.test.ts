@@ -62,6 +62,7 @@ async function mockInputs(overrides: Record<string, string>): Promise<void> {
       'baseline': '',
       'contenders': '',
       'benchmark-command': '',
+      'init-command': '',
       'baseline-label': '',
       'contender-labels': '',
       'asv-spyglass-args': '',
@@ -386,6 +387,26 @@ describe('buildBenchmarkShellCommand', () => {
   it('works with no setup/prefix and custom command', () => {
     const cmd = buildBenchmarkShellCommand(undefined, undefined, 'def456', 'pixi run bench {sha}')
     expect(cmd).toBe('pixi run bench def456')
+  })
+
+  it('replaces {sha} in setup field', () => {
+    const cmd = buildBenchmarkShellCommand(
+      'git checkout -f {sha} && meson install',
+      'pixi run',
+      'abc123',
+      'asv run --record-samples {sha}^!',
+    )
+    expect(cmd).toBe('git checkout -f abc123 && meson install && pixi run asv run --record-samples abc123^!')
+  })
+
+  it('replaces {sha} in run-prefix field', () => {
+    const cmd = buildBenchmarkShellCommand(
+      undefined,
+      'nix develop .#{sha} -c',
+      'abc123',
+      'asv run {sha}^!',
+    )
+    expect(cmd).toBe('nix develop .#abc123 -c asv run abc123^!')
   })
 })
 

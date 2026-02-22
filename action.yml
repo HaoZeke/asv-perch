@@ -63,11 +63,16 @@ inputs:
   benchmark-command:
     description: >-
       Default shell command to run benchmarks. Use {sha} as placeholder
-      for the commit SHA. Each entry's run-prefix is prepended and
-      setup is sourced before. Contenders inherit this unless they
-      provide no sha.
+      for the commit SHA (replaced in setup, run-prefix, and command).
+      Each entry's run-prefix is prepended and setup is sourced before.
+      Entries without a sha field skip benchmarking.
     required: false
     default: 'asv run --record-samples {sha}^!'
+  init-command:
+    description: >-
+      Shell command to run once before any benchmarks. Use for one-time
+      setup like 'asv machine --yes' or stashing benchmark suites.
+    required: false
   baseline-label:
     description: >-
       For compare-many mode: label for the baseline column.

@@ -49,6 +49,7 @@ interface ResolvedInputs {
   baselineLabel: string
   contenderLabels: string[]
   benchmarkCommand: string
+  initCommand: string
   asvSpyglassArgs: string[]
   regressionThreshold: number
   autoDraftOnRegression: boolean
@@ -82,6 +83,7 @@ export function resolveInputs(): ResolvedInputs {
     ? contenderLabelsRaw.split(',').map((s) => s.trim()).filter(Boolean)
     : []
   const benchmarkCommand = getInput('benchmark-command') || ''
+  const initCommand = getInput('init-command') || ''
 
   // Normalize YAML-parsed objects: map kebab-case keys to camelCase
   function normalizeConfig<T>(raw: Record<string, unknown>): T {
@@ -190,6 +192,7 @@ export function resolveInputs(): ResolvedInputs {
     baselineLabel,
     contenderLabels: contenderLabelsList,
     benchmarkCommand,
+    initCommand,
     asvSpyglassArgs,
     regressionThreshold: Number.parseFloat(getInput('regression-threshold') || '10'),
     autoDraftOnRegression: getInput('auto-draft-on-regression') === 'true',
@@ -364,35 +367,49 @@ export function buildBenchmarkShellCommand(
   benchmarkCommand: string,
 ): string {
   const cmd = benchmarkCommand.replace(/\{sha\}/g, sha)
-  const benchCmd = runPrefix ? `${runPrefix} ${cmd}` : cmd
-  if (setup) {
-    return `${setup} && ${benchCmd}`
+  const resolvedSetup = setup?.replace(/\{sha\}/g, sha)
+  const resolvedPrefix = runPrefix?.replace(/\{sha\}/g, sha)
+  const benchCmd = resolvedPrefix ? `${resolvedPrefix} ${cmd}` : cmd
+  if (resolvedSetup) {
+    return `${resolvedSetup} && ${benchCmd}`
   }
   return benchCmd
 }
 
-// Execute benchmark commands for all entries that have setup/run-prefix/sha
+// Execute benchmark commands for all entries that have setup/run-prefix/sha.
+// Baseline runs first, then contenders run in parallel.
 export async function executeBenchmarks(
   baselineConfig: BaselineConfig | null,
   contenderConfigs: ContenderConfig[],
   benchmarkCommand: string,
+  initCommand?: string,
 ): Promise<void> {
   const template = benchmarkCommand || DEFAULT_BENCHMARK_COMMAND
 
-  // Run baseline benchmark
+  // Run init command once (e.g. asv machine --yes)
+  if (initCommand) {
+    info(`Running init command: ${initCommand}`)
+    await exec('bash', ['-c', initCommand])
+  }
+
+  // Run baseline benchmark first
   if (baselineConfig?.sha && (baselineConfig.setup || baselineConfig.runPrefix || benchmarkCommand)) {
     const cmd = buildBenchmarkShellCommand(baselineConfig.setup, baselineConfig.runPrefix, baselineConfig.sha, template)
     info(`Running baseline benchmark: ${cmd}`)
     await exec('bash', ['-c', cmd])
   }
 
-  // Run contender benchmarks
-  for (const contender of contenderConfigs) {
-    if (contender.sha && (contender.setup || contender.runPrefix || benchmarkCommand)) {
-      const cmd = buildBenchmarkShellCommand(contender.setup, contender.runPrefix, contender.sha, template)
+  // Run contender benchmarks in parallel
+  const contenderTasks = contenderConfigs
+    .filter((c) => c.sha && (c.setup || c.runPrefix || benchmarkCommand))
+    .map(async (contender) => {
+      const cmd = buildBenchmarkShellCommand(contender.setup, contender.runPrefix, contender.sha!, template)
       info(`Running benchmark for "${contender.label}": ${cmd}`)
       await exec('bash', ['-c', cmd])
-    }
+    })
+
+  if (contenderTasks.length > 0) {
+    await Promise.all(contenderTasks)
   }
 }
 
@@ -519,6 +536,7 @@ export async function run(): Promise<void> {
         inputs.baselineConfig,
         inputs.contenderConfigs,
         inputs.benchmarkCommand,
+        inputs.initCommand || undefined,
       )
     }
 
