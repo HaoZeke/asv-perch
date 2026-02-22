@@ -211,7 +211,7 @@ for this file before attempting to run asv-spyglass:</p>
 <p>Use the <code class="docutils literal notranslate"><span class="pre">comparison-text-file</span></code> input to point to any file path. This is more
 explicit and does not require the file to be inside <code class="docutils literal notranslate"><span class="pre">results-path</span></code>:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Post benchmark comment</span>
-</span><span data-line="2"><span class="w">  </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HaoZekte/asv-benchmark-commenter@v1</span>
+</span><span data-line="2"><span class="w">  </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HaoZeke/asv-benchmark-commenter@v1</span>
 </span><span data-line="3"><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
 </span><span data-line="4"><span class="w">    </span><span class="nt">github-token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
 </span><span data-line="5"><span class="w">    </span><span class="nt">comparison-text-file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">comparison.txt</span>

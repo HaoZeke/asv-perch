@@ -229,14 +229,30 @@ Field Reference
     and ``baseline-label``.
 
 ``contenders``
-    YAML list of contender objects for ``compare-many`` mode.
-    Each object accepts the same fields as ``baseline`` (label, sha, file,
-    run-prefix, setup, env, description). When provided, this overrides
-    ``contender-shas``, ``contender-files``, and ``contender-labels``.
+    YAML list of contender objects. Each object accepts the
+    same fields as ``baseline`` (label, sha, file, run-prefix, setup, env,
+    description). Works in both ``compare`` mode (first contender used as the
+    "after" side) and ``compare-many`` mode (all contenders compared against
+    baseline). When provided, this overrides ``contender-shas``,
+    ``contender-files``, and ``contender-labels``.
 
 ``init-command``
     Shell command run once before any benchmarks. Use for
     one-time setup like ``asv machine --yes`` or stashing benchmark suites.
+
+``preserve-paths``
+    Comma-separated paths to preserve across git checkouts.
+    When an entry has a ``sha`` field, the action runs
+    ``git checkout -f {sha} && git clean -fd`` automatically. These paths are
+    stashed to ``/tmp`` before checkout and restored after. Example:
+
+.. code:: yaml
+
+    preserve-paths: benchmarks/, asv.conf.json
+
+This eliminates the need for manual ``cp`` / ``stash`` boilerplate in ``setup``.
+Without ``preserve-paths``, the action does not run ``git checkout`` at all --
+the ``setup`` field must handle it.
 
 ``benchmark-command``
     Shell command template for running benchmarks.
@@ -251,22 +267,24 @@ Field Reference
 
     benchmark-command: 'asv run --quick {sha}^!'
 
-Full Pipeline with C++ Build (setup + run-prefix)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Full Pipeline with C++ Build (Single Job)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use ``preserve-paths`` to automatically stash/restore files across git
+checkouts. The ``setup`` field handles only the build -- no checkout or copy
+boilerplate needed.
 
 .. code:: yaml
 
     - uses: prefix-dev/setup-pixi@v0.8.10
       with:
         activate-environment: true
-    - name: Stash benchmarks
-      run: cp -r benchmarks /tmp/benchmarks && cp asv.conf.json /tmp/asv.conf.json
-    - name: Benchmark and compare
-      uses: HaoZeke/asv-benchmark-commenter@v1
+    - uses: HaoZeke/asv-benchmark-commenter@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         results-path: .asv/results/
         init-command: pixi run bash -c "pip install asv && asv machine --yes"
+        preserve-paths: benchmarks/, asv.conf.json
         benchmark-command: >-
           asv run -E "existing:$(which python)"
           --set-commit-hash {sha} --record-samples --quick
@@ -274,31 +292,109 @@ Full Pipeline with C++ Build (setup + run-prefix)
           label: main
           sha: ${{ github.event.pull_request.base.sha }}
           setup: >-
-            git checkout -f {sha} && git clean -fd &&
-            cp -r /tmp/benchmarks benchmarks &&
-            cp /tmp/asv.conf.json asv.conf.json &&
-            pixi run meson setup bbdir --prefix=$CONDA_PREFIX
-            --buildtype release --wipe 2>/dev/null ||
-            pixi run meson setup bbdir --prefix=$CONDA_PREFIX
-            --buildtype release &&
+            pixi run bash -c "meson setup bbdir
+            --prefix=$CONDA_PREFIX --libdir=lib
+            --buildtype release --wipe 2>/dev/null
+            || meson setup bbdir --prefix=$CONDA_PREFIX
+            --libdir=lib --buildtype release" &&
             pixi run meson install -C bbdir
           run-prefix: pixi run
         contenders: |
           - label: pr
             sha: ${{ github.event.pull_request.head.sha }}
             setup: >-
-              git checkout -f {sha} && git clean -fd &&
-              cp -r /tmp/benchmarks benchmarks &&
-              cp /tmp/asv.conf.json asv.conf.json &&
-              pixi run meson setup bbdir --prefix=$CONDA_PREFIX
-              --buildtype release --wipe 2>/dev/null ||
-              pixi run meson setup bbdir --prefix=$CONDA_PREFIX
-              --buildtype release &&
+              pixi run bash -c "meson setup bbdir
+              --prefix=$CONDA_PREFIX --libdir=lib
+              --buildtype release --wipe 2>/dev/null
+              || meson setup bbdir --prefix=$CONDA_PREFIX
+              --libdir=lib --buildtype release" &&
               pixi run meson install -C bbdir
             run-prefix: pixi run
         label-before: main
         label-after: pr
         runner-info: ubuntu-22.04
+
+Full Pipeline with C++ Build (Matrix -- Parallel)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For parallel execution, use a matrix strategy with a combine job. Each SHA
+gets its own runner. The commenter downloads combined results.
+
+.. code:: yaml
+
+    jobs:
+      benchmark:
+        strategy:
+          fail-fast: false
+          matrix:
+            include:
+              - label: main
+                sha: ${{ github.event.pull_request.base.sha }}
+              - label: pr
+                sha: ${{ github.event.pull_request.head.sha }}
+        runs-on: ubuntu-22.04
+        steps:
+          - uses: actions/checkout@v4
+            with:
+              fetch-depth: 0
+          - name: Checkout target
+            run: |
+              mkdir -p /tmp/_bench_preserve
+              cp -r benchmarks/ /tmp/_bench_preserve/
+              cp asv.conf.json /tmp/_bench_preserve/
+              git checkout -f ${{ matrix.sha }}
+              git clean -fd
+              cp -r /tmp/_bench_preserve/benchmarks/ benchmarks/
+              cp /tmp/_bench_preserve/asv.conf.json asv.conf.json
+          - uses: prefix-dev/setup-pixi@v0.8.10
+            with:
+              activate-environment: true
+          - name: Build and benchmark
+            run: |
+              pixi run bash -c "meson setup bbdir \
+                --prefix=$CONDA_PREFIX --libdir=lib \
+                --buildtype release --wipe 2>/dev/null \
+                || meson setup bbdir --prefix=$CONDA_PREFIX \
+                --libdir=lib --buildtype release"
+              pixi run meson install -C bbdir
+              pixi run bash -c "pip install asv && asv machine --yes"
+              pixi run asv run -E "existing:$(which python)" \
+                --set-commit-hash ${{ matrix.sha }} \
+                --record-samples --quick
+          - uses: actions/upload-artifact@v4
+            with:
+              name: bench-${{ matrix.label }}
+              path: .asv/results/
+
+      combine:
+        needs: benchmark
+        runs-on: ubuntu-latest
+        steps:
+          - uses: astral-sh/setup-uv@v5
+          - uses: actions/download-artifact@v4
+            with:
+              name: bench-main
+              path: results/
+          - uses: actions/download-artifact@v4
+            with:
+              name: bench-pr
+              path: results/
+          - name: Compare and write metadata
+            run: |
+              BASE_FILE=$(find results -name "${{ github.event.pull_request.base.sha | truncate 8 }}*.json" | head -1)
+              PR_FILE=$(find results -name "${{ github.event.pull_request.head.sha | truncate 8 }}*.json" | head -1)
+              uvx --from "git+https://github.com/HaoZeke/asv_spyglass.git@enh-multiple-comparisons" \
+                asv-spyglass compare "$BASE_FILE" "$PR_FILE" \
+                --label-before main --label-after pr > results/comparison.txt
+              echo "main_sha=${{ github.event.pull_request.base.sha }}" > results/metadata.txt
+              echo "pr_sha=${{ github.event.pull_request.head.sha }}" >> results/metadata.txt
+          - uses: actions/upload-artifact@v4
+            with:
+              name: benchmark-results
+              path: results/
+
+The commenter workflow then downloads ``benchmark-results`` and posts the
+comment. See the `Getting Started <../../tutorials/asv_getting_started.rst>`_ tutorial.
 
 Pre-computed Output
 ~~~~~~~~~~~~~~~~~~~
@@ -325,11 +421,12 @@ Comparison Options
 
 ``baseline-label``
     Label for the baseline column in ``compare-many`` mode.
-    Passed to ``asv-spyglass compare-many --label-baseline``.
+    Passed to ``asv-spyglass compare-many --label`` (baseline first).
 
 ``contender-labels``
     Comma-separated labels for each contender, matching
-    the order of ``contender-shas``. Passed to ``asv-spyglass compare-many --label-contender``.
+    the order of ``contender-shas``. Each label is passed as an additional
+    ``--label`` argument to ``asv-spyglass compare-many``.
 
 ``asv-spyglass-args``
     Extra CLI flags passed through to asv-spyglass

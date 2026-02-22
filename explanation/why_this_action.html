@@ -105,7 +105,11 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#feature-comparison">Feature Comparison</a></li>
 <li><a class="reference internal" href="#when-to-use-this-action">When to Use This Action</a></li>
 <li><a class="reference internal" href="#when-to-consider-alternatives">When to Consider Alternatives</a></li>
-<li><a class="reference internal" href="#architecture">Architecture</a></li>
+<li><a class="reference internal" href="#architecture">Architecture</a><ul>
+<li><a class="reference internal" href="#presentation-layer-recommended-for-complex-setups">Presentation Layer (Recommended for Complex Setups)</a></li>
+<li><a class="reference internal" href="#full-pipeline-simplest-setup">Full Pipeline (Simplest Setup)</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#asv-and-asv-spyglass">ASV and asv-spyglass</a></li>
 </ul>
 </div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
@@ -282,14 +286,12 @@ and you do not need statistical testing or structured formatting.</p></li>
 </section>
 <section id="architecture">
 <h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">¶</a></h2>
-<p>This action is a presentation layer. It does not:</p>
-<ul class="simple">
-<li><p>Build your project</p></li>
-<li><p>Manage environments</p></li>
-<li><p>Run benchmarks</p></li>
-<li><p>Control which Python, compiler, or tools you use</p></li>
-</ul>
-<p>It takes ASV result files (produced however you want) and:</p>
+<p>The action operates in two modes:</p>
+<section id="presentation-layer-recommended-for-complex-setups">
+<h3>Presentation Layer (Recommended for Complex Setups)<a class="headerlink" href="#presentation-layer-recommended-for-complex-setups" title="Link to this heading">¶</a></h3>
+<p>Hand the action pre-existing result files or pre-computed asv-spyglass output.
+The action never builds, never creates environments, never runs benchmarks.
+It takes ASV result files (produced however you want) and:</p>
 <ol class="arabic simple">
 <li><p>Runs <code class="docutils literal notranslate"><span class="pre">asv-spyglass</span></code> to compare them (or reads pre-computed output)</p></li>
 <li><p>Parses the table</p></li>
@@ -297,8 +299,21 @@ and you do not need statistical testing or structured formatting.</p></li>
 <li><p>Posts it via the GitHub API</p></li>
 </ol>
 <p>This separation means the action works with any build system, any runner,
-any environment. The benchmark workflow has full control; the commenter
-workflow is a thin formatting + posting layer.</p>
+any environment. Pair it with a matrix strategy for parallel benchmark
+execution on separate runners.</p>
+</section>
+<section id="full-pipeline-simplest-setup">
+<h3>Full Pipeline (Simplest Setup)<a class="headerlink" href="#full-pipeline-simplest-setup" title="Link to this heading">¶</a></h3>
+<p>The action can also run benchmarks for you via <code class="docutils literal notranslate"><span class="pre">baseline</span></code> / <code class="docutils literal notranslate"><span class="pre">contenders</span></code>
+YAML inputs. Each entry specifies how to activate its environment
+(<code class="docutils literal notranslate"><span class="pre">run-prefix</span></code> for pixi/conda/nix, <code class="docutils literal notranslate"><span class="pre">setup</span></code> for source-based envs). The
+action handles git checkout (via <code class="docutils literal notranslate"><span class="pre">preserve-paths</span></code>), one-time init (via
+<code class="docutils literal notranslate"><span class="pre">init-command</span></code>), and the ASV invocation. You never write the <code class="docutils literal notranslate"><span class="pre">asv</span> <span class="pre">run</span></code>
+command yourself.</p>
+<p>The action still never manages your build environment. You bring your own
+pixi, conda, nix, virtualenv, or whatever – the action just wraps the
+benchmark command with the right environment activation.</p>
+</section>
 </section>
 <section id="asv-and-asv-spyglass">
 <h2>ASV and asv-spyglass<a class="headerlink" href="#asv-and-asv-spyglass" title="Link to this heading">¶</a></h2>

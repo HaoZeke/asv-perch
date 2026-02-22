@@ -129,7 +129,8 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#field-reference">Field Reference</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#full-pipeline-with-c-build-setup-run-prefix">Full Pipeline with C++ Build (setup + run-prefix)</a></li>
+<li><a class="reference internal" href="#full-pipeline-with-c-build-single-job">Full Pipeline with C++ Build (Single Job)</a></li>
+<li><a class="reference internal" href="#full-pipeline-with-c-build-matrix-parallel">Full Pipeline with C++ Build (Matrix &#8211; Parallel)</a></li>
 <li><a class="reference internal" href="#pre-computed-output">Pre-computed Output</a></li>
 <li><a class="reference internal" href="#comparison-options">Comparison Options</a></li>
 <li><a class="reference internal" href="#regression-detection">Regression Detection</a></li>
@@ -405,14 +406,29 @@ build, and benchmark for each entry.</p>
 <p>When <code class="docutils literal notranslate"><span class="pre">baseline</span></code> is provided, it overrides <code class="docutils literal notranslate"><span class="pre">baseline-sha</span></code>, <code class="docutils literal notranslate"><span class="pre">baseline-file</span></code>,
 and <code class="docutils literal notranslate"><span class="pre">baseline-label</span></code>.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">contenders</span></code></dt><dd><p>YAML list of contender objects for <code class="docutils literal notranslate"><span class="pre">compare-many</span></code> mode.
-Each object accepts the same fields as <code class="docutils literal notranslate"><span class="pre">baseline</span></code> (label, sha, file,
-run-prefix, setup, env, description). When provided, this overrides
-<code class="docutils literal notranslate"><span class="pre">contender-shas</span></code>, <code class="docutils literal notranslate"><span class="pre">contender-files</span></code>, and <code class="docutils literal notranslate"><span class="pre">contender-labels</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">contenders</span></code></dt><dd><p>YAML list of contender objects. Each object accepts the
+same fields as <code class="docutils literal notranslate"><span class="pre">baseline</span></code> (label, sha, file, run-prefix, setup, env,
+description). Works in both <code class="docutils literal notranslate"><span class="pre">compare</span></code> mode (first contender used as the
+“after” side) and <code class="docutils literal notranslate"><span class="pre">compare-many</span></code> mode (all contenders compared against
+baseline). When provided, this overrides <code class="docutils literal notranslate"><span class="pre">contender-shas</span></code>,
+<code class="docutils literal notranslate"><span class="pre">contender-files</span></code>, and <code class="docutils literal notranslate"><span class="pre">contender-labels</span></code>.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">init-command</span></code></dt><dd><p>Shell command run once before any benchmarks. Use for
 one-time setup like <code class="docutils literal notranslate"><span class="pre">asv</span> <span class="pre">machine</span> <span class="pre">--yes</span></code> or stashing benchmark suites.</p>
 </dd>
+<dt><code class="docutils literal notranslate"><span class="pre">preserve-paths</span></code></dt><dd><p>Comma-separated paths to preserve across git checkouts.
+When an entry has a <code class="docutils literal notranslate"><span class="pre">sha</span></code> field, the action runs
+<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">-f</span> <span class="pre">{sha}</span> <span class="pre">&amp;&amp;</span> <span class="pre">git</span> <span class="pre">clean</span> <span class="pre">-fd</span></code> automatically. These paths are
+stashed to <code class="docutils literal notranslate"><span class="pre">/tmp</span></code> before checkout and restored after. Example:</p>
+</dd>
+</dl>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nt">preserve-paths</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">benchmarks/, asv.conf.json</span>
+</span></pre></div>
+</div>
+<p>This eliminates the need for manual <code class="docutils literal notranslate"><span class="pre">cp</span></code> / <code class="docutils literal notranslate"><span class="pre">stash</span></code> boilerplate in <code class="docutils literal notranslate"><span class="pre">setup</span></code>.
+Without <code class="docutils literal notranslate"><span class="pre">preserve-paths</span></code>, the action does not run <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span></code> at all –
+the <code class="docutils literal notranslate"><span class="pre">setup</span></code> field must handle it.</p>
+<dl>
 <dt><code class="docutils literal notranslate"><span class="pre">benchmark-command</span></code></dt><dd><p>Shell command template for running benchmarks.
 Default: <code class="docutils literal notranslate"><span class="pre">asv</span> <span class="pre">run</span> <span class="pre">--record-samples</span> <span class="pre">{sha}^!</span></code>. The placeholder <code class="docutils literal notranslate"><span class="pre">{sha}</span></code> is
 replaced in this field, <code class="docutils literal notranslate"><span class="pre">setup</span></code>, and <code class="docutils literal notranslate"><span class="pre">run-prefix</span></code>. Each entry’s
@@ -426,53 +442,129 @@ Entries without a <code class="docutils literal notranslate"><span class="pre">s
 </div>
 </section>
 </section>
-<section id="full-pipeline-with-c-build-setup-run-prefix">
-<h3>Full Pipeline with C++ Build (setup + run-prefix)<a class="headerlink" href="#full-pipeline-with-c-build-setup-run-prefix" title="Link to this heading">¶</a></h3>
+<section id="full-pipeline-with-c-build-single-job">
+<h3>Full Pipeline with C++ Build (Single Job)<a class="headerlink" href="#full-pipeline-with-c-build-single-job" title="Link to this heading">¶</a></h3>
+<p>Use <code class="docutils literal notranslate"><span class="pre">preserve-paths</span></code> to automatically stash/restore files across git
+checkouts. The <code class="docutils literal notranslate"><span class="pre">setup</span></code> field handles only the build – no checkout or copy
+boilerplate needed.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prefix-dev/setup-pixi@v0.8.10</span>
 </span><span data-line="2"><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
 </span><span data-line="3"><span class="w">    </span><span class="nt">activate-environment</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span><span data-line="4"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Stash benchmarks</span>
-</span><span data-line="5"><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cp -r benchmarks /tmp/benchmarks &amp;&amp; cp asv.conf.json /tmp/asv.conf.json</span>
-</span><span data-line="6"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Benchmark and compare</span>
-</span><span data-line="7"><span class="w">  </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HaoZeke/asv-benchmark-commenter@v1</span>
-</span><span data-line="8"><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
-</span><span data-line="9"><span class="w">    </span><span class="nt">github-token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
-</span><span data-line="10"><span class="w">    </span><span class="nt">results-path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.asv/results/</span>
-</span><span data-line="11"><span class="w">    </span><span class="nt">init-command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pixi run bash -c &quot;pip install asv &amp;&amp; asv machine --yes&quot;</span>
-</span><span data-line="12"><span class="w">    </span><span class="nt">benchmark-command</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">&gt;-</span>
-</span><span data-line="13"><span class="w">      </span><span class="no">asv run -E &quot;existing:$(which python)&quot;</span>
-</span><span data-line="14"><span class="w">      </span><span class="no">--set-commit-hash {sha} --record-samples --quick</span>
-</span><span data-line="15"><span class="w">    </span><span class="nt">baseline</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-</span><span data-line="16"><span class="w">      </span><span class="no">label: main</span>
-</span><span data-line="17"><span class="w">      </span><span class="no">sha: ${{ github.event.pull_request.base.sha }}</span>
-</span><span data-line="18"><span class="w">      </span><span class="no">setup: &gt;-</span>
-</span><span data-line="19"><span class="w">        </span><span class="no">git checkout -f {sha} &amp;&amp; git clean -fd &amp;&amp;</span>
-</span><span data-line="20"><span class="w">        </span><span class="no">cp -r /tmp/benchmarks benchmarks &amp;&amp;</span>
-</span><span data-line="21"><span class="w">        </span><span class="no">cp /tmp/asv.conf.json asv.conf.json &amp;&amp;</span>
-</span><span data-line="22"><span class="w">        </span><span class="no">pixi run meson setup bbdir --prefix=$CONDA_PREFIX</span>
-</span><span data-line="23"><span class="w">        </span><span class="no">--buildtype release --wipe 2&gt;/dev/null ||</span>
-</span><span data-line="24"><span class="w">        </span><span class="no">pixi run meson setup bbdir --prefix=$CONDA_PREFIX</span>
-</span><span data-line="25"><span class="w">        </span><span class="no">--buildtype release &amp;&amp;</span>
-</span><span data-line="26"><span class="w">        </span><span class="no">pixi run meson install -C bbdir</span>
-</span><span data-line="27"><span class="w">      </span><span class="no">run-prefix: pixi run</span>
-</span><span data-line="28"><span class="w">    </span><span class="nt">contenders</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-</span><span data-line="29"><span class="w">      </span><span class="no">- label: pr</span>
-</span><span data-line="30"><span class="w">        </span><span class="no">sha: ${{ github.event.pull_request.head.sha }}</span>
-</span><span data-line="31"><span class="w">        </span><span class="no">setup: &gt;-</span>
-</span><span data-line="32"><span class="w">          </span><span class="no">git checkout -f {sha} &amp;&amp; git clean -fd &amp;&amp;</span>
-</span><span data-line="33"><span class="w">          </span><span class="no">cp -r /tmp/benchmarks benchmarks &amp;&amp;</span>
-</span><span data-line="34"><span class="w">          </span><span class="no">cp /tmp/asv.conf.json asv.conf.json &amp;&amp;</span>
-</span><span data-line="35"><span class="w">          </span><span class="no">pixi run meson setup bbdir --prefix=$CONDA_PREFIX</span>
-</span><span data-line="36"><span class="w">          </span><span class="no">--buildtype release --wipe 2&gt;/dev/null ||</span>
-</span><span data-line="37"><span class="w">          </span><span class="no">pixi run meson setup bbdir --prefix=$CONDA_PREFIX</span>
-</span><span data-line="38"><span class="w">          </span><span class="no">--buildtype release &amp;&amp;</span>
-</span><span data-line="39"><span class="w">          </span><span class="no">pixi run meson install -C bbdir</span>
-</span><span data-line="40"><span class="w">        </span><span class="no">run-prefix: pixi run</span>
-</span><span data-line="41"><span class="w">    </span><span class="nt">label-before</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">main</span>
-</span><span data-line="42"><span class="w">    </span><span class="nt">label-after</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pr</span>
-</span><span data-line="43"><span class="w">    </span><span class="nt">runner-info</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-22.04</span>
+</span><span data-line="4"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HaoZeke/asv-benchmark-commenter@v1</span>
+</span><span data-line="5"><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="6"><span class="w">    </span><span class="nt">github-token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
+</span><span data-line="7"><span class="w">    </span><span class="nt">results-path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.asv/results/</span>
+</span><span data-line="8"><span class="w">    </span><span class="nt">init-command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pixi run bash -c &quot;pip install asv &amp;&amp; asv machine --yes&quot;</span>
+</span><span data-line="9"><span class="w">    </span><span class="nt">preserve-paths</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">benchmarks/, asv.conf.json</span>
+</span><span data-line="10"><span class="w">    </span><span class="nt">benchmark-command</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">&gt;-</span>
+</span><span data-line="11"><span class="w">      </span><span class="no">asv run -E &quot;existing:$(which python)&quot;</span>
+</span><span data-line="12"><span class="w">      </span><span class="no">--set-commit-hash {sha} --record-samples --quick</span>
+</span><span data-line="13"><span class="w">    </span><span class="nt">baseline</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="14"><span class="w">      </span><span class="no">label: main</span>
+</span><span data-line="15"><span class="w">      </span><span class="no">sha: ${{ github.event.pull_request.base.sha }}</span>
+</span><span data-line="16"><span class="w">      </span><span class="no">setup: &gt;-</span>
+</span><span data-line="17"><span class="w">        </span><span class="no">pixi run bash -c &quot;meson setup bbdir</span>
+</span><span data-line="18"><span class="w">        </span><span class="no">--prefix=$CONDA_PREFIX --libdir=lib</span>
+</span><span data-line="19"><span class="w">        </span><span class="no">--buildtype release --wipe 2&gt;/dev/null</span>
+</span><span data-line="20"><span class="w">        </span><span class="no">|| meson setup bbdir --prefix=$CONDA_PREFIX</span>
+</span><span data-line="21"><span class="w">        </span><span class="no">--libdir=lib --buildtype release&quot; &amp;&amp;</span>
+</span><span data-line="22"><span class="w">        </span><span class="no">pixi run meson install -C bbdir</span>
+</span><span data-line="23"><span class="w">      </span><span class="no">run-prefix: pixi run</span>
+</span><span data-line="24"><span class="w">    </span><span class="nt">contenders</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="25"><span class="w">      </span><span class="no">- label: pr</span>
+</span><span data-line="26"><span class="w">        </span><span class="no">sha: ${{ github.event.pull_request.head.sha }}</span>
+</span><span data-line="27"><span class="w">        </span><span class="no">setup: &gt;-</span>
+</span><span data-line="28"><span class="w">          </span><span class="no">pixi run bash -c &quot;meson setup bbdir</span>
+</span><span data-line="29"><span class="w">          </span><span class="no">--prefix=$CONDA_PREFIX --libdir=lib</span>
+</span><span data-line="30"><span class="w">          </span><span class="no">--buildtype release --wipe 2&gt;/dev/null</span>
+</span><span data-line="31"><span class="w">          </span><span class="no">|| meson setup bbdir --prefix=$CONDA_PREFIX</span>
+</span><span data-line="32"><span class="w">          </span><span class="no">--libdir=lib --buildtype release&quot; &amp;&amp;</span>
+</span><span data-line="33"><span class="w">          </span><span class="no">pixi run meson install -C bbdir</span>
+</span><span data-line="34"><span class="w">        </span><span class="no">run-prefix: pixi run</span>
+</span><span data-line="35"><span class="w">    </span><span class="nt">label-before</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">main</span>
+</span><span data-line="36"><span class="w">    </span><span class="nt">label-after</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pr</span>
+</span><span data-line="37"><span class="w">    </span><span class="nt">runner-info</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-22.04</span>
 </span></pre></div>
 </div>
+</section>
+<section id="full-pipeline-with-c-build-matrix-parallel">
+<h3>Full Pipeline with C++ Build (Matrix – Parallel)<a class="headerlink" href="#full-pipeline-with-c-build-matrix-parallel" title="Link to this heading">¶</a></h3>
+<p>For parallel execution, use a matrix strategy with a combine job. Each SHA
+gets its own runner. The commenter downloads combined results.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nt">jobs</span><span class="p">:</span>
+</span><span data-line="2"><span class="w">  </span><span class="nt">benchmark</span><span class="p">:</span>
+</span><span data-line="3"><span class="w">    </span><span class="nt">strategy</span><span class="p">:</span>
+</span><span data-line="4"><span class="w">      </span><span class="nt">fail-fast</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span data-line="5"><span class="w">      </span><span class="nt">matrix</span><span class="p">:</span>
+</span><span data-line="6"><span class="w">        </span><span class="nt">include</span><span class="p">:</span>
+</span><span data-line="7"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">main</span>
+</span><span data-line="8"><span class="w">            </span><span class="nt">sha</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ github.event.pull_request.base.sha }}</span>
+</span><span data-line="9"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pr</span>
+</span><span data-line="10"><span class="w">            </span><span class="nt">sha</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ github.event.pull_request.head.sha }}</span>
+</span><span data-line="11"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-22.04</span>
+</span><span data-line="12"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span data-line="13"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+</span><span data-line="14"><span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="15"><span class="w">          </span><span class="nt">fetch-depth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+</span><span data-line="16"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Checkout target</span>
+</span><span data-line="17"><span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="18"><span class="w">          </span><span class="no">mkdir -p /tmp/_bench_preserve</span>
+</span><span data-line="19"><span class="w">          </span><span class="no">cp -r benchmarks/ /tmp/_bench_preserve/</span>
+</span><span data-line="20"><span class="w">          </span><span class="no">cp asv.conf.json /tmp/_bench_preserve/</span>
+</span><span data-line="21"><span class="w">          </span><span class="no">git checkout -f ${{ matrix.sha }}</span>
+</span><span data-line="22"><span class="w">          </span><span class="no">git clean -fd</span>
+</span><span data-line="23"><span class="w">          </span><span class="no">cp -r /tmp/_bench_preserve/benchmarks/ benchmarks/</span>
+</span><span data-line="24"><span class="w">          </span><span class="no">cp /tmp/_bench_preserve/asv.conf.json asv.conf.json</span>
+</span><span data-line="25"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prefix-dev/setup-pixi@v0.8.10</span>
+</span><span data-line="26"><span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="27"><span class="w">          </span><span class="nt">activate-environment</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span data-line="28"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Build and benchmark</span>
+</span><span data-line="29"><span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="30"><span class="w">          </span><span class="no">pixi run bash -c &quot;meson setup bbdir \</span>
+</span><span data-line="31"><span class="w">            </span><span class="no">--prefix=$CONDA_PREFIX --libdir=lib \</span>
+</span><span data-line="32"><span class="w">            </span><span class="no">--buildtype release --wipe 2&gt;/dev/null \</span>
+</span><span data-line="33"><span class="w">            </span><span class="no">|| meson setup bbdir --prefix=$CONDA_PREFIX \</span>
+</span><span data-line="34"><span class="w">            </span><span class="no">--libdir=lib --buildtype release&quot;</span>
+</span><span data-line="35"><span class="w">          </span><span class="no">pixi run meson install -C bbdir</span>
+</span><span data-line="36"><span class="w">          </span><span class="no">pixi run bash -c &quot;pip install asv &amp;&amp; asv machine --yes&quot;</span>
+</span><span data-line="37"><span class="w">          </span><span class="no">pixi run asv run -E &quot;existing:$(which python)&quot; \</span>
+</span><span data-line="38"><span class="w">            </span><span class="no">--set-commit-hash ${{ matrix.sha }} \</span>
+</span><span data-line="39"><span class="w">            </span><span class="no">--record-samples --quick</span>
+</span><span data-line="40"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/upload-artifact@v4</span>
+</span><span data-line="41"><span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="42"><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bench-${{ matrix.label }}</span>
+</span><span data-line="43"><span class="w">          </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.asv/results/</span>
+</span><span data-line="44">
+</span><span data-line="45"><span class="w">  </span><span class="nt">combine</span><span class="p">:</span>
+</span><span data-line="46"><span class="w">    </span><span class="nt">needs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">benchmark</span>
+</span><span data-line="47"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span data-line="48"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span data-line="49"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">astral-sh/setup-uv@v5</span>
+</span><span data-line="50"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/download-artifact@v4</span>
+</span><span data-line="51"><span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="52"><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bench-main</span>
+</span><span data-line="53"><span class="w">          </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/</span>
+</span><span data-line="54"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/download-artifact@v4</span>
+</span><span data-line="55"><span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="56"><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bench-pr</span>
+</span><span data-line="57"><span class="w">          </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/</span>
+</span><span data-line="58"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Compare and write metadata</span>
+</span><span data-line="59"><span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="60"><span class="w">          </span><span class="no">BASE_FILE=$(find results -name &quot;${{ github.event.pull_request.base.sha | truncate 8 }}*.json&quot; | head -1)</span>
+</span><span data-line="61"><span class="w">          </span><span class="no">PR_FILE=$(find results -name &quot;${{ github.event.pull_request.head.sha | truncate 8 }}*.json&quot; | head -1)</span>
+</span><span data-line="62"><span class="w">          </span><span class="no">uvx --from &quot;git+https://github.com/HaoZeke/asv_spyglass.git@enh-multiple-comparisons&quot; \</span>
+</span><span data-line="63"><span class="w">            </span><span class="no">asv-spyglass compare &quot;$BASE_FILE&quot; &quot;$PR_FILE&quot; \</span>
+</span><span data-line="64"><span class="w">            </span><span class="no">--label-before main --label-after pr &gt; results/comparison.txt</span>
+</span><span data-line="65"><span class="w">          </span><span class="no">echo &quot;main_sha=${{ github.event.pull_request.base.sha }}&quot; &gt; results/metadata.txt</span>
+</span><span data-line="66"><span class="w">          </span><span class="no">echo &quot;pr_sha=${{ github.event.pull_request.head.sha }}&quot; &gt;&gt; results/metadata.txt</span>
+</span><span data-line="67"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/upload-artifact@v4</span>
+</span><span data-line="68"><span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="69"><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">benchmark-results</span>
+</span><span data-line="70"><span class="w">          </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/</span>
+</span></pre></div>
+</div>
+<p>The commenter workflow then downloads <code class="docutils literal notranslate"><span class="pre">benchmark-results</span></code> and posts the
+comment. See the <a class="reference external" href="../../tutorials/asv_getting_started.rst">Getting Started</a> tutorial.</p>
 </section>
 <section id="pre-computed-output">
 <h3>Pre-computed Output<a class="headerlink" href="#pre-computed-output" title="Link to this heading">¶</a></h3>
@@ -496,10 +588,11 @@ Default: <code class="docutils literal notranslate"><span class="pre">enh-multip
 comparison. Default: <code class="docutils literal notranslate"><span class="pre">main</span></code> / <code class="docutils literal notranslate"><span class="pre">pr</span></code>. Passed to <code class="docutils literal notranslate"><span class="pre">asv-spyglass</span> <span class="pre">compare</span> <span class="pre">--label-before</span> <span class="pre">/</span> <span class="pre">--label-after</span></code>. Only used in <code class="docutils literal notranslate"><span class="pre">compare</span></code> mode.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">baseline-label</span></code></dt><dd><p>Label for the baseline column in <code class="docutils literal notranslate"><span class="pre">compare-many</span></code> mode.
-Passed to <code class="docutils literal notranslate"><span class="pre">asv-spyglass</span> <span class="pre">compare-many</span> <span class="pre">--label-baseline</span></code>.</p>
+Passed to <code class="docutils literal notranslate"><span class="pre">asv-spyglass</span> <span class="pre">compare-many</span> <span class="pre">--label</span></code> (baseline first).</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">contender-labels</span></code></dt><dd><p>Comma-separated labels for each contender, matching
-the order of <code class="docutils literal notranslate"><span class="pre">contender-shas</span></code>. Passed to <code class="docutils literal notranslate"><span class="pre">asv-spyglass</span> <span class="pre">compare-many</span> <span class="pre">--label-contender</span></code>.</p>
+the order of <code class="docutils literal notranslate"><span class="pre">contender-shas</span></code>. Each label is passed as an additional
+<code class="docutils literal notranslate"><span class="pre">--label</span></code> argument to <code class="docutils literal notranslate"><span class="pre">asv-spyglass</span> <span class="pre">compare-many</span></code>.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">asv-spyglass-args</span></code></dt><dd><p>Extra CLI flags passed through to asv-spyglass
 (e.g., <code class="docutils literal notranslate"><span class="pre">--split</span> <span class="pre">--only-changed</span> <span class="pre">--factor</span> <span class="pre">1.05</span></code>). Space-separated.

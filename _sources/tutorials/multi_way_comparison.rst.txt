@@ -64,9 +64,9 @@ Run ``asv-spyglass compare-many`` yourself with full control:
       run: |
         uvx asv-spyglass compare-many \
           results/baseline.json results/opt.json results/debug.json \
-          --label-baseline default \
-          --label-contender optimized \
-          --label-contender debug \
+          --label default \
+          --label optimized \
+          --label debug \
           --only-changed \
           > comparison.txt
 
