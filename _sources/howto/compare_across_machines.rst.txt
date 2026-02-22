@@ -1,0 +1,99 @@
+
+=======================
+Compare Across Machines
+=======================
+
+How to compare benchmark results from different runners or machines.
+
+Multi-Runner Setup
+------------------
+
+When benchmarks run on different machines (e.g., GPU runner + CPU runner, or
+x86 + ARM), each runner produces its own result files. Compare them with
+``compare-many`` mode.
+
+Workflow Pattern
+----------------
+
+Use a matrix strategy to run benchmarks on different runners, then collect
+and compare results:
+
+.. code:: yaml
+
+    jobs:
+      benchmark:
+        strategy:
+          matrix:
+            runner: [ubuntu-latest, self-hosted-gpu]
+        runs-on: ${{ matrix.runner }}
+        steps:
+          - name: Run benchmarks
+            run: asv run --record-samples
+          - name: Upload results
+            uses: actions/upload-artifact@v4
+            with:
+              name: bench-${{ matrix.runner }}
+              path: .asv/results/
+
+      comment:
+        needs: benchmark
+        runs-on: ubuntu-latest
+        steps:
+          - name: Download all artifacts
+            uses: actions/download-artifact@v4
+            with:
+              path: results/
+              merge-multiple: true
+
+          - name: Compare and post
+            uses: HaoZeke/asv-benchmark-commenter@v1
+            with:
+              github-token: ${{ secrets.GITHUB_TOKEN }}
+              results-path: results/
+              comparison-mode: compare-many
+              baseline-sha: ${{ env.BASELINE_SHA }}
+              contender-shas: ${{ env.CONTENDER_SHA }}
+              baseline-label: ubuntu-latest
+              contender-labels: self-hosted-gpu
+
+Same Code, Different Environments
+---------------------------------
+
+This pattern is also useful for comparing the same code across different
+environments without changing the code:
+
+- conda vs virtualenv
+
+- GCC vs Clang
+
+- Python 3.11 vs 3.12
+
+- CPU vs GPU (with appropriate ASV parametrization)
+
+The action is purely a presentation layer -- it does not care how the
+environments are set up or what they contain. It reads result files and
+renders tables.
+
+Pre-computed Approach
+---------------------
+
+For maximum control, run the comparison yourself and hand the output to
+the action:
+
+.. code:: yaml
+
+    - name: Compare
+      run: |
+        uvx asv-spyglass compare-many \
+          results/ubuntu-latest/*.json \
+          results/gpu-runner/*.json \
+          --label-baseline "CPU (ubuntu-latest)" \
+          --label-contender "GPU (self-hosted)" \
+          > comparison.txt
+
+    - name: Post
+      uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        comparison-text-file: comparison.txt
+        comparison-mode: compare-many

@@ -1,0 +1,161 @@
+
+======================
+Multi-Way Comparison
+======================
+
+This tutorial walks through comparing a baseline build against multiple
+contender builds using ``asv-spyglass compare-many`` and posting the multi-column
+results as a single PR comment.
+
+Goal
+----
+
+Compare three builds (baseline + two contenders) in one PR comment showing
+per-contender regressions and improvements side by side.
+
+Approach 1: Direct File Paths (Recommended)
+-------------------------------------------
+
+When you know where the result files are (e.g., from a matrix workflow), use
+``baseline-file`` and ``contender-files`` to point at them directly:
+
+.. code:: yaml
+
+    - uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        results-path: results/
+        comparison-mode: compare-many
+        baseline-file: results/default/result.json
+        contender-files: 'results/optimized/result.json, results/debug/result.json'
+        baseline-label: default
+        contender-labels: 'optimized, debug'
+        runner-info: ubuntu-latest
+
+This is the simplest approach and works even when all builds use the same
+commit (same SHA prefix in filenames).
+
+Approach 2: SHA-Based Lookup
+----------------------------
+
+When each build runs a different commit (e.g., different build-config branches),
+use ``baseline-sha`` and ``contender-shas``. The action finds files by SHA prefix:
+
+.. code:: yaml
+
+    - uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        results-path: results/
+        comparison-mode: compare-many
+        baseline-sha: ${{ env.BASELINE_SHA }}
+        contender-shas: '${{ env.OPT_SHA }}, ${{ env.DEBUG_SHA }}'
+        baseline-label: default
+        contender-labels: 'optimized, debug'
+
+Approach 3: Pre-computed Output
+-------------------------------
+
+Run ``asv-spyglass compare-many`` yourself with full control:
+
+.. code:: yaml
+
+    - name: Run comparison
+      run: |
+        uvx asv-spyglass compare-many \
+          results/baseline.json results/opt.json results/debug.json \
+          --label-baseline default \
+          --label-contender optimized \
+          --label-contender debug \
+          --only-changed \
+          > comparison.txt
+
+    - name: Post results
+      uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        comparison-text-file: comparison.txt
+        comparison-mode: compare-many
+        runner-info: ubuntu-latest
+
+Result Format
+-------------
+
+The PR comment shows a multi-column table with per-cell emoji:
+
+::
+
+    ### Changed Benchmarks
+
+    | | Benchmark | Baseline | optimized | debug |
+    |---|---|---:|---:|---:|
+    | :red_circle: | `TimeSuite.time_values(10)` | 167+/-3ns | :red_circle: 187+/-3ns (1.12) | :green_circle: 150+/-2ns (0.90) |
+
+The summary shows per-contender counts:
+
+::
+
+    | | Contender | Regressed | Improved | Unchanged |
+    |---|---|---:|---:|---:|
+    | | optimized | 3 | 1 | 4 |
+    | | debug | 1 | 1 | 6 |
+
+Approach 4: Full Pipeline (Run + Compare)
+-----------------------------------------
+
+Let the action run benchmarks for you. Each entry specifies its environment
+via ``run-prefix`` (for pixi/conda/nix) or ``setup`` (for source-based envs):
+
+.. code:: yaml
+
+    - uses: prefix-dev/setup-pixi@v0.8.0
+    - uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        results-path: .asv/results/
+        comparison-mode: compare-many
+        baseline: |
+          label: default
+          sha: ${{ env.BASELINE_SHA }}
+          run-prefix: pixi run -e bench
+        contenders: |
+          - label: optimized
+            sha: ${{ env.OPT_SHA }}
+            run-prefix: pixi run -e bench-opt
+          - label: debug
+            sha: ${{ env.DEBUG_SHA }}
+            run-prefix: pixi run -e bench-debug
+            description: Debug build with ASAN
+
+The action runs ``pixi run -e bench asv run --record-samples <sha>^!`` for
+each entry, then runs ``asv-spyglass compare-many`` on the results, then posts
+the comment. You never write the ``asv run`` invocation yourself.
+
+For source-based environments, use ``setup`` instead:
+
+.. code:: yaml
+
+    baseline: |
+      label: default
+      sha: ${{ env.BASELINE_SHA }}
+      setup: source ./envs/default.sh
+    contenders: |
+      - label: optimized
+        sha: ${{ env.OPT_SHA }}
+        setup: source ./envs/optimized.sh
+
+Both fields can be combined (e.g. ``setup: export CC=gcc-12`` with
+``run-prefix: pixi run -e bench``).
+
+Key Points
+----------
+
+- Use ``run-prefix`` / ``setup`` in YAML pipeline for the simplest one-step workflow
+
+- Use ``baseline-file`` / ``contender-files`` for same-commit cross-environment comparisons
+
+- Use ``baseline-sha`` / ``contender-shas`` for different-commit comparisons
+
+- Use ``comparison-text-file`` for full control over the asv-spyglass invocation
+
+- Labels are fully configurable -- name them after your build configs

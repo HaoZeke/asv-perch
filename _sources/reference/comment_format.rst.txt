@@ -1,0 +1,173 @@
+
+==============
+Comment Format
+==============
+
+This page describes the structure and appearance of the PR comment that the
+action posts.
+
+Overview
+--------
+
+The comment is a single GitHub Flavored Markdown body with several sections:
+
+1. An alert callout (WARNING, TIP, or NOTE)
+
+2. A summary count table
+
+3. Grouped benchmark tables (regressions, improvements, unchanged)
+
+4. A collapsible details section
+
+5. The raw asv-spyglass output (collapsible)
+
+Alert Callout
+-------------
+
+The top of the comment uses GitHub's alert syntax to immediately signal the
+result:
+
+- **Regressions detected:**
+
+::
+
+    > [!WARNING]
+    > **3 benchmark(s) regressed**
+
+- **Only improvements:**
+
+::
+
+    > [!TIP]
+    > **2 benchmark(s) improved**
+
+- **All unchanged:**
+
+::
+
+    > [!NOTE]
+    > **All benchmarks unchanged**
+
+Summary Table
+-------------
+
+A compact count table shows the breakdown:
+
+::
+
+    | | Count |
+    |---|---:|
+    | :red_circle: Regressed | 3 |
+    | :green_circle: Improved | 2 |
+    | :white_circle: Unchanged | 5 |
+
+Only categories with non-zero counts are shown.
+
+Benchmark Tables
+----------------
+
+Regressions and Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These are shown as full tables with emoji indicators, visible by default (not
+collapsed):
+
+::
+
+    ### Regressions
+
+    | | Benchmark | Before | After | Ratio |
+    |---|---|--:|--:|--:|
+    | :red_circle: | `TimeSuite.time_values(10)` | 167+/-3ns | 187+/-3ns | 1.12x |
+
+Unchanged Benchmarks
+~~~~~~~~~~~~~~~~~~~~
+
+Collapsed inside a ``<details>`` element to keep the comment compact:
+
+::
+
+    <details>
+    <summary>5 unchanged benchmark(s)</summary>
+
+    | Benchmark | Before | After | Ratio |
+    |---|--:|--:|--:|
+    | `TimeSuite.time_keys(200)` | 1.17+/-0us | 1.07+/-0us | ~0.91x |
+
+    </details>
+
+Benchmark Name Shortening
+-------------------------
+
+The action shortens benchmark names for readability:
+
+- Strips the ``benchmarks.`` prefix (e.g., ``benchmarks.TimeSuite.time_values`` becomes
+  ``TimeSuite.time_values``)
+
+- Strips the environment label suffix (e.g., ``[rgx1gen11/conda-py3.11 -> ...]`` is
+  removed)
+
+The full names are preserved in the raw output section.
+
+Details Section
+---------------
+
+A collapsible section with metadata:
+
+::
+
+    <details>
+    <summary>Details</summary>
+
+    - **Base:** `a1b2c3d4`
+    - **Head:** `e5f6g7h8`
+    - **Runner:** `ubuntu-22.04`
+    - **Dashboard:** [View full results](https://...)
+
+    </details>
+
+The dashboard link only appears if the ``dashboard-url`` input is provided.
+
+Raw Output
+----------
+
+The original asv-spyglass output is preserved in a final collapsible section:
+
+::
+
+    <details>
+    <summary>Raw asv-spyglass output</summary>
+
+    ```
+    | Change | Before | After | Ratio | Benchmark (Parameter) |
+    ...
+    ```
+
+    </details>
+
+This is useful for debugging or when the parsed rendering misses something.
+
+Change Classification
+---------------------
+
+The action classifies each benchmark row based on the change mark from
+``asv-spyglass``:
+
+.. table::
+
+    +---------+----------------+---------------------+
+    | Mark    | Classification | Emoji               |
+    +=========+================+=====================+
+    | ``+``   | Regressed      | ``:red_circle:``    |
+    +---------+----------------+---------------------+
+    | ``-``   | Improved       | ``:green_circle:``  |
+    +---------+----------------+---------------------+
+    | (space) | Unchanged      | ``:white_circle:``  |
+    +---------+----------------+---------------------+
+    | ``x``   | Incomparable   | ``:grey_question:`` |
+    +---------+----------------+---------------------+
+    | ``!``   | Failed         | ``:warning:``       |
+    +---------+----------------+---------------------+
+
+The ``~`` prefix on ratio values indicates statistically insignificant changes
+(the benchmark likely has high variance).

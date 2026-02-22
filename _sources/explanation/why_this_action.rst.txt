@@ -1,0 +1,118 @@
+
+================
+Why This Action
+================
+
+A neutral comparison of this action with alternatives for benchmark PR comments.
+
+Feature Comparison
+------------------
+
+.. table::
+
+    +--------------------------+----------------------------+----------------+------------------+----------------+
+    | Feature                  | This Action                | CodSpeed       | benchmark-action | Inline scripts |
+    +==========================+============================+================+==================+================+
+    | ASV ecosystem            | Native                     | No             | No               | Manual         |
+    +--------------------------+----------------------------+----------------+------------------+----------------+
+    | Statistical significance | Mann-Whitney U + 99% CI    | Proprietary    | No               | No             |
+    +--------------------------+----------------------------+----------------+------------------+----------------+
+    | Custom envs (conda/pixi) | Yes (existing envs)        | Managed        | No               | Manual         |
+    +--------------------------+----------------------------+----------------+------------------+----------------+
+    | Self-hosted runners      | Yes                        | Limited        | Yes              | Yes            |
+    +--------------------------+----------------------------+----------------+------------------+----------------+
+    | Multi-way comparison     | Yes (compare-many)         | No             | No               | No             |
+    +--------------------------+----------------------------+----------------+------------------+----------------+
+    | Cross-environment        | Yes (labels, no-env-label) | No             | No               | Manual         |
+    +--------------------------+----------------------------+----------------+------------------+----------------+
+    | SaaS/vendor lock-in      | No (self-contained)        | Yes            | No               | N/A            |
+    +--------------------------+----------------------------+----------------+------------------+----------------+
+    | Free for all             | Yes                        | Paid plans     | Yes              | N/A            |
+    +--------------------------+----------------------------+----------------+------------------+----------------+
+    | PR comment format        | Rich GFM + emoji           | Dashboard link | JSON + Pages     | Code block     |
+    +--------------------------+----------------------------+----------------+------------------+----------------+
+    | Uncertainty in values    | Yes (IQR/2)                | No             | No               | No             |
+    +--------------------------+----------------------------+----------------+------------------+----------------+
+    | Existing ASV workflows   | Drop-in                    | Rewrite needed | Rewrite needed   | N/A            |
+    +--------------------------+----------------------------+----------------+------------------+----------------+
+
+When to Use This Action
+-----------------------
+
+This action is the right choice when:
+
+- You already use ASV for benchmarks (or want to start)
+
+- Your project uses custom build environments (C++, Fortran, GPU, conda, pixi)
+
+- You want statistical rigor in regression detection
+
+- You need to compare across environments or configurations
+
+- You want everything self-contained (no external service)
+
+When to Consider Alternatives
+-----------------------------
+
+- **CodSpeed:** If you want a managed SaaS with a dashboard and do not need ASV
+  integration or custom environments.
+
+- **benchmark-action:** If you use Google Benchmark or pytest-benchmark and want
+  Pages-based tracking without PR comments.
+
+- **Inline scripts:** If your needs are simple (one comparison, code block comment)
+  and you do not need statistical testing or structured formatting.
+
+Architecture
+------------
+
+This action is a presentation layer. It does not:
+
+- Build your project
+
+- Manage environments
+
+- Run benchmarks
+
+- Control which Python, compiler, or tools you use
+
+It takes ASV result files (produced however you want) and:
+
+1. Runs ``asv-spyglass`` to compare them (or reads pre-computed output)
+
+2. Parses the table
+
+3. Renders a rich PR comment
+
+4. Posts it via the GitHub API
+
+This separation means the action works with any build system, any runner,
+any environment. The benchmark workflow has full control; the commenter
+workflow is a thin formatting + posting layer.
+
+ASV and asv-spyglass
+--------------------
+
+`ASV (Airspeed Velocity) <https://asv.readthedocs.io>`_ is a benchmark framework that supports:
+
+- Any language (benchmarks are Python, but the code under test can be anything)
+
+- Historical tracking across commits
+
+- Multiple parametrized benchmarks
+
+- Environment isolation
+
+- Sample recording for statistical analysis
+
+`asv-spyglass <https://github.com/HaoZeke/asv_spyglass>`_ extends ASV with:
+
+- Formatted comparison tables (the output this action parses)
+
+- Multi-way comparison (``compare-many``)
+
+- Cross-environment comparison with labels
+
+- Statistical significance marks
+
+- Split output by change type

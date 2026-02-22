@@ -1,0 +1,92 @@
+
+==================
+Pre-computed Output
+==================
+
+How to use ``comparison-text-file`` to skip running asv-spyglass in the action.
+
+When to Use This
+----------------
+
+- Your benchmark runner has the ASV environment but the commenter runner does not
+
+- You want to avoid installing Python/uv on the commenter runner
+
+- You need custom asv-spyglass flags not available as action inputs
+
+- You run asv-spyglass in a specialized environment (GPU, custom compiler, etc.)
+
+- You want maximum control over the comparison step
+
+Option 1: comparison.txt in Results Directory
+---------------------------------------------
+
+Place a file named ``comparison.txt`` in the results directory. The action checks
+for this file before attempting to run asv-spyglass:
+
+.. code:: yaml
+
+    # In your benchmark workflow:
+    - name: Run comparison
+      run: |
+        uvx asv-spyglass compare base.json pr.json \
+          --label-before main --label-after pr \
+          > results/comparison.txt
+
+    # In your commenter workflow:
+    - name: Post benchmark comment
+      uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        results-path: results/
+        metadata-file: results/metadata.txt
+
+Option 2: comparison-text-file Input
+------------------------------------
+
+Use the ``comparison-text-file`` input to point to any file path. This is more
+explicit and does not require the file to be inside ``results-path``:
+
+.. code:: yaml
+
+    - name: Post benchmark comment
+      uses: HaoZekte/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        comparison-text-file: comparison.txt
+        base-sha: ${{ env.BASE_SHA }}
+        pr-sha: ${{ env.PR_SHA }}
+
+When ``comparison-text-file`` is provided:
+
+- ``results-path`` is not required
+
+- ``asv-spyglass-ref`` is ignored (nothing is installed)
+
+- The file content is parsed directly
+
+With compare-many
+-----------------
+
+Both options work with ``comparison-mode: compare-many``:
+
+.. code:: yaml
+
+    - name: Post benchmark comment
+      uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        comparison-text-file: compare_many_output.txt
+        comparison-mode: compare-many
+        runner-info: ubuntu-latest
+
+What Format?
+------------
+
+The file must contain asv-spyglass's tabulate output (``tablefmt``"github"``). For =compare`` mode this is a pipe-delimited table with columns:
+Change | Before | After | Ratio | Benchmark.
+
+For ``compare-many`` mode:
+Benchmark | Baseline | Contender1 (Ratio) | Contender2 (Ratio) | ...
+
+See `Table Format Reference <../reference/table_format.rst>`_ for full details.

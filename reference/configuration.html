@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="violet" data-content_root="../">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Configuration - asv-benchmark-commenter documentation</title><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Comment Format" href="comment_format.html" /><link rel="prev" title="Compare Across Machines" href="../howto/compare_across_machines.html" />
+      <link rel="canonical" href="https://asv-benchmark-commenter.rgoswami.me/reference/configuration.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"auto");
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
+    <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://asv-benchmark-commenter.rgoswami.me/reference/configuration.html"/>
+  <meta property="og:title" content="Configuration"/>
+    <meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="../index.html">
+      
+      
+      <strong>asv-benchmark-commenter</strong>
+    </a>
+    <div class="sy-head-nav" id="head-nav">
+      <nav class="sy-head-links"></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/HaoZeke/asv-benchmark-commenter" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="head-nav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2"></span>
+          <span class="hamburger_3"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="0"><p class="caption" role="heading" aria-level="3"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/asv_getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/cross_environment.html">Cross-Environment Comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/multi_way_comparison.html">Multi-Way Comparison</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">How-To Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../howto/migration.html">Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howto/regression_gating.html">Regression Gating</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howto/precomputed_output.html">Pre-computed Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howto/custom_asv_flags.html">Custom ASV Flags</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howto/compare_across_machines.html">Compare Across Machines</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="comment_format.html">Comment Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="table_format.html">Table Format Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="statistical_methods.html">Statistical Methods</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Explanation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/why_this_action.html">Why This Action</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/how_asv_works.html">How ASV Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/fork_security.html">Fork Security</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#inputs">Inputs</a><ul>
+<li><a class="reference internal" href="#required-inputs">Required Inputs</a></li>
+<li><a class="reference internal" href="#conditional-inputs">Conditional Inputs</a></li>
+<li><a class="reference internal" href="#sha-resolution">SHA Resolution</a><ul>
+<li><a class="reference internal" href="#for-compare-mode-default">For compare Mode (Default)</a><ul>
+<li><a class="reference internal" href="#option-1-metadata-file-recommended">Option 1: Metadata File (Recommended)</a></li>
+<li><a class="reference internal" href="#option-2-explicit-shas">Option 2: Explicit SHAs</a></li>
+<li><a class="reference internal" href="#option-3-direct-file-paths">Option 3: Direct File Paths</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#for-compare-many-mode">For compare-many Mode</a><ul>
+<li><a class="reference internal" href="#option-1-direct-file-paths-recommended">Option 1: Direct File Paths (Recommended)</a></li>
+<li><a class="reference internal" href="#option-2-sha-based-lookup">Option 2: SHA-Based Lookup</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#comparison-mode">Comparison Mode</a></li>
+<li><a class="reference internal" href="#yaml-based-pipeline-inputs">YAML-Based Pipeline Inputs</a><ul>
+<li><a class="reference internal" href="#wrapper-pattern-pixi-conda-nix">Wrapper pattern (pixi, conda, nix)</a></li>
+<li><a class="reference internal" href="#source-pattern-virtualenv-shell-scripts">Source pattern (virtualenv, shell scripts)</a></li>
+<li><a class="reference internal" href="#combined-e-g-env-vars-wrapper">Combined (e.g. env vars + wrapper)</a></li>
+<li><a class="reference internal" href="#field-reference">Field Reference</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pre-computed-output">Pre-computed Output</a></li>
+<li><a class="reference internal" href="#comparison-options">Comparison Options</a></li>
+<li><a class="reference internal" href="#regression-detection">Regression Detection</a></li>
+<li><a class="reference internal" href="#comment-formatting">Comment Formatting</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#outputs">Outputs</a></li>
+<li><a class="reference internal" href="#full-examples">Full Examples</a><ul>
+<li><a class="reference internal" href="#two-way-comparison">Two-Way Comparison</a></li>
+<li><a class="reference internal" href="#multi-way-comparison">Multi-Way Comparison</a></li>
+<li><a class="reference internal" href="#full-pipeline-with-pixi-run-prefix">Full Pipeline with pixi (run-prefix)</a></li>
+<li><a class="reference internal" href="#full-pipeline-with-virtualenv-setup">Full Pipeline with virtualenv (setup)</a></li>
+<li><a class="reference internal" href="#id1">Pre-computed Output</a></li>
+</ul>
+</li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6">
+<div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../index.html"><span itemprop="name">asv-benchmark-commenter</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">Configuration</strong>
+        <meta itemprop="position" content="2" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="relative min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+  <div class="copy-page-wrapper relative pb-4 lg:absolute lg:top-8 lg:right-6 xl:right-12">
+  <div id="copy-page-trigger">
+    <button
+      type="button"
+      class="js-copy px-3 py-1 inline-flex items-center gap-1"
+      data-url="https://asv-benchmark-commenter.rgoswami.me/_sources/reference/configuration.rst.txt"
+    >
+      <i class="i-lucide" data-icon="copy"></i>
+      <span>Copy page</span>
+    </button>
+    <button class="js-menu px-2 py-1" type="button" aria-label="More actions"
+      aria-haspopup="menu" aria-expanded="false" aria-controls="copy-page-content">
+      <i class="i-lucide chevron-down"></i>
+    </button>
+  </div>
+  <div id="copy-page-content" role="menu" aria-orientation="vertical" aria-hidden="true">
+    <div role="presentation">
+      <div class="flex flex-col" role="group">
+        <button class="js-copy" type="button" role="menuitem"
+          data-url="https://asv-benchmark-commenter.rgoswami.me/_sources/reference/configuration.rst.txt">
+          <span class="iconify-icon">
+            <i class="i-lucide" data-icon="copy"></i>
+          </span>
+          <span>Copy page</span>
+        </button>
+        <a role="menuitem" href="https://asv-benchmark-commenter.rgoswami.me/_sources/reference/configuration.rst.txt" target="_blank" rel="nofollow"><iconify-icon icon="bi:code-slash"></iconify-icon>
+            <span>View Source</span></a><a role="menuitem" href="https://chatgpt.com/?hints=search&q=Read%20https%3A//asv-benchmark-commenter.rgoswami.me/_sources/reference/configuration.rst.txt%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+          <iconify-icon icon="bi:openai"></iconify-icon>
+          <span>Open in ChatGPT</span>
+        </a><a role="menuitem" href="https://claude.ai/new?q=Read%20https%3A//asv-benchmark-commenter.rgoswami.me/_sources/reference/configuration.rst.txt%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+          <iconify-icon icon="bi:claude"></iconify-icon>
+          <span>Open in Claude</span>
+        </a></div>
+    </div>
+  </div>
+</div><article class="yue" role="main">
+          <section id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">¶</a></h1>
+<section id="inputs">
+<h2>Inputs<a class="headerlink" href="#inputs" title="Link to this heading">¶</a></h2>
+<p>All inputs are configured in the workflow YAML under <code class="docutils literal notranslate"><span class="pre">with:</span></code>.</p>
+<section id="required-inputs">
+<h3>Required Inputs<a class="headerlink" href="#required-inputs" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">github-token</span></code></dt><dd><p>GitHub token for API access. Default: <code class="docutils literal notranslate"><span class="pre">${{</span> <span class="pre">github.token</span> <span class="pre">}}</span></code>.
+The token needs <code class="docutils literal notranslate"><span class="pre">pull-requests:</span> <span class="pre">write</span></code> and <code class="docutils literal notranslate"><span class="pre">issues:</span> <span class="pre">write</span></code> permissions.</p>
+</dd>
+</dl>
+</section>
+<section id="conditional-inputs">
+<h3>Conditional Inputs<a class="headerlink" href="#conditional-inputs" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">results-path</span></code></dt><dd><p>Path to the directory containing downloaded ASV results.
+Required unless <code class="docutils literal notranslate"><span class="pre">comparison-text-file</span></code> is provided.</p>
+</dd>
+</dl>
+</section>
+<section id="sha-resolution">
+<h3>SHA Resolution<a class="headerlink" href="#sha-resolution" title="Link to this heading">¶</a></h3>
+<p>The action needs to know which commits to compare. There are several ways to
+provide this depending on the comparison mode:</p>
+<section id="for-compare-mode-default">
+<h4>For compare Mode (Default)<a class="headerlink" href="#for-compare-mode-default" title="Link to this heading">¶</a></h4>
+<section id="option-1-metadata-file-recommended">
+<h5>Option 1: Metadata File (Recommended)<a class="headerlink" href="#option-1-metadata-file-recommended" title="Link to this heading">¶</a></h5>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">metadata-file</span></code></dt><dd><p>Path to a text file containing SHA mappings. Supports these keys:</p>
+</dd>
+</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">main_sha</span><span class="o">=</span><span class="n">a1b2c3d4e5f67890abcdef1234567890abcdef12</span>
+</span><span data-line="2"><span class="n">pr_sha</span><span class="o">=</span><span class="n">e5f6g7h890abcdef1234567890abcdef12345678</span>
+</span></pre></div>
+</div>
+<p>Both <code class="docutils literal notranslate"><span class="pre">main_sha=</span></code> and <code class="docutils literal notranslate"><span class="pre">base_sha=</span></code> are accepted for the base commit. This is the
+approach used by eOn and metatensor – the benchmark workflow writes this file
+and includes it in the artifact.</p>
+</section>
+<section id="option-2-explicit-shas">
+<h5>Option 2: Explicit SHAs<a class="headerlink" href="#option-2-explicit-shas" title="Link to this heading">¶</a></h5>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">base-sha</span></code></dt><dd><p>Base commit SHA (the commit to compare against)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">pr-sha</span></code></dt><dd><p>PR head commit SHA</p>
+</dd>
+</dl>
+<p>Explicit inputs override metadata file values if both are provided.</p>
+</section>
+<section id="option-3-direct-file-paths">
+<h5>Option 3: Direct File Paths<a class="headerlink" href="#option-3-direct-file-paths" title="Link to this heading">¶</a></h5>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">base-file</span></code></dt><dd><p>Direct path to base result JSON file</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">pr-file</span></code></dt><dd><p>Direct path to PR result JSON file</p>
+</dd>
+</dl>
+<p>Use this when files are not named by SHA prefix, or when you know the exact
+paths (e.g., from a matrix workflow).</p>
+</section>
+</section>
+<section id="for-compare-many-mode">
+<h4>For compare-many Mode<a class="headerlink" href="#for-compare-many-mode" title="Link to this heading">¶</a></h4>
+<section id="option-1-direct-file-paths-recommended">
+<h5>Option 1: Direct File Paths (Recommended)<a class="headerlink" href="#option-1-direct-file-paths-recommended" title="Link to this heading">¶</a></h5>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">baseline-file</span></code></dt><dd><p>Direct path to the baseline result JSON file</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">contender-files</span></code></dt><dd><p>Comma-separated direct paths to contender result JSON
+files. Order must match <code class="docutils literal notranslate"><span class="pre">contender-labels</span></code>.</p>
+</dd>
+</dl>
+<p>Use this for cross-environment comparisons where the same commit is benchmarked
+in different environments (both result files share the same SHA prefix).</p>
+</section>
+<section id="option-2-sha-based-lookup">
+<h5>Option 2: SHA-Based Lookup<a class="headerlink" href="#option-2-sha-based-lookup" title="Link to this heading">¶</a></h5>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">baseline-sha</span></code></dt><dd><p>The baseline commit SHA. Used to find the baseline result
+file by SHA prefix.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">contender-shas</span></code></dt><dd><p>Comma-separated contender commit SHAs. Used to find
+contender result files by SHA prefix.</p>
+</dd>
+</dl>
+<p>Use this when each contender ran a different commit.</p>
+</section>
+</section>
+</section>
+<section id="comparison-mode">
+<h3>Comparison Mode<a class="headerlink" href="#comparison-mode" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">comparison-mode</span></code></dt><dd><p>Either <code class="docutils literal notranslate"><span class="pre">compare</span></code> (default, two-way) or <code class="docutils literal notranslate"><span class="pre">compare-many</span></code>
+(multi-way baseline vs multiple contenders).</p>
+</dd>
+</dl>
+</section>
+<section id="yaml-based-pipeline-inputs">
+<h3>YAML-Based Pipeline Inputs<a class="headerlink" href="#yaml-based-pipeline-inputs" title="Link to this heading">¶</a></h3>
+<p>These inputs let the action run benchmarks before comparing. Each entry can
+include environment activation via two fields:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">run-prefix</span></code> – A wrapper command prepended with a space. Use this for
+tools like pixi, conda, or nix that wrap the command.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">setup</span></code> – A shell command prepended with <code class="docutils literal notranslate"><span class="pre">&amp;&amp;</span></code>. Use this for sourcing
+scripts, exporting variables, or activating virtualenvs.</p></li>
+</ul>
+<p>Both can be combined. The constructed shell command is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">bash</span> <span class="o">-</span><span class="n">c</span> <span class="s1">&#39;&lt;setup&gt; &amp;&amp; &lt;run-prefix&gt; &lt;benchmark-command with </span><span class="si">{sha}</span><span class="s1"> replaced&gt;&#39;</span>
+</span></pre></div>
+</div>
+<p>Each part is optional – omit what you don’t need. If an entry has no <code class="docutils literal notranslate"><span class="pre">sha</span></code>,
+benchmarking is skipped for that entry (useful when results already exist).</p>
+<section id="wrapper-pattern-pixi-conda-nix">
+<h4>Wrapper pattern (pixi, conda, nix)<a class="headerlink" href="#wrapper-pattern-pixi-conda-nix" title="Link to this heading">¶</a></h4>
+<p>Use <code class="docutils literal notranslate"><span class="pre">run-prefix</span></code>. The tool wraps the entire benchmark command:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nt">baseline</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="2"><span class="w">  </span><span class="no">label: main</span>
+</span><span data-line="3"><span class="w">  </span><span class="no">sha: abc123def</span>
+</span><span data-line="4"><span class="w">  </span><span class="no">run-prefix: pixi run -e bench</span>
+</span></pre></div>
+</div>
+<p>This runs: <code class="docutils literal notranslate"><span class="pre">pixi</span> <span class="pre">run</span> <span class="pre">-e</span> <span class="pre">bench</span> <span class="pre">asv</span> <span class="pre">run</span> <span class="pre">--record-samples</span> <span class="pre">abc123def^!</span></code></p>
+</section>
+<section id="source-pattern-virtualenv-shell-scripts">
+<h4>Source pattern (virtualenv, shell scripts)<a class="headerlink" href="#source-pattern-virtualenv-shell-scripts" title="Link to this heading">¶</a></h4>
+<p>Use <code class="docutils literal notranslate"><span class="pre">setup</span></code>. The script runs first, then the benchmark command:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nt">baseline</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="2"><span class="w">  </span><span class="no">label: main</span>
+</span><span data-line="3"><span class="w">  </span><span class="no">sha: abc123def</span>
+</span><span data-line="4"><span class="w">  </span><span class="no">setup: source ./envs/bench.sh</span>
+</span></pre></div>
+</div>
+<p>This runs: <code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">./envs/bench.sh</span> <span class="pre">&amp;&amp;</span> <span class="pre">asv</span> <span class="pre">run</span> <span class="pre">--record-samples</span> <span class="pre">abc123def^!</span></code></p>
+</section>
+<section id="combined-e-g-env-vars-wrapper">
+<h4>Combined (e.g. env vars + wrapper)<a class="headerlink" href="#combined-e-g-env-vars-wrapper" title="Link to this heading">¶</a></h4>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nt">contenders</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="2"><span class="w">  </span><span class="no">- label: pr-debug</span>
+</span><span data-line="3"><span class="w">    </span><span class="no">sha: def456abc</span>
+</span><span data-line="4"><span class="w">    </span><span class="no">setup: export CFLAGS=&quot;-O0 -g&quot;</span>
+</span><span data-line="5"><span class="w">    </span><span class="no">run-prefix: pixi run -e bench-debug</span>
+</span></pre></div>
+</div>
+<p>This runs: <code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">CFLAGS</span></code>”-O0 -g” &amp;&amp; pixi run -e bench-debug asv run –record-samples def456abc^!=</p>
+</section>
+<section id="field-reference">
+<h4>Field Reference<a class="headerlink" href="#field-reference" title="Link to this heading">¶</a></h4>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">baseline</span></code></dt><dd><p>YAML string defining the baseline entry. Fields:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">label</span></code> (string) – Display label for the baseline column.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sha</span></code> (string) – Commit SHA for benchmarking and result lookup.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">file</span></code> (string) – Direct path to a result JSON file (bypasses SHA lookup).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">run-prefix</span></code> (string) – Wrapper command prepended to benchmark command
+(e.g. <code class="docutils literal notranslate"><span class="pre">pixi</span> <span class="pre">run</span> <span class="pre">-e</span> <span class="pre">bench</span></code>, <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">run</span> <span class="pre">-n</span> <span class="pre">bench</span></code>, <code class="docutils literal notranslate"><span class="pre">nix</span> <span class="pre">develop</span> <span class="pre">-c</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">setup</span></code> (string) – Shell command sourced before the benchmark command
+(e.g. <code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">./envs/bench.sh</span></code>, <code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">CC=gcc-12</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">env</span></code> (string) – Environment name shown in PR comment details.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">description</span></code> (string) – Human-readable description shown in PR comment.</p></li>
+</ul>
+<p>When <code class="docutils literal notranslate"><span class="pre">baseline</span></code> is provided, it overrides <code class="docutils literal notranslate"><span class="pre">baseline-sha</span></code>, <code class="docutils literal notranslate"><span class="pre">baseline-file</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">baseline-label</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">contenders</span></code></dt><dd><p>YAML list of contender objects for <code class="docutils literal notranslate"><span class="pre">compare-many</span></code> mode.
+Each object accepts the same fields as <code class="docutils literal notranslate"><span class="pre">baseline</span></code> (label, sha, file,
+run-prefix, setup, env, description). When provided, this overrides
+<code class="docutils literal notranslate"><span class="pre">contender-shas</span></code>, <code class="docutils literal notranslate"><span class="pre">contender-files</span></code>, and <code class="docutils literal notranslate"><span class="pre">contender-labels</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">benchmark-command</span></code></dt><dd><p>Shell command template for running benchmarks.
+Default: <code class="docutils literal notranslate"><span class="pre">asv</span> <span class="pre">run</span> <span class="pre">--record-samples</span> <span class="pre">{sha}^!</span></code>. The placeholder <code class="docutils literal notranslate"><span class="pre">{sha}</span></code> is
+replaced with the entry’s commit SHA. Each entry’s <code class="docutils literal notranslate"><span class="pre">run-prefix</span></code> is prepended
+and <code class="docutils literal notranslate"><span class="pre">setup</span></code> is sourced before this command. Entries without a <code class="docutils literal notranslate"><span class="pre">sha</span></code> field
+skip benchmarking.</p>
+<p>Example with a custom command:</p>
+</dd>
+</dl>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nt">benchmark-command</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;asv</span><span class="nv"> </span><span class="s">run</span><span class="nv"> </span><span class="s">--quick</span><span class="nv"> </span><span class="s">{sha}^!&#39;</span>
+</span></pre></div>
+</div>
+</section>
+</section>
+<section id="pre-computed-output">
+<h3>Pre-computed Output<a class="headerlink" href="#pre-computed-output" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">comparison-text-file</span></code></dt><dd><p>Path to a pre-computed comparison output file. When
+provided, the action skips running asv-spyglass entirely and parses this file
+directly. Both <code class="docutils literal notranslate"><span class="pre">results-path</span></code> and SHA inputs become optional.</p>
+</dd>
+</dl>
+<p>You can also place a file named <code class="docutils literal notranslate"><span class="pre">comparison.txt</span></code> inside <code class="docutils literal notranslate"><span class="pre">results-path</span></code> for the
+same effect (checked before running asv-spyglass in <code class="docutils literal notranslate"><span class="pre">compare</span></code> mode).</p>
+</section>
+<section id="comparison-options">
+<h3>Comparison Options<a class="headerlink" href="#comparison-options" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">asv-spyglass-ref</span></code></dt><dd><p>Git ref (branch or tag) for <code class="docutils literal notranslate"><span class="pre">asv-spyglass</span></code> installation.
+Default: <code class="docutils literal notranslate"><span class="pre">enh-multiple-comparisons</span></code>. The action installs asv-spyglass via
+<code class="docutils literal notranslate"><span class="pre">uvx</span> <span class="pre">--from</span> <span class="pre">&quot;git+https://github.com/HaoZeke/asv_spyglass.git&#64;&lt;ref&gt;&quot;</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">label-before</span></code> / <code class="docutils literal notranslate"><span class="pre">label-after</span></code></dt><dd><p>Labels for the before/after columns in the
+comparison. Default: <code class="docutils literal notranslate"><span class="pre">main</span></code> / <code class="docutils literal notranslate"><span class="pre">pr</span></code>. Passed to <code class="docutils literal notranslate"><span class="pre">asv-spyglass</span> <span class="pre">compare</span> <span class="pre">--label-before</span> <span class="pre">/</span> <span class="pre">--label-after</span></code>. Only used in <code class="docutils literal notranslate"><span class="pre">compare</span></code> mode.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">baseline-label</span></code></dt><dd><p>Label for the baseline column in <code class="docutils literal notranslate"><span class="pre">compare-many</span></code> mode.
+Passed to <code class="docutils literal notranslate"><span class="pre">asv-spyglass</span> <span class="pre">compare-many</span> <span class="pre">--label-baseline</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">contender-labels</span></code></dt><dd><p>Comma-separated labels for each contender, matching
+the order of <code class="docutils literal notranslate"><span class="pre">contender-shas</span></code>. Passed to <code class="docutils literal notranslate"><span class="pre">asv-spyglass</span> <span class="pre">compare-many</span> <span class="pre">--label-contender</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">asv-spyglass-args</span></code></dt><dd><p>Extra CLI flags passed through to asv-spyglass
+(e.g., <code class="docutils literal notranslate"><span class="pre">--split</span> <span class="pre">--only-changed</span> <span class="pre">--factor</span> <span class="pre">1.05</span></code>). Space-separated.
+See <a class="reference external" href="../../howto/custom_asv_flags.rst">Custom ASV Flags</a> for details.</p>
+</dd>
+</dl>
+</section>
+<section id="regression-detection">
+<h3>Regression Detection<a class="headerlink" href="#regression-detection" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">regression-threshold</span></code></dt><dd><p>Ratio above which a benchmark counts as a critical
+regression. Default: <code class="docutils literal notranslate"><span class="pre">10</span></code>. For example, if a benchmark’s ratio is 15.0
+(15x slower), and the threshold is 10, it is flagged as critical.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">auto-draft-on-regression</span></code></dt><dd><p>When set to <code class="docutils literal notranslate"><span class="pre">'true'</span></code> and a critical regression
+is detected, the action converts the PR to draft status via the GitHub GraphQL
+API. Default: <code class="docutils literal notranslate"><span class="pre">'false'</span></code>. This prevents accidental merges of severely regressed
+code.</p>
+</dd>
+</dl>
+</section>
+<section id="comment-formatting">
+<h3>Comment Formatting<a class="headerlink" href="#comment-formatting" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">comment-marker</span></code></dt><dd><p>HTML comment used to identify the benchmark comment for
+idempotent updates. Default: <code class="docutils literal notranslate"><span class="pre">&lt;!--</span> <span class="pre">asv-benchmark-result</span> <span class="pre">--&gt;</span></code>. Change this only
+if you have multiple benchmark actions posting to the same PR.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">runner-info</span></code></dt><dd><p>Text shown in the “Details” section indicating which runner
+produced the results. Default: <code class="docutils literal notranslate"><span class="pre">ubuntu-latest</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">dashboard-url</span></code></dt><dd><p>URL to an ASV dashboard. If provided, a “View full results”
+link is added to the details section.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="outputs">
+<h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Output</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">comparison</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Raw asv-spyglass comparison output</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">regression-detected</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">'true'</span></code> or <code class="docutils literal notranslate"><span class="pre">'false'</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">comment-id</span></code></p></td>
+<td><p>string</p></td>
+<td><p>GitHub comment ID (empty if no PR found)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">pr-number</span></code></p></td>
+<td><p>string</p></td>
+<td><p>PR number (empty if no PR found)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Use these in subsequent steps:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Post benchmark comment</span>
+</span><span data-line="2"><span class="w">  </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bench</span>
+</span><span data-line="3"><span class="w">  </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HaoZeke/asv-benchmark-commenter@v1</span>
+</span><span data-line="4"><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="5"><span class="w">    </span><span class="c1"># ...</span>
+</span><span data-line="6">
+</span><span data-line="7"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Fail on regression</span>
+</span><span data-line="8"><span class="w">  </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">steps.bench.outputs.regression-detected == &#39;true&#39;</span>
+</span><span data-line="9"><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">exit 1</span>
+</span></pre></div>
+</div>
+</section>
+<section id="full-examples">
+<h2>Full Examples<a class="headerlink" href="#full-examples" title="Link to this heading">¶</a></h2>
+<section id="two-way-comparison">
+<h3>Two-Way Comparison<a class="headerlink" href="#two-way-comparison" title="Link to this heading">¶</a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Post benchmark comment</span>
+</span><span data-line="2"><span class="w">  </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HaoZeke/asv-benchmark-commenter@v1</span>
+</span><span data-line="3"><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="4"><span class="w">    </span><span class="nt">github-token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
+</span><span data-line="5"><span class="w">    </span><span class="nt">results-path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/</span>
+</span><span data-line="6"><span class="w">    </span><span class="nt">metadata-file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/metadata.txt</span>
+</span><span data-line="7"><span class="w">    </span><span class="nt">regression-threshold</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;10&#39;</span>
+</span><span data-line="8"><span class="w">    </span><span class="nt">auto-draft-on-regression</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;true&#39;</span>
+</span><span data-line="9"><span class="w">    </span><span class="nt">label-before</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">main</span>
+</span><span data-line="10"><span class="w">    </span><span class="nt">label-after</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pr</span>
+</span><span data-line="11"><span class="w">    </span><span class="nt">runner-info</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-22.04</span>
+</span><span data-line="12"><span class="w">    </span><span class="nt">dashboard-url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://my-project.github.io/benchmarks/</span>
+</span><span data-line="13"><span class="w">    </span><span class="nt">asv-spyglass-ref</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">enh-multiple-comparisons</span>
+</span></pre></div>
+</div>
+</section>
+<section id="multi-way-comparison">
+<h3>Multi-Way Comparison<a class="headerlink" href="#multi-way-comparison" title="Link to this heading">¶</a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Post benchmark comment</span>
+</span><span data-line="2"><span class="w">  </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HaoZeke/asv-benchmark-commenter@v1</span>
+</span><span data-line="3"><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="4"><span class="w">    </span><span class="nt">github-token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
+</span><span data-line="5"><span class="w">    </span><span class="nt">results-path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/</span>
+</span><span data-line="6"><span class="w">    </span><span class="nt">comparison-mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compare-many</span>
+</span><span data-line="7"><span class="w">    </span><span class="nt">baseline-sha</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ env.BASELINE_SHA }}</span>
+</span><span data-line="8"><span class="w">    </span><span class="nt">contender-shas</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;${{</span><span class="nv"> </span><span class="s">env.OPT_SHA</span><span class="nv"> </span><span class="s">}},</span><span class="nv"> </span><span class="s">${{</span><span class="nv"> </span><span class="s">env.DEBUG_SHA</span><span class="nv"> </span><span class="s">}}&#39;</span>
+</span><span data-line="9"><span class="w">    </span><span class="nt">baseline-label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">default</span>
+</span><span data-line="10"><span class="w">    </span><span class="nt">contender-labels</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;optimized,</span><span class="nv"> </span><span class="s">debug&#39;</span>
+</span><span data-line="11"><span class="w">    </span><span class="nt">runner-info</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span></pre></div>
+</div>
+</section>
+<section id="full-pipeline-with-pixi-run-prefix">
+<h3>Full Pipeline with pixi (run-prefix)<a class="headerlink" href="#full-pipeline-with-pixi-run-prefix" title="Link to this heading">¶</a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prefix-dev/setup-pixi@v0.8.0</span>
+</span><span data-line="2"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Benchmark and compare</span>
+</span><span data-line="3"><span class="w">  </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HaoZeke/asv-benchmark-commenter@v1</span>
+</span><span data-line="4"><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="5"><span class="w">    </span><span class="nt">github-token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
+</span><span data-line="6"><span class="w">    </span><span class="nt">results-path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.asv/results/</span>
+</span><span data-line="7"><span class="w">    </span><span class="nt">comparison-mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compare-many</span>
+</span><span data-line="8"><span class="w">    </span><span class="nt">baseline</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="9"><span class="w">      </span><span class="no">label: main</span>
+</span><span data-line="10"><span class="w">      </span><span class="no">sha: ${{ env.BASE_SHA }}</span>
+</span><span data-line="11"><span class="w">      </span><span class="no">run-prefix: pixi run -e bench</span>
+</span><span data-line="12"><span class="w">    </span><span class="nt">contenders</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="13"><span class="w">      </span><span class="no">- label: pr</span>
+</span><span data-line="14"><span class="w">        </span><span class="no">sha: ${{ env.PR_SHA }}</span>
+</span><span data-line="15"><span class="w">        </span><span class="no">run-prefix: pixi run -e bench</span>
+</span><span data-line="16"><span class="w">      </span><span class="no">- label: pr-debug</span>
+</span><span data-line="17"><span class="w">        </span><span class="no">sha: ${{ env.PR_SHA }}</span>
+</span><span data-line="18"><span class="w">        </span><span class="no">run-prefix: pixi run -e bench-debug</span>
+</span><span data-line="19"><span class="w">        </span><span class="no">description: Debug build with sanitizers</span>
+</span><span data-line="20"><span class="w">    </span><span class="nt">runner-info</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span></pre></div>
+</div>
+</section>
+<section id="full-pipeline-with-virtualenv-setup">
+<h3>Full Pipeline with virtualenv (setup)<a class="headerlink" href="#full-pipeline-with-virtualenv-setup" title="Link to this heading">¶</a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Benchmark and compare</span>
+</span><span data-line="2"><span class="w">  </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HaoZeke/asv-benchmark-commenter@v1</span>
+</span><span data-line="3"><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="4"><span class="w">    </span><span class="nt">github-token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
+</span><span data-line="5"><span class="w">    </span><span class="nt">results-path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.asv/results/</span>
+</span><span data-line="6"><span class="w">    </span><span class="nt">comparison-mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compare-many</span>
+</span><span data-line="7"><span class="w">    </span><span class="nt">baseline</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="8"><span class="w">      </span><span class="no">label: main</span>
+</span><span data-line="9"><span class="w">      </span><span class="no">sha: ${{ env.BASE_SHA }}</span>
+</span><span data-line="10"><span class="w">      </span><span class="no">setup: source ./envs/bench.sh</span>
+</span><span data-line="11"><span class="w">    </span><span class="nt">contenders</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="12"><span class="w">      </span><span class="no">- label: pr</span>
+</span><span data-line="13"><span class="w">        </span><span class="no">sha: ${{ env.PR_SHA }}</span>
+</span><span data-line="14"><span class="w">        </span><span class="no">setup: source ./envs/bench.sh</span>
+</span><span data-line="15"><span class="w">    </span><span class="nt">runner-info</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span></pre></div>
+</div>
+</section>
+<section id="id1">
+<h3>Pre-computed Output<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Post benchmark comment</span>
+</span><span data-line="2"><span class="w">  </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HaoZeke/asv-benchmark-commenter@v1</span>
+</span><span data-line="3"><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="4"><span class="w">    </span><span class="nt">github-token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
+</span><span data-line="5"><span class="w">    </span><span class="nt">comparison-text-file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">comparison.txt</span>
+</span><span data-line="6"><span class="w">    </span><span class="nt">base-sha</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ env.BASE_SHA }}</span>
+</span><span data-line="7"><span class="w">    </span><span class="nt">pr-sha</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ env.PR_SHA }}</span>
+</span></pre></div>
+</div>
+</section>
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="../howto/compare_across_machines.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">Compare Across Machines</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="comment_format.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">Comment Format</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2026--present, Rohit Goswami</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/HaoZeke/asv-benchmark-commenter" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
+    </div>
+  </div>
+</footer>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/shibuya.js?v=cac61aee"></script></body>
+</html>

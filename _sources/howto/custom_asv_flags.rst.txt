@@ -1,0 +1,88 @@
+
+================
+Custom ASV Flags
+================
+
+How to pass extra flags to asv-spyglass through the action.
+
+Using asv-spyglass-args
+-----------------------
+
+The ``asv-spyglass-args`` input passes additional flags directly to the
+asv-spyglass CLI invocation:
+
+.. code:: yaml
+
+    - name: Post benchmark comment
+      uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        results-path: results/
+        metadata-file: results/metadata.txt
+        asv-spyglass-args: '--split --only-changed --factor 1.05'
+
+Available Flags
+---------------
+
+These are asv-spyglass flags (not action inputs). Consult ``asv-spyglass --help``
+for the full list. Commonly used:
+
+.. table::
+
+    +----------------------+--------------------------------------------------+
+    | Flag                 | Effect                                           |
+    +======================+==================================================+
+    | ``--split``          | Split output into separate tables by change type |
+    +----------------------+--------------------------------------------------+
+    | ``--only-changed``   | Show only benchmarks that changed                |
+    +----------------------+--------------------------------------------------+
+    | ``--only-regressed`` | Show only regressions                            |
+    +----------------------+--------------------------------------------------+
+    | ``--factor N``       | Set significance factor (default 1.1 = 10%)      |
+    +----------------------+--------------------------------------------------+
+    | ``--sort ratio``     | Sort benchmarks by ratio                         |
+    +----------------------+--------------------------------------------------+
+    | ``--sort name``      | Sort benchmarks by name                          |
+    +----------------------+--------------------------------------------------+
+    | ``--no-env-label``   | Omit environment labels from benchmark names     |
+    +----------------------+--------------------------------------------------+
+
+--split Output
+--------------
+
+When ``--split`` is used, asv-spyglass outputs multiple tables separated by
+section headers. The action's parser handles this correctly -- it skips
+non-table lines and merges all data rows from all tables into a single result.
+
+--factor
+--------
+
+The ``factor`` parameter controls ASV's significance threshold. A factor of 1.1
+means changes less than 10% are not considered significant. Lower values (e.g.,
+1.05) are stricter.
+
+This is different from ``regression-threshold`` -- factor affects which benchmarks
+asv-spyglass marks as changed (``+`` or ``-``), while ``regression-threshold``
+controls which regressions the action considers "critical" for gating.
+
+When asv-spyglass-args Is Not Enough
+------------------------------------
+
+If you need more control than ``asv-spyglass-args`` provides (e.g., custom Python
+path, environment variables, specific asv-spyglass version), use the
+``comparison-text-file`` input instead and run asv-spyglass yourself:
+
+.. code:: yaml
+
+    - name: Run comparison with full control
+      run: |
+        pixi run -e bench uvx --from "asv-spyglass==1.2.3" \
+          asv-spyglass compare base.json pr.json \
+          --factor 1.02 --split --sort ratio --no-env-label \
+          > comparison.txt
+
+    - name: Post results
+      uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        comparison-text-file: comparison.txt

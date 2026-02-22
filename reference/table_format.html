@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="violet" data-content_root="../">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Table Format Reference - asv-benchmark-commenter documentation</title><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Statistical Methods" href="statistical_methods.html" /><link rel="prev" title="Comment Format" href="comment_format.html" />
+      <link rel="canonical" href="https://asv-benchmark-commenter.rgoswami.me/reference/table_format.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"auto");
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
+    <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://asv-benchmark-commenter.rgoswami.me/reference/table_format.html"/>
+  <meta property="og:title" content="Table Format Reference"/>
+    <meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="../index.html">
+      
+      
+      <strong>asv-benchmark-commenter</strong>
+    </a>
+    <div class="sy-head-nav" id="head-nav">
+      <nav class="sy-head-links"></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/HaoZeke/asv-benchmark-commenter" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="head-nav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2"></span>
+          <span class="hamburger_3"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="0"><p class="caption" role="heading" aria-level="3"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/asv_getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/cross_environment.html">Cross-Environment Comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/multi_way_comparison.html">Multi-Way Comparison</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">How-To Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../howto/migration.html">Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howto/regression_gating.html">Regression Gating</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howto/precomputed_output.html">Pre-computed Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howto/custom_asv_flags.html">Custom ASV Flags</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howto/compare_across_machines.html">Compare Across Machines</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="comment_format.html">Comment Format</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Table Format Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="statistical_methods.html">Statistical Methods</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Explanation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/why_this_action.html">Why This Action</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/how_asv_works.html">How ASV Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/fork_security.html">Fork Security</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#compare-format-two-way">compare Format (Two-Way)</a></li>
+<li><a class="reference internal" href="#compare-many-format-multi-way">compare-many Format (Multi-Way)</a></li>
+<li><a class="reference internal" href="#change-marks">Change Marks</a></li>
+<li><a class="reference internal" href="#the-prefix">The <code class="docutils literal notranslate"><span class="pre">~</span></code> Prefix</a></li>
+<li><a class="reference internal" href="#uncertainty-values">Uncertainty Values</a></li>
+<li><a class="reference internal" href="#record-samples">&#8211;record-samples</a></li>
+<li><a class="reference internal" href="#split-output">&#8211;split Output</a></li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6">
+<div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../index.html"><span itemprop="name">asv-benchmark-commenter</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">Table Format Reference</strong>
+        <meta itemprop="position" content="2" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="relative min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+  <div class="copy-page-wrapper relative pb-4 lg:absolute lg:top-8 lg:right-6 xl:right-12">
+  <div id="copy-page-trigger">
+    <button
+      type="button"
+      class="js-copy px-3 py-1 inline-flex items-center gap-1"
+      data-url="https://asv-benchmark-commenter.rgoswami.me/_sources/reference/table_format.rst.txt"
+    >
+      <i class="i-lucide" data-icon="copy"></i>
+      <span>Copy page</span>
+    </button>
+    <button class="js-menu px-2 py-1" type="button" aria-label="More actions"
+      aria-haspopup="menu" aria-expanded="false" aria-controls="copy-page-content">
+      <i class="i-lucide chevron-down"></i>
+    </button>
+  </div>
+  <div id="copy-page-content" role="menu" aria-orientation="vertical" aria-hidden="true">
+    <div role="presentation">
+      <div class="flex flex-col" role="group">
+        <button class="js-copy" type="button" role="menuitem"
+          data-url="https://asv-benchmark-commenter.rgoswami.me/_sources/reference/table_format.rst.txt">
+          <span class="iconify-icon">
+            <i class="i-lucide" data-icon="copy"></i>
+          </span>
+          <span>Copy page</span>
+        </button>
+        <a role="menuitem" href="https://asv-benchmark-commenter.rgoswami.me/_sources/reference/table_format.rst.txt" target="_blank" rel="nofollow"><iconify-icon icon="bi:code-slash"></iconify-icon>
+            <span>View Source</span></a><a role="menuitem" href="https://chatgpt.com/?hints=search&q=Read%20https%3A//asv-benchmark-commenter.rgoswami.me/_sources/reference/table_format.rst.txt%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+          <iconify-icon icon="bi:openai"></iconify-icon>
+          <span>Open in ChatGPT</span>
+        </a><a role="menuitem" href="https://claude.ai/new?q=Read%20https%3A//asv-benchmark-commenter.rgoswami.me/_sources/reference/table_format.rst.txt%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+          <iconify-icon icon="bi:claude"></iconify-icon>
+          <span>Open in Claude</span>
+        </a></div>
+    </div>
+  </div>
+</div><article class="yue" role="main">
+          <section id="table-format-reference">
+<h1>Table Format Reference<a class="headerlink" href="#table-format-reference" title="Link to this heading">¶</a></h1>
+<p>This page documents the asv-spyglass output formats that the action parses.</p>
+<section id="compare-format-two-way">
+<h2>compare Format (Two-Way)<a class="headerlink" href="#compare-format-two-way" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">asv-spyglass</span> <span class="pre">compare</span></code> command produces a table with these columns:</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Content</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Change</p></td>
+<td><p>Mark: <code class="docutils literal notranslate"><span class="pre">+</span></code> regressed, <code class="docutils literal notranslate"><span class="pre">-</span></code> improved, space unchanged, <code class="docutils literal notranslate"><span class="pre">x</span></code> incomparable, <code class="docutils literal notranslate"><span class="pre">!</span></code> failed</p></td>
+</tr>
+<tr class="row-odd"><td><p>Before</p></td>
+<td><p>Value with uncertainty (e.g., <code class="docutils literal notranslate"><span class="pre">167+/-3ns</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p>After</p></td>
+<td><p>Value with uncertainty</p></td>
+</tr>
+<tr class="row-odd"><td><p>Ratio</p></td>
+<td><p>Decimal ratio. <code class="docutils literal notranslate"><span class="pre">~</span></code> prefix means statistically insignificant. <code class="docutils literal notranslate"><span class="pre">n/a</span></code> if incomparable</p></td>
+</tr>
+<tr class="row-even"><td><p>Benchmark (Parameter)</p></td>
+<td><p>Full benchmark name with optional <code class="docutils literal notranslate"><span class="pre">[env</span> <span class="pre">-&gt;</span> <span class="pre">env]</span></code> suffix</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="o">|</span> <span class="n">Change</span>   <span class="o">|</span> <span class="n">Before</span>      <span class="o">|</span> <span class="n">After</span>       <span class="o">|</span>   <span class="n">Ratio</span> <span class="o">|</span> <span class="n">Benchmark</span> <span class="p">(</span><span class="n">Parameter</span><span class="p">)</span>                                    <span class="o">|</span>
+</span><span data-line="2"><span class="o">|----------|-------------|-------------|---------|----------------------------------------------------------|</span>
+</span><span data-line="3"><span class="o">|</span> <span class="o">+</span>        <span class="o">|</span> <span class="mi">167</span><span class="o">+/-</span><span class="mi">3</span><span class="n">ns</span>   <span class="o">|</span> <span class="mi">187</span><span class="o">+/-</span><span class="mi">3</span><span class="n">ns</span>   <span class="o">|</span>    <span class="mf">1.12</span> <span class="o">|</span> <span class="n">benchmarks</span><span class="o">.</span><span class="n">TimeSuite</span><span class="o">.</span><span class="n">time_values</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="p">[</span><span class="n">env1</span> <span class="o">-&gt;</span> <span class="n">env1</span><span class="p">]</span>      <span class="o">|</span>
+</span><span data-line="4"><span class="o">|</span> <span class="o">-</span>        <span class="o">|</span> <span class="mi">157</span><span class="o">+/-</span><span class="mi">3</span><span class="n">ns</span>   <span class="o">|</span> <span class="mi">137</span><span class="o">+/-</span><span class="mi">3</span><span class="n">ns</span>   <span class="o">|</span>    <span class="mf">0.87</span> <span class="o">|</span> <span class="n">benchmarks</span><span class="o">.</span><span class="n">TimeSuite</span><span class="o">.</span><span class="n">time_keys</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="p">[</span><span class="n">env1</span> <span class="o">-&gt;</span> <span class="n">env1</span><span class="p">]</span>        <span class="o">|</span>
+</span><span data-line="5"><span class="o">|</span>          <span class="o">|</span> <span class="mf">1.17</span><span class="o">+/-</span><span class="mi">0</span><span class="n">us</span>  <span class="o">|</span> <span class="mf">1.07</span><span class="o">+/-</span><span class="mi">0</span><span class="n">us</span>  <span class="o">|</span>   <span class="o">~</span><span class="mf">0.91</span> <span class="o">|</span> <span class="n">benchmarks</span><span class="o">.</span><span class="n">TimeSuite</span><span class="o">.</span><span class="n">time_keys</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span> <span class="p">[</span><span class="n">env1</span> <span class="o">-&gt;</span> <span class="n">env1</span><span class="p">]</span>       <span class="o">|</span>
+</span><span data-line="6"><span class="o">|</span> <span class="n">x</span>        <span class="o">|</span> <span class="mi">50</span><span class="o">+/-</span><span class="mi">2</span><span class="n">ns</span>    <span class="o">|</span> <span class="n">n</span><span class="o">/</span><span class="n">a</span>         <span class="o">|</span>     <span class="n">n</span><span class="o">/</span><span class="n">a</span> <span class="o">|</span> <span class="n">benchmarks</span><span class="o">.</span><span class="n">TimeSuite</span><span class="o">.</span><span class="n">time_broken</span> <span class="p">[</span><span class="n">env1</span> <span class="o">-&gt;</span> <span class="n">env1</span><span class="p">]</span>          <span class="o">|</span>
+</span></pre></div>
+</div>
+</section>
+<section id="compare-many-format-multi-way">
+<h2>compare-many Format (Multi-Way)<a class="headerlink" href="#compare-many-format-multi-way" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">asv-spyglass</span> <span class="pre">compare-many</span></code> command produces a multi-column table:</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Content</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Benchmark (Parameter)</p></td>
+<td><p>Full benchmark name</p></td>
+</tr>
+<tr class="row-odd"><td><p>Baseline (label)</p></td>
+<td><p>Baseline value with uncertainty</p></td>
+</tr>
+<tr class="row-even"><td><p>Contender N (Ratio)</p></td>
+<td><p>Value followed by <code class="docutils literal notranslate"><span class="pre">(mark</span> <span class="pre">ratio)</span></code> in parentheses</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Each contender cell has the format: <code class="docutils literal notranslate"><span class="pre">value</span> <span class="pre">(mark</span> <span class="pre">ratio)</span></code></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">187+/-3ns</span> <span class="pre">(+</span> <span class="pre">1.12)</span></code> – regressed, ratio 1.12</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">137+/-3ns</span> <span class="pre">(-</span> <span class="pre">0.87)</span></code> – improved, ratio 0.87</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">1.07+/-0us</span> <span class="pre">(~0.91)</span></code> – unchanged (statistically insignificant)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n/a</span> <span class="pre">(x</span> <span class="pre">n/a)</span></code> – incomparable</p></li>
+</ul>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="o">|</span> <span class="n">Benchmark</span> <span class="p">(</span><span class="n">Parameter</span><span class="p">)</span>      <span class="o">|</span> <span class="n">baseline</span> <span class="p">(</span><span class="n">py311</span><span class="p">)</span>  <span class="o">|</span> <span class="n">opt</span><span class="o">-</span><span class="n">build</span> <span class="p">(</span><span class="n">Ratio</span><span class="p">)</span>    <span class="o">|</span> <span class="n">debug</span><span class="o">-</span><span class="n">build</span> <span class="p">(</span><span class="n">Ratio</span><span class="p">)</span>   <span class="o">|</span>
+</span><span data-line="2"><span class="o">|----------------------------|-------------------|----------------------|-----------------------|</span>
+</span><span data-line="3"><span class="o">|</span> <span class="n">benchmarks</span><span class="o">.</span><span class="n">TimeSuite</span><span class="o">.</span><span class="n">foo</span>   <span class="o">|</span> <span class="mi">167</span><span class="o">+/-</span><span class="mi">3</span><span class="n">ns</span>         <span class="o">|</span> <span class="mi">187</span><span class="o">+/-</span><span class="mi">3</span><span class="n">ns</span> <span class="p">(</span><span class="o">+</span> <span class="mf">1.12</span><span class="p">)</span>   <span class="o">|</span> <span class="mi">150</span><span class="o">+/-</span><span class="mi">2</span><span class="n">ns</span> <span class="p">(</span><span class="o">-</span> <span class="mf">0.90</span><span class="p">)</span>    <span class="o">|</span>
+</span><span data-line="4"><span class="o">|</span> <span class="n">benchmarks</span><span class="o">.</span><span class="n">TimeSuite</span><span class="o">.</span><span class="n">bar</span>   <span class="o">|</span> <span class="mi">200</span><span class="o">+/-</span><span class="mi">5</span><span class="n">ns</span>         <span class="o">|</span> <span class="mi">195</span><span class="o">+/-</span><span class="mi">4</span><span class="n">ns</span> <span class="p">(</span><span class="o">~</span><span class="mf">0.98</span><span class="p">)</span>    <span class="o">|</span> <span class="mi">350</span><span class="o">+/-</span><span class="mi">5</span><span class="n">ns</span> <span class="p">(</span><span class="o">+</span> <span class="mf">1.75</span><span class="p">)</span>    <span class="o">|</span>
+</span></pre></div>
+</div>
+</section>
+<section id="change-marks">
+<h2>Change Marks<a class="headerlink" href="#change-marks" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Mark</p></th>
+<th class="head"><p>Meaning</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">+</span></code></p></td>
+<td><p>Regressed</p></td>
+<td><p>Performance got worse (statistically significant)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p>Improved</p></td>
+<td><p>Performance got better (statistically significant)</p></td>
+</tr>
+<tr class="row-even"><td><p>(space)</p></td>
+<td><p>Unchanged</p></td>
+<td><p>No statistically significant change</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">x</span></code></p></td>
+<td><p>Incomparable</p></td>
+<td><p>Results cannot be compared (e.g., one failed)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">!</span></code></p></td>
+<td><p>Failed</p></td>
+<td><p>Benchmark execution failed</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="the-prefix">
+<h2>The <code class="docutils literal notranslate"><span class="pre">~</span></code> Prefix<a class="headerlink" href="#the-prefix" title="Link to this heading">¶</a></h2>
+<p>A ratio prefixed with <code class="docutils literal notranslate"><span class="pre">~</span></code> means the change exceeds the configured factor
+threshold but fails the Mann-Whitney U statistical significance test. This
+indicates the difference is uncertain – it might be real or might be noise.</p>
+</section>
+<section id="uncertainty-values">
+<h2>Uncertainty Values<a class="headerlink" href="#uncertainty-values" title="Link to this heading">¶</a></h2>
+<p>Values like <code class="docutils literal notranslate"><span class="pre">167+/-3ns</span></code> show the measurement with its interquartile range
+divided by 2 (IQR/2). This provides a robust measure of spread that is less
+sensitive to outliers than standard deviation.</p>
+</section>
+<section id="record-samples">
+<h2>–record-samples<a class="headerlink" href="#record-samples" title="Link to this heading">¶</a></h2>
+<p>ASV’s <code class="docutils literal notranslate"><span class="pre">--record-samples</span></code> flag is required for statistical significance testing.
+Without it, asv-spyglass falls back to simple ratio comparison without
+confidence intervals or Mann-Whitney U tests.</p>
+</section>
+<section id="split-output">
+<h2>–split Output<a class="headerlink" href="#split-output" title="Link to this heading">¶</a></h2>
+<p>When <code class="docutils literal notranslate"><span class="pre">--split</span></code> is used, asv-spyglass outputs multiple tables separated by
+section headers (e.g., “Benchmarks that have improved:”, “Benchmarks that have
+got worse:”). Each table has the same column format. The action’s parser
+handles this by skipping non-table lines.</p>
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="comment_format.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">Comment Format</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="statistical_methods.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">Statistical Methods</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2026--present, Rohit Goswami</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/HaoZeke/asv-benchmark-commenter" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
+    </div>
+  </div>
+</footer>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/shibuya.js?v=cac61aee"></script></body>
+</html>

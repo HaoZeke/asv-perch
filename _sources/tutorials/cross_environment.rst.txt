@@ -1,0 +1,253 @@
+
+==============================
+Cross-Environment Comparison
+==============================
+
+This tutorial walks through comparing benchmark results across different build
+environments -- different Python versions, compilers, conda vs pixi, CPU vs GPU
+-- using a single PR comment.
+
+The action can either run benchmarks for you (via ``run-prefix`` or ``setup``) or
+work as a presentation layer with pre-existing result files. Either way, it
+never manages your build environment -- you bring your own pixi, conda, nix,
+virtualenv, or whatever you need.
+
+The Problem
+-----------
+
+When you benchmark the **same commit** in two environments, both result files have
+the same SHA prefix. SHA-based file lookup cannot distinguish them. You need to
+point the action at specific files.
+
+Solution: Direct File Paths
+---------------------------
+
+Use ``baseline-file`` and ``contender-files`` to point directly at result JSONs.
+No SHA-based lookup needed.
+
+.. code:: yaml
+
+    - uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        results-path: results/
+        comparison-mode: compare-many
+        baseline-file: results/py311/result.json
+        contender-files: results/py312/result.json
+        baseline-label: py3.11
+        contender-labels: py3.12
+
+Full Example: py3.11 vs py3.12 with pixi
+----------------------------------------
+
+Step 1: Define Environments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In ``pixi.toml``:
+
+.. code:: toml
+
+    [environments]
+    bench-py311 = { features = ["bench"], solve-group = "bench" }
+    bench-py312 = { features = ["bench"], solve-group = "bench" }
+
+    [feature.bench.dependencies]
+    asv = "*"
+    asv-runner = "*"
+
+    [feature.bench-py311.dependencies]
+    python = "3.11.*"
+
+    [feature.bench-py312.dependencies]
+    python = "3.12.*"
+
+Step 2: Benchmark Workflow
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use a matrix strategy. Each environment uploads its results under a distinct
+path.
+
+.. code:: yaml
+
+    name: Benchmark PR
+
+    on:
+      pull_request:
+        branches: [main]
+
+    jobs:
+      bench:
+        strategy:
+          matrix:
+            include:
+              - env: bench-py311
+                label: py311
+              - env: bench-py312
+                label: py312
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - uses: prefix-dev/setup-pixi@v0.8.1
+
+          - name: Run benchmarks
+            run: |
+              pixi run -e ${{ matrix.env }} asv run --record-samples
+
+          - name: Upload results
+            uses: actions/upload-artifact@v4
+            with:
+              name: bench-${{ matrix.label }}
+              path: .asv/results/
+
+Step 3: Commenter Workflow
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Download all artifacts and point the action at the specific files:
+
+.. code:: yaml
+
+    name: Comment benchmark results
+
+    on:
+      workflow_run:
+        workflows: ["Benchmark PR"]
+        types: [completed]
+
+    jobs:
+      comment:
+        if: >-
+          github.event.workflow_run.event == 'pull_request' &&
+          github.event.workflow_run.conclusion == 'success'
+        runs-on: ubuntu-latest
+        permissions:
+          pull-requests: write
+          issues: write
+          actions: read
+
+        steps:
+          - uses: astral-sh/setup-uv@v5
+
+          - name: Download py3.11 results
+            uses: actions/download-artifact@v4
+            with:
+              name: bench-py311
+              path: results/py311
+              run-id: ${{ github.event.workflow_run.id }}
+              github-token: ${{ secrets.GITHUB_TOKEN }}
+
+          - name: Download py3.12 results
+            uses: actions/download-artifact@v4
+            with:
+              name: bench-py312
+              path: results/py312
+              run-id: ${{ github.event.workflow_run.id }}
+              github-token: ${{ secrets.GITHUB_TOKEN }}
+
+          - name: Post comparison
+            uses: HaoZeke/asv-benchmark-commenter@v1
+            with:
+              github-token: ${{ secrets.GITHUB_TOKEN }}
+              results-path: results/
+              comparison-mode: compare-many
+              baseline-file: results/py311/machine_name/result.json
+              contender-files: results/py312/machine_name/result.json
+              baseline-label: 'py3.11'
+              contender-labels: 'py3.12'
+              runner-info: ubuntu-latest
+
+Alternative: Two Separate Comments
+----------------------------------
+
+If you prefer per-environment comments instead of a multi-column table, use
+``compare`` mode with ``comparison-text-file`` and distinct markers:
+
+.. code:: yaml
+
+    - name: Compare py3.11 (base vs PR)
+      run: |
+        uvx asv-spyglass compare \
+          results/py311/base.json results/py311/pr.json \
+          --label-before "py311-base" --label-after "py311-pr" \
+          > comparison_py311.txt
+
+    - name: Post py3.11
+      uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        comparison-text-file: comparison_py311.txt
+        comment-marker: '<!-- asv-bench-py311 -->'
+        runner-info: 'ubuntu-latest (py3.11)'
+
+Three or More Environments
+--------------------------
+
+Add more entries to ``contender-files`` and ``contender-labels``:
+
+.. code:: yaml
+
+    - uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        results-path: results/
+        comparison-mode: compare-many
+        baseline-file: results/py311/result.json
+        contender-files: 'results/py312/result.json, results/gpu/result.json'
+        baseline-label: 'py3.11 (CPU)'
+        contender-labels: 'py3.12 (CPU), py3.11 (GPU)'
+
+Alternative: Full Pipeline with run-prefix
+------------------------------------------
+
+Instead of separate benchmark and commenter workflows, use the YAML pipeline
+to run everything in one step. Each contender specifies its environment via
+``run-prefix``:
+
+.. code:: yaml
+
+    - uses: prefix-dev/setup-pixi@v0.8.0
+    - uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        results-path: .asv/results/
+        comparison-mode: compare-many
+        baseline: |
+          label: py3.11
+          sha: ${{ github.sha }}
+          run-prefix: pixi run -e bench-py311
+        contenders: |
+          - label: py3.12
+            sha: ${{ github.sha }}
+            run-prefix: pixi run -e bench-py312
+
+The action runs ``pixi run -e bench-py311 asv run --record-samples <sha>^!``
+for the baseline, then ``pixi run -e bench-py312 asv run --record-samples <sha>^!``
+for the contender, then compares and posts.
+
+For ``source``-based environments (virtualenv, shell scripts), use ``setup``
+instead of ``run-prefix``:
+
+.. code:: yaml
+
+    baseline: |
+      label: py3.11
+      sha: ${{ github.sha }}
+      setup: source ./envs/py311.sh
+    contenders: |
+      - label: py3.12
+        sha: ${{ github.sha }}
+        setup: source ./envs/py312.sh
+
+Key Points
+----------
+
+- ``baseline-file`` / ``contender-files`` bypass SHA-based lookup -- use these
+  when comparing the same commit across different environments
+
+- ``run-prefix`` works with wrapper tools (pixi, conda, nix) --
+  ``setup`` works with source-based activation (virtualenv, shell scripts)
+
+- The action imposes no constraints on environments. Use conda, pixi,
+  virtualenv, nix, Docker, bare metal GPU runners -- whatever you need.
+
+- ``--record-samples`` in ASV enables statistical significance testing.
+  Without it, only simple ratio comparison is available.

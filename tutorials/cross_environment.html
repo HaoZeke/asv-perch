@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="violet" data-content_root="../">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Cross-Environment Comparison - asv-benchmark-commenter documentation</title><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Multi-Way Comparison" href="multi_way_comparison.html" /><link rel="prev" title="Getting Started" href="asv_getting_started.html" />
+      <link rel="canonical" href="https://asv-benchmark-commenter.rgoswami.me/tutorials/cross_environment.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"auto");
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
+    <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://asv-benchmark-commenter.rgoswami.me/tutorials/cross_environment.html"/>
+  <meta property="og:title" content="Cross-Environment Comparison"/>
+    <meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="../index.html">
+      
+      
+      <strong>asv-benchmark-commenter</strong>
+    </a>
+    <div class="sy-head-nav" id="head-nav">
+      <nav class="sy-head-links"></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/HaoZeke/asv-benchmark-commenter" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="head-nav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2"></span>
+          <span class="hamburger_3"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="0"><p class="caption" role="heading" aria-level="3"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="asv_getting_started.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Cross-Environment Comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multi_way_comparison.html">Multi-Way Comparison</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">How-To Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../howto/migration.html">Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howto/regression_gating.html">Regression Gating</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howto/precomputed_output.html">Pre-computed Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howto/custom_asv_flags.html">Custom ASV Flags</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howto/compare_across_machines.html">Compare Across Machines</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../reference/configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/comment_format.html">Comment Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/table_format.html">Table Format Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/statistical_methods.html">Statistical Methods</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Explanation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/why_this_action.html">Why This Action</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/how_asv_works.html">How ASV Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/fork_security.html">Fork Security</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#the-problem">The Problem</a></li>
+<li><a class="reference internal" href="#solution-direct-file-paths">Solution: Direct File Paths</a></li>
+<li><a class="reference internal" href="#full-example-py3-11-vs-py3-12-with-pixi">Full Example: py3.11 vs py3.12 with pixi</a><ul>
+<li><a class="reference internal" href="#step-1-define-environments">Step 1: Define Environments</a></li>
+<li><a class="reference internal" href="#step-2-benchmark-workflow">Step 2: Benchmark Workflow</a></li>
+<li><a class="reference internal" href="#step-3-commenter-workflow">Step 3: Commenter Workflow</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#alternative-two-separate-comments">Alternative: Two Separate Comments</a></li>
+<li><a class="reference internal" href="#three-or-more-environments">Three or More Environments</a></li>
+<li><a class="reference internal" href="#alternative-full-pipeline-with-run-prefix">Alternative: Full Pipeline with run-prefix</a></li>
+<li><a class="reference internal" href="#key-points">Key Points</a></li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6">
+<div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../index.html"><span itemprop="name">asv-benchmark-commenter</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">Cross-Environment Comparison</strong>
+        <meta itemprop="position" content="2" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="relative min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+  <div class="copy-page-wrapper relative pb-4 lg:absolute lg:top-8 lg:right-6 xl:right-12">
+  <div id="copy-page-trigger">
+    <button
+      type="button"
+      class="js-copy px-3 py-1 inline-flex items-center gap-1"
+      data-url="https://asv-benchmark-commenter.rgoswami.me/_sources/tutorials/cross_environment.rst.txt"
+    >
+      <i class="i-lucide" data-icon="copy"></i>
+      <span>Copy page</span>
+    </button>
+    <button class="js-menu px-2 py-1" type="button" aria-label="More actions"
+      aria-haspopup="menu" aria-expanded="false" aria-controls="copy-page-content">
+      <i class="i-lucide chevron-down"></i>
+    </button>
+  </div>
+  <div id="copy-page-content" role="menu" aria-orientation="vertical" aria-hidden="true">
+    <div role="presentation">
+      <div class="flex flex-col" role="group">
+        <button class="js-copy" type="button" role="menuitem"
+          data-url="https://asv-benchmark-commenter.rgoswami.me/_sources/tutorials/cross_environment.rst.txt">
+          <span class="iconify-icon">
+            <i class="i-lucide" data-icon="copy"></i>
+          </span>
+          <span>Copy page</span>
+        </button>
+        <a role="menuitem" href="https://asv-benchmark-commenter.rgoswami.me/_sources/tutorials/cross_environment.rst.txt" target="_blank" rel="nofollow"><iconify-icon icon="bi:code-slash"></iconify-icon>
+            <span>View Source</span></a><a role="menuitem" href="https://chatgpt.com/?hints=search&q=Read%20https%3A//asv-benchmark-commenter.rgoswami.me/_sources/tutorials/cross_environment.rst.txt%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+          <iconify-icon icon="bi:openai"></iconify-icon>
+          <span>Open in ChatGPT</span>
+        </a><a role="menuitem" href="https://claude.ai/new?q=Read%20https%3A//asv-benchmark-commenter.rgoswami.me/_sources/tutorials/cross_environment.rst.txt%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+          <iconify-icon icon="bi:claude"></iconify-icon>
+          <span>Open in Claude</span>
+        </a></div>
+    </div>
+  </div>
+</div><article class="yue" role="main">
+          <section id="cross-environment-comparison">
+<h1>Cross-Environment Comparison<a class="headerlink" href="#cross-environment-comparison" title="Link to this heading">¶</a></h1>
+<p>This tutorial walks through comparing benchmark results across different build
+environments – different Python versions, compilers, conda vs pixi, CPU vs GPU
+– using a single PR comment.</p>
+<p>The action can either run benchmarks for you (via <code class="docutils literal notranslate"><span class="pre">run-prefix</span></code> or <code class="docutils literal notranslate"><span class="pre">setup</span></code>) or
+work as a presentation layer with pre-existing result files. Either way, it
+never manages your build environment – you bring your own pixi, conda, nix,
+virtualenv, or whatever you need.</p>
+<section id="the-problem">
+<h2>The Problem<a class="headerlink" href="#the-problem" title="Link to this heading">¶</a></h2>
+<p>When you benchmark the <strong>same commit</strong> in two environments, both result files have
+the same SHA prefix. SHA-based file lookup cannot distinguish them. You need to
+point the action at specific files.</p>
+</section>
+<section id="solution-direct-file-paths">
+<h2>Solution: Direct File Paths<a class="headerlink" href="#solution-direct-file-paths" title="Link to this heading">¶</a></h2>
+<p>Use <code class="docutils literal notranslate"><span class="pre">baseline-file</span></code> and <code class="docutils literal notranslate"><span class="pre">contender-files</span></code> to point directly at result JSONs.
+No SHA-based lookup needed.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HaoZeke/asv-benchmark-commenter@v1</span>
+</span><span data-line="2"><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="3"><span class="w">    </span><span class="nt">github-token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
+</span><span data-line="4"><span class="w">    </span><span class="nt">results-path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/</span>
+</span><span data-line="5"><span class="w">    </span><span class="nt">comparison-mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compare-many</span>
+</span><span data-line="6"><span class="w">    </span><span class="nt">baseline-file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/py311/result.json</span>
+</span><span data-line="7"><span class="w">    </span><span class="nt">contender-files</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/py312/result.json</span>
+</span><span data-line="8"><span class="w">    </span><span class="nt">baseline-label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">py3.11</span>
+</span><span data-line="9"><span class="w">    </span><span class="nt">contender-labels</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">py3.12</span>
+</span></pre></div>
+</div>
+</section>
+<section id="full-example-py3-11-vs-py3-12-with-pixi">
+<h2>Full Example: py3.11 vs py3.12 with pixi<a class="headerlink" href="#full-example-py3-11-vs-py3-12-with-pixi" title="Link to this heading">¶</a></h2>
+<section id="step-1-define-environments">
+<h3>Step 1: Define Environments<a class="headerlink" href="#step-1-define-environments" title="Link to this heading">¶</a></h3>
+<p>In <code class="docutils literal notranslate"><span class="pre">pixi.toml</span></code>:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">[environments]</span>
+</span><span data-line="2"><span class="n">bench-py311</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">features</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;bench&quot;</span><span class="p">],</span><span class="w"> </span><span class="n">solve-group</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;bench&quot;</span><span class="w"> </span><span class="p">}</span>
+</span><span data-line="3"><span class="n">bench-py312</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">features</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;bench&quot;</span><span class="p">],</span><span class="w"> </span><span class="n">solve-group</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;bench&quot;</span><span class="w"> </span><span class="p">}</span>
+</span><span data-line="4">
+</span><span data-line="5"><span class="k">[feature.bench.dependencies]</span>
+</span><span data-line="6"><span class="n">asv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;*&quot;</span>
+</span><span data-line="7"><span class="n">asv-runner</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;*&quot;</span>
+</span><span data-line="8">
+</span><span data-line="9"><span class="k">[feature.bench-py311.dependencies]</span>
+</span><span data-line="10"><span class="n">python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;3.11.*&quot;</span>
+</span><span data-line="11">
+</span><span data-line="12"><span class="k">[feature.bench-py312.dependencies]</span>
+</span><span data-line="13"><span class="n">python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;3.12.*&quot;</span>
+</span></pre></div>
+</div>
+</section>
+<section id="step-2-benchmark-workflow">
+<h3>Step 2: Benchmark Workflow<a class="headerlink" href="#step-2-benchmark-workflow" title="Link to this heading">¶</a></h3>
+<p>Use a matrix strategy. Each environment uploads its results under a distinct
+path.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Benchmark PR</span>
+</span><span data-line="2">
+</span><span data-line="3"><span class="nt">on</span><span class="p">:</span>
+</span><span data-line="4"><span class="w">  </span><span class="nt">pull_request</span><span class="p">:</span>
+</span><span data-line="5"><span class="w">    </span><span class="nt">branches</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">main</span><span class="p p-Indicator">]</span>
+</span><span data-line="6">
+</span><span data-line="7"><span class="nt">jobs</span><span class="p">:</span>
+</span><span data-line="8"><span class="w">  </span><span class="nt">bench</span><span class="p">:</span>
+</span><span data-line="9"><span class="w">    </span><span class="nt">strategy</span><span class="p">:</span>
+</span><span data-line="10"><span class="w">      </span><span class="nt">matrix</span><span class="p">:</span>
+</span><span data-line="11"><span class="w">        </span><span class="nt">include</span><span class="p">:</span>
+</span><span data-line="12"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">env</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bench-py311</span>
+</span><span data-line="13"><span class="w">            </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">py311</span>
+</span><span data-line="14"><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">env</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bench-py312</span>
+</span><span data-line="15"><span class="w">            </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">py312</span>
+</span><span data-line="16"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span data-line="17"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span data-line="18"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+</span><span data-line="19"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prefix-dev/setup-pixi@v0.8.1</span>
+</span><span data-line="20">
+</span><span data-line="21"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run benchmarks</span>
+</span><span data-line="22"><span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="23"><span class="w">          </span><span class="no">pixi run -e ${{ matrix.env }} asv run --record-samples</span>
+</span><span data-line="24">
+</span><span data-line="25"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Upload results</span>
+</span><span data-line="26"><span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/upload-artifact@v4</span>
+</span><span data-line="27"><span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="28"><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bench-${{ matrix.label }}</span>
+</span><span data-line="29"><span class="w">          </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.asv/results/</span>
+</span></pre></div>
+</div>
+</section>
+<section id="step-3-commenter-workflow">
+<h3>Step 3: Commenter Workflow<a class="headerlink" href="#step-3-commenter-workflow" title="Link to this heading">¶</a></h3>
+<p>Download all artifacts and point the action at the specific files:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Comment benchmark results</span>
+</span><span data-line="2">
+</span><span data-line="3"><span class="nt">on</span><span class="p">:</span>
+</span><span data-line="4"><span class="w">  </span><span class="nt">workflow_run</span><span class="p">:</span>
+</span><span data-line="5"><span class="w">    </span><span class="nt">workflows</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;Benchmark</span><span class="nv"> </span><span class="s">PR&quot;</span><span class="p p-Indicator">]</span>
+</span><span data-line="6"><span class="w">    </span><span class="nt">types</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">completed</span><span class="p p-Indicator">]</span>
+</span><span data-line="7">
+</span><span data-line="8"><span class="nt">jobs</span><span class="p">:</span>
+</span><span data-line="9"><span class="w">  </span><span class="nt">comment</span><span class="p">:</span>
+</span><span data-line="10"><span class="w">    </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">&gt;-</span>
+</span><span data-line="11"><span class="w">      </span><span class="no">github.event.workflow_run.event == &#39;pull_request&#39; &amp;&amp;</span>
+</span><span data-line="12"><span class="w">      </span><span class="no">github.event.workflow_run.conclusion == &#39;success&#39;</span>
+</span><span data-line="13"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span data-line="14"><span class="w">    </span><span class="nt">permissions</span><span class="p">:</span>
+</span><span data-line="15"><span class="w">      </span><span class="nt">pull-requests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span>
+</span><span data-line="16"><span class="w">      </span><span class="nt">issues</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span>
+</span><span data-line="17"><span class="w">      </span><span class="nt">actions</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">read</span>
+</span><span data-line="18">
+</span><span data-line="19"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span data-line="20"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">astral-sh/setup-uv@v5</span>
+</span><span data-line="21">
+</span><span data-line="22"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Download py3.11 results</span>
+</span><span data-line="23"><span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/download-artifact@v4</span>
+</span><span data-line="24"><span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="25"><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bench-py311</span>
+</span><span data-line="26"><span class="w">          </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/py311</span>
+</span><span data-line="27"><span class="w">          </span><span class="nt">run-id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ github.event.workflow_run.id }}</span>
+</span><span data-line="28"><span class="w">          </span><span class="nt">github-token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
+</span><span data-line="29">
+</span><span data-line="30"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Download py3.12 results</span>
+</span><span data-line="31"><span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/download-artifact@v4</span>
+</span><span data-line="32"><span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="33"><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bench-py312</span>
+</span><span data-line="34"><span class="w">          </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/py312</span>
+</span><span data-line="35"><span class="w">          </span><span class="nt">run-id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ github.event.workflow_run.id }}</span>
+</span><span data-line="36"><span class="w">          </span><span class="nt">github-token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
+</span><span data-line="37">
+</span><span data-line="38"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Post comparison</span>
+</span><span data-line="39"><span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HaoZeke/asv-benchmark-commenter@v1</span>
+</span><span data-line="40"><span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="41"><span class="w">          </span><span class="nt">github-token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
+</span><span data-line="42"><span class="w">          </span><span class="nt">results-path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/</span>
+</span><span data-line="43"><span class="w">          </span><span class="nt">comparison-mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compare-many</span>
+</span><span data-line="44"><span class="w">          </span><span class="nt">baseline-file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/py311/machine_name/result.json</span>
+</span><span data-line="45"><span class="w">          </span><span class="nt">contender-files</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/py312/machine_name/result.json</span>
+</span><span data-line="46"><span class="w">          </span><span class="nt">baseline-label</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;py3.11&#39;</span>
+</span><span data-line="47"><span class="w">          </span><span class="nt">contender-labels</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;py3.12&#39;</span>
+</span><span data-line="48"><span class="w">          </span><span class="nt">runner-info</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span></pre></div>
+</div>
+</section>
+</section>
+<section id="alternative-two-separate-comments">
+<h2>Alternative: Two Separate Comments<a class="headerlink" href="#alternative-two-separate-comments" title="Link to this heading">¶</a></h2>
+<p>If you prefer per-environment comments instead of a multi-column table, use
+<code class="docutils literal notranslate"><span class="pre">compare</span></code> mode with <code class="docutils literal notranslate"><span class="pre">comparison-text-file</span></code> and distinct markers:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Compare py3.11 (base vs PR)</span>
+</span><span data-line="2"><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="3"><span class="w">    </span><span class="no">uvx asv-spyglass compare \</span>
+</span><span data-line="4"><span class="w">      </span><span class="no">results/py311/base.json results/py311/pr.json \</span>
+</span><span data-line="5"><span class="w">      </span><span class="no">--label-before &quot;py311-base&quot; --label-after &quot;py311-pr&quot; \</span>
+</span><span data-line="6"><span class="w">      </span><span class="no">&gt; comparison_py311.txt</span>
+</span><span data-line="7">
+</span><span data-line="8"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Post py3.11</span>
+</span><span data-line="9"><span class="w">  </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HaoZeke/asv-benchmark-commenter@v1</span>
+</span><span data-line="10"><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="11"><span class="w">    </span><span class="nt">github-token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
+</span><span data-line="12"><span class="w">    </span><span class="nt">comparison-text-file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">comparison_py311.txt</span>
+</span><span data-line="13"><span class="w">    </span><span class="nt">comment-marker</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;&lt;!--</span><span class="nv"> </span><span class="s">asv-bench-py311</span><span class="nv"> </span><span class="s">--&gt;&#39;</span>
+</span><span data-line="14"><span class="w">    </span><span class="nt">runner-info</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;ubuntu-latest</span><span class="nv"> </span><span class="s">(py3.11)&#39;</span>
+</span></pre></div>
+</div>
+</section>
+<section id="three-or-more-environments">
+<h2>Three or More Environments<a class="headerlink" href="#three-or-more-environments" title="Link to this heading">¶</a></h2>
+<p>Add more entries to <code class="docutils literal notranslate"><span class="pre">contender-files</span></code> and <code class="docutils literal notranslate"><span class="pre">contender-labels</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HaoZeke/asv-benchmark-commenter@v1</span>
+</span><span data-line="2"><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="3"><span class="w">    </span><span class="nt">github-token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
+</span><span data-line="4"><span class="w">    </span><span class="nt">results-path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/</span>
+</span><span data-line="5"><span class="w">    </span><span class="nt">comparison-mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compare-many</span>
+</span><span data-line="6"><span class="w">    </span><span class="nt">baseline-file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/py311/result.json</span>
+</span><span data-line="7"><span class="w">    </span><span class="nt">contender-files</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;results/py312/result.json,</span><span class="nv"> </span><span class="s">results/gpu/result.json&#39;</span>
+</span><span data-line="8"><span class="w">    </span><span class="nt">baseline-label</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;py3.11</span><span class="nv"> </span><span class="s">(CPU)&#39;</span>
+</span><span data-line="9"><span class="w">    </span><span class="nt">contender-labels</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;py3.12</span><span class="nv"> </span><span class="s">(CPU),</span><span class="nv"> </span><span class="s">py3.11</span><span class="nv"> </span><span class="s">(GPU)&#39;</span>
+</span></pre></div>
+</div>
+</section>
+<section id="alternative-full-pipeline-with-run-prefix">
+<h2>Alternative: Full Pipeline with run-prefix<a class="headerlink" href="#alternative-full-pipeline-with-run-prefix" title="Link to this heading">¶</a></h2>
+<p>Instead of separate benchmark and commenter workflows, use the YAML pipeline
+to run everything in one step. Each contender specifies its environment via
+<code class="docutils literal notranslate"><span class="pre">run-prefix</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prefix-dev/setup-pixi@v0.8.0</span>
+</span><span data-line="2"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HaoZeke/asv-benchmark-commenter@v1</span>
+</span><span data-line="3"><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="4"><span class="w">    </span><span class="nt">github-token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
+</span><span data-line="5"><span class="w">    </span><span class="nt">results-path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.asv/results/</span>
+</span><span data-line="6"><span class="w">    </span><span class="nt">comparison-mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compare-many</span>
+</span><span data-line="7"><span class="w">    </span><span class="nt">baseline</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="8"><span class="w">      </span><span class="no">label: py3.11</span>
+</span><span data-line="9"><span class="w">      </span><span class="no">sha: ${{ github.sha }}</span>
+</span><span data-line="10"><span class="w">      </span><span class="no">run-prefix: pixi run -e bench-py311</span>
+</span><span data-line="11"><span class="w">    </span><span class="nt">contenders</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="12"><span class="w">      </span><span class="no">- label: py3.12</span>
+</span><span data-line="13"><span class="w">        </span><span class="no">sha: ${{ github.sha }}</span>
+</span><span data-line="14"><span class="w">        </span><span class="no">run-prefix: pixi run -e bench-py312</span>
+</span></pre></div>
+</div>
+<p>The action runs <code class="docutils literal notranslate"><span class="pre">pixi</span> <span class="pre">run</span> <span class="pre">-e</span> <span class="pre">bench-py311</span> <span class="pre">asv</span> <span class="pre">run</span> <span class="pre">--record-samples</span> <span class="pre">&lt;sha&gt;^!</span></code>
+for the baseline, then <code class="docutils literal notranslate"><span class="pre">pixi</span> <span class="pre">run</span> <span class="pre">-e</span> <span class="pre">bench-py312</span> <span class="pre">asv</span> <span class="pre">run</span> <span class="pre">--record-samples</span> <span class="pre">&lt;sha&gt;^!</span></code>
+for the contender, then compares and posts.</p>
+<p>For <code class="docutils literal notranslate"><span class="pre">source</span></code>-based environments (virtualenv, shell scripts), use <code class="docutils literal notranslate"><span class="pre">setup</span></code>
+instead of <code class="docutils literal notranslate"><span class="pre">run-prefix</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nt">baseline</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="2"><span class="w">  </span><span class="no">label: py3.11</span>
+</span><span data-line="3"><span class="w">  </span><span class="no">sha: ${{ github.sha }}</span>
+</span><span data-line="4"><span class="w">  </span><span class="no">setup: source ./envs/py311.sh</span>
+</span><span data-line="5"><span class="nt">contenders</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span data-line="6"><span class="w">  </span><span class="no">- label: py3.12</span>
+</span><span data-line="7"><span class="w">    </span><span class="no">sha: ${{ github.sha }}</span>
+</span><span data-line="8"><span class="w">    </span><span class="no">setup: source ./envs/py312.sh</span>
+</span></pre></div>
+</div>
+</section>
+<section id="key-points">
+<h2>Key Points<a class="headerlink" href="#key-points" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline-file</span></code> / <code class="docutils literal notranslate"><span class="pre">contender-files</span></code> bypass SHA-based lookup – use these
+when comparing the same commit across different environments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">run-prefix</span></code> works with wrapper tools (pixi, conda, nix) –
+<code class="docutils literal notranslate"><span class="pre">setup</span></code> works with source-based activation (virtualenv, shell scripts)</p></li>
+<li><p>The action imposes no constraints on environments. Use conda, pixi,
+virtualenv, nix, Docker, bare metal GPU runners – whatever you need.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--record-samples</span></code> in ASV enables statistical significance testing.
+Without it, only simple ratio comparison is available.</p></li>
+</ul>
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="asv_getting_started.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">Getting Started</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="multi_way_comparison.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">Multi-Way Comparison</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2026--present, Rohit Goswami</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/HaoZeke/asv-benchmark-commenter" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
+    </div>
+  </div>
+</footer>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/shibuya.js?v=cac61aee"></script></body>
+</html>

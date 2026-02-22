@@ -1,0 +1,115 @@
+
+=============
+Fork Security
+=============
+
+Why the action uses the ``workflow_run`` pattern for fork pull requests, and
+the security implications.
+
+The Problem
+-----------
+
+When a fork submits a pull request, the ``pull_request`` workflow runs in the
+context of the fork. This means:
+
+- ``GITHUB_TOKEN`` has read-only access to the base repository
+
+- The workflow cannot post comments on the base repository's PR
+
+- The workflow cannot access base repository secrets
+
+This is a security feature -- untrusted code from forks should not have write
+access to the target repository.
+
+The Solution: workflow\_run
+---------------------------
+
+The ``workflow_run`` event triggers a workflow in the base repository's context
+when another workflow completes. The triggered workflow:
+
+- Runs with the base repository's permissions
+
+- Has access to ``GITHUB_TOKEN`` with write scope
+
+- Can post comments, update PRs, access secrets
+
+- Does NOT check out the fork's code (it downloads artifacts only)
+
+::
+
+    Fork PR
+      |
+      v
+    [pull_request workflow] -- runs in fork context, read-only
+      |  (runs benchmarks, uploads results artifact)
+      v
+    [workflow_run workflow] -- runs in base context, write access
+      |  (downloads artifact, posts comment)
+      v
+    PR Comment
+
+Security Guarantees
+-------------------
+
+The ``workflow_run`` workflow never executes fork code. It only:
+
+1. Downloads a build artifact (binary data: JSON files, text files)
+
+2. Parses text content
+
+3. Makes API calls to post a comment
+
+There is no ``actions/checkout`` of the fork's code in the commenter workflow.
+The artifact is opaque data that the action reads but does not execute.
+
+What to Watch For
+-----------------
+
+- **Artifact content:** The action reads and displays text from the artifact.
+  If an attacker controls the artifact content, they could inject markdown
+  into the PR comment. This is a cosmetic issue (ugly comment) but not a
+  security issue (no code execution).
+
+- **Workflow file changes:** A fork cannot modify the base repository's
+  ``workflow_run`` workflow. Changes to workflow files in a fork PR only
+  affect the fork's own ``pull_request`` workflow.
+
+- **Secret exposure:** The commenter workflow uses ``GITHUB_TOKEN`` for API
+  access. This token is scoped to the base repository and does not expose
+  other secrets.
+
+Alternative: pull\_request\_target
+----------------------------------
+
+Some projects use ``pull_request_target`` instead of ``workflow_run``. This runs
+in the base repository's context directly on the PR event. However, it
+requires more careful handling:
+
+- If you checkout the fork's code (``actions/checkout`` with ``ref: ${{ github.event.pull_request.head.ref }}``), untrusted code runs with
+  write permissions. This is dangerous.
+
+- If you do not checkout fork code, it is safe but limited.
+
+The ``workflow_run`` pattern is safer because it naturally separates the
+untrusted benchmark execution from the trusted comment posting.
+
+Recommended Workflow Structure
+------------------------------
+
+.. code:: yaml
+
+    # .github/workflows/bench_pr.yml -- runs on pull_request (fork context)
+    on:
+      pull_request:
+        branches: [main]
+    # Runs benchmarks, uploads artifact. No write access needed.
+
+    # .github/workflows/ci_bench_commenter.yml -- runs on workflow_run (base context)
+    on:
+      workflow_run:
+        workflows: ["Benchmark PR"]
+        types: [completed]
+    # Downloads artifact, posts comment. Write access available.
+
+See the `Getting Started <../tutorials/asv_getting_started.rst>`_ tutorial
+for a complete example.

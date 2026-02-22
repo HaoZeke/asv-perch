@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="violet" data-content_root="../">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Statistical Methods - asv-benchmark-commenter documentation</title><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Why This Action" href="../explanation/why_this_action.html" /><link rel="prev" title="Table Format Reference" href="table_format.html" />
+      <link rel="canonical" href="https://asv-benchmark-commenter.rgoswami.me/reference/statistical_methods.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"auto");
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
+    <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://asv-benchmark-commenter.rgoswami.me/reference/statistical_methods.html"/>
+  <meta property="og:title" content="Statistical Methods"/>
+    <meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="../index.html">
+      
+      
+      <strong>asv-benchmark-commenter</strong>
+    </a>
+    <div class="sy-head-nav" id="head-nav">
+      <nav class="sy-head-links"></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/HaoZeke/asv-benchmark-commenter" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="head-nav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2"></span>
+          <span class="hamburger_3"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="0"><p class="caption" role="heading" aria-level="3"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/asv_getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/cross_environment.html">Cross-Environment Comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/multi_way_comparison.html">Multi-Way Comparison</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">How-To Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../howto/migration.html">Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howto/regression_gating.html">Regression Gating</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howto/precomputed_output.html">Pre-computed Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howto/custom_asv_flags.html">Custom ASV Flags</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../howto/compare_across_machines.html">Compare Across Machines</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="comment_format.html">Comment Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="table_format.html">Table Format Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Statistical Methods</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Explanation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/why_this_action.html">Why This Action</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/how_asv_works.html">How ASV Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/fork_security.html">Fork Security</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#mann-whitney-u-test">Mann-Whitney U Test</a></li>
+<li><a class="reference internal" href="#p-value-threshold">P-Value Threshold</a></li>
+<li><a class="reference internal" href="#confidence-intervals">99% Confidence Intervals</a></li>
+<li><a class="reference internal" href="#the-factor-parameter">The Factor Parameter</a></li>
+<li><a class="reference internal" href="#why-prefix-matters">Why <code class="docutils literal notranslate"><span class="pre">~</span></code> Prefix Matters</a></li>
+<li><a class="reference internal" href="#why-this-beats-naive-ratio-comparison">Why This Beats Naive Ratio Comparison</a></li>
+<li><a class="reference internal" href="#practical-recommendations">Practical Recommendations</a></li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6">
+<div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../index.html"><span itemprop="name">asv-benchmark-commenter</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">Statistical Methods</strong>
+        <meta itemprop="position" content="2" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="relative min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+  <div class="copy-page-wrapper relative pb-4 lg:absolute lg:top-8 lg:right-6 xl:right-12">
+  <div id="copy-page-trigger">
+    <button
+      type="button"
+      class="js-copy px-3 py-1 inline-flex items-center gap-1"
+      data-url="https://asv-benchmark-commenter.rgoswami.me/_sources/reference/statistical_methods.rst.txt"
+    >
+      <i class="i-lucide" data-icon="copy"></i>
+      <span>Copy page</span>
+    </button>
+    <button class="js-menu px-2 py-1" type="button" aria-label="More actions"
+      aria-haspopup="menu" aria-expanded="false" aria-controls="copy-page-content">
+      <i class="i-lucide chevron-down"></i>
+    </button>
+  </div>
+  <div id="copy-page-content" role="menu" aria-orientation="vertical" aria-hidden="true">
+    <div role="presentation">
+      <div class="flex flex-col" role="group">
+        <button class="js-copy" type="button" role="menuitem"
+          data-url="https://asv-benchmark-commenter.rgoswami.me/_sources/reference/statistical_methods.rst.txt">
+          <span class="iconify-icon">
+            <i class="i-lucide" data-icon="copy"></i>
+          </span>
+          <span>Copy page</span>
+        </button>
+        <a role="menuitem" href="https://asv-benchmark-commenter.rgoswami.me/_sources/reference/statistical_methods.rst.txt" target="_blank" rel="nofollow"><iconify-icon icon="bi:code-slash"></iconify-icon>
+            <span>View Source</span></a><a role="menuitem" href="https://chatgpt.com/?hints=search&q=Read%20https%3A//asv-benchmark-commenter.rgoswami.me/_sources/reference/statistical_methods.rst.txt%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+          <iconify-icon icon="bi:openai"></iconify-icon>
+          <span>Open in ChatGPT</span>
+        </a><a role="menuitem" href="https://claude.ai/new?q=Read%20https%3A//asv-benchmark-commenter.rgoswami.me/_sources/reference/statistical_methods.rst.txt%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+          <iconify-icon icon="bi:claude"></iconify-icon>
+          <span>Open in Claude</span>
+        </a></div>
+    </div>
+  </div>
+</div><article class="yue" role="main">
+          <section id="statistical-methods">
+<h1>Statistical Methods<a class="headerlink" href="#statistical-methods" title="Link to this heading">¶</a></h1>
+<p>This page documents the statistical methods used by ASV and asv-spyglass to
+determine benchmark significance.</p>
+<section id="mann-whitney-u-test">
+<h2>Mann-Whitney U Test<a class="headerlink" href="#mann-whitney-u-test" title="Link to this heading">¶</a></h2>
+<p>ASV uses the Mann-Whitney U test (also called the Wilcoxon rank-sum test) to
+determine if two sets of benchmark samples come from different distributions.</p>
+<p>Properties:</p>
+<ul class="simple">
+<li><p>Non-parametric: works for any distribution shape (not just normal)</p></li>
+<li><p>Compares medians rather than means</p></li>
+<li><p>Robust to outliers</p></li>
+<li><p>Requires <code class="docutils literal notranslate"><span class="pre">--record-samples</span></code> to collect multiple measurements</p></li>
+</ul>
+<p>The null hypothesis is that both sample sets are drawn from the same
+distribution. A low p-value rejects this hypothesis, indicating a statistically
+significant difference.</p>
+</section>
+<section id="p-value-threshold">
+<h2>P-Value Threshold<a class="headerlink" href="#p-value-threshold" title="Link to this heading">¶</a></h2>
+<p>ASV uses a p-value threshold of 0.002 (0.2%). This is much stricter than the
+common 0.05 (5%) threshold, reducing false positives at the cost of requiring
+larger or more consistent differences to register as significant.</p>
+<p>With a threshold of 0.002 and multiple benchmarks, the chance of at least one
+false positive is kept low even without formal multiple-comparison correction.</p>
+</section>
+<section id="confidence-intervals">
+<h2>99% Confidence Intervals<a class="headerlink" href="#confidence-intervals" title="Link to this heading">¶</a></h2>
+<p>ASV computes 99% confidence intervals for the ratio between two measurements
+using two methods:</p>
+<ul class="simple">
+<li><p><strong>Binomial quantile method:</strong> when enough samples exist, uses the binomial
+distribution to find the sample quantiles that bound the 99% interval</p></li>
+<li><p><strong>Laplace posterior fallback:</strong> when sample counts are low, falls back to a
+Bayesian approach using a Laplace prior</p></li>
+</ul>
+<p>The confidence interval is reported as the <code class="docutils literal notranslate"><span class="pre">+/-</span></code> value after measurements
+(e.g., <code class="docutils literal notranslate"><span class="pre">167+/-3ns</span></code> means the 99% CI spans 3ns around the median).</p>
+</section>
+<section id="the-factor-parameter">
+<h2>The Factor Parameter<a class="headerlink" href="#the-factor-parameter" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">factor</span></code> parameter (default: 1.1, meaning 10%) sets the minimum ratio
+change that asv-spyglass considers noteworthy. A benchmark with ratio 1.05
+and factor 1.1 is not flagged, even if statistically significant.</p>
+<p>The interaction between factor and statistical significance:</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Ratio vs Factor</p></th>
+<th class="head"><p>Significant?</p></th>
+<th class="head"><p>Mark</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Above factor</p></td>
+<td><p>Yes</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">+</span></code> or <code class="docutils literal notranslate"><span class="pre">-</span></code></p></td>
+<td><p>Real, meaningful change</p></td>
+</tr>
+<tr class="row-odd"><td><p>Above factor</p></td>
+<td><p>No</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">~</span></code> prefix</p></td>
+<td><p>Uncertain – might be noise</p></td>
+</tr>
+<tr class="row-even"><td><p>Below factor</p></td>
+<td><p>Yes</p></td>
+<td><p>(space)</p></td>
+<td><p>Statistically real but too small to matter</p></td>
+</tr>
+<tr class="row-odd"><td><p>Below factor</p></td>
+<td><p>No</p></td>
+<td><p>(space)</p></td>
+<td><p>No meaningful change</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="why-prefix-matters">
+<h2>Why <code class="docutils literal notranslate"><span class="pre">~</span></code> Prefix Matters<a class="headerlink" href="#why-prefix-matters" title="Link to this heading">¶</a></h2>
+<p>A ratio like <code class="docutils literal notranslate"><span class="pre">~1.15</span></code> means the change exceeds the factor threshold (1.1) but
+failed the Mann-Whitney U test. This is an important signal: the benchmark
+<strong>might</strong> be regressing, but the evidence is not strong enough to be confident.</p>
+<p>This is different from a simple <code class="docutils literal notranslate"><span class="pre">ratio</span> <span class="pre">&gt;</span> <span class="pre">threshold</span></code> approach (which is what
+inline bash regex patterns typically do). The statistical test accounts for
+measurement noise and sample size.</p>
+</section>
+<section id="why-this-beats-naive-ratio-comparison">
+<h2>Why This Beats Naive Ratio Comparison<a class="headerlink" href="#why-this-beats-naive-ratio-comparison" title="Link to this heading">¶</a></h2>
+<p>Many CI setups compare ratios with a simple threshold:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">if</span><span class="w"> </span><span class="o">((</span><span class="w"> </span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$RATIO</span><span class="s2"> &gt; 10.0&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>bc<span class="w"> </span>-l<span class="k">)</span><span class="w"> </span><span class="o">))</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+</span><span data-line="2"><span class="w">  </span><span class="nv">REGRESSION</span><span class="o">=</span><span class="s2">&quot;true&quot;</span>
+</span><span data-line="3"><span class="k">fi</span>
+</span></pre></div>
+</div>
+<p>This has several problems:</p>
+<ul class="simple">
+<li><p>Ignores measurement variance (a 2x ratio from noisy data may be meaningless)</p></li>
+<li><p>Ignores sample size (single-sample ratios are unreliable)</p></li>
+<li><p>Cannot distinguish real regressions from noise</p></li>
+<li><p>No confidence intervals</p></li>
+</ul>
+<p>ASV + asv-spyglass addresses all of these by requiring <code class="docutils literal notranslate"><span class="pre">--record-samples</span></code>,
+applying Mann-Whitney U, and computing confidence intervals. The action
+preserves this rigor in its PR comments.</p>
+</section>
+<section id="practical-recommendations">
+<h2>Practical Recommendations<a class="headerlink" href="#practical-recommendations" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Always use <code class="docutils literal notranslate"><span class="pre">--record-samples</span></code> in ASV. Without it, no statistical testing
+is possible and asv-spyglass falls back to simple ratios.</p></li>
+<li><p>Use at least 3-5 samples per benchmark (ASV’s default repetition count).
+More samples improve statistical power.</p></li>
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">--factor</span></code> based on your project’s noise floor. If benchmarks typically
+vary by +/-5%, a factor of 1.1 (10%) is appropriate. For lower-noise
+setups, 1.05 works.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">~</span></code> prefix is not a false alarm – it is a signal to investigate
+further, not to ignore.</p></li>
+</ul>
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="table_format.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">Table Format Reference</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="../explanation/why_this_action.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">Why This Action</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2026--present, Rohit Goswami</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/HaoZeke/asv-benchmark-commenter" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
+    </div>
+  </div>
+</footer>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/shibuya.js?v=cac61aee"></script></body>
+</html>

@@ -1,0 +1,408 @@
+
+=============
+Configuration
+=============
+
+Inputs
+------
+
+All inputs are configured in the workflow YAML under ``with:``.
+
+Required Inputs
+~~~~~~~~~~~~~~~
+
+``github-token``
+    GitHub token for API access. Default: ``${{ github.token }}``.
+    The token needs ``pull-requests: write`` and ``issues: write`` permissions.
+
+Conditional Inputs
+~~~~~~~~~~~~~~~~~~
+
+``results-path``
+    Path to the directory containing downloaded ASV results.
+    Required unless ``comparison-text-file`` is provided.
+
+SHA Resolution
+~~~~~~~~~~~~~~
+
+The action needs to know which commits to compare. There are several ways to
+provide this depending on the comparison mode:
+
+For compare Mode (Default)
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Option 1: Metadata File (Recommended)
+:::::::::::::::::::::::::::::::::::::
+
+``metadata-file``
+    Path to a text file containing SHA mappings. Supports these keys:
+
+::
+
+    main_sha=a1b2c3d4e5f67890abcdef1234567890abcdef12
+    pr_sha=e5f6g7h890abcdef1234567890abcdef12345678
+
+Both ``main_sha=`` and ``base_sha=`` are accepted for the base commit. This is the
+approach used by eOn and metatensor -- the benchmark workflow writes this file
+and includes it in the artifact.
+
+Option 2: Explicit SHAs
+:::::::::::::::::::::::
+
+``base-sha``
+    Base commit SHA (the commit to compare against)
+
+``pr-sha``
+    PR head commit SHA
+
+Explicit inputs override metadata file values if both are provided.
+
+Option 3: Direct File Paths
+:::::::::::::::::::::::::::
+
+``base-file``
+    Direct path to base result JSON file
+
+``pr-file``
+    Direct path to PR result JSON file
+
+Use this when files are not named by SHA prefix, or when you know the exact
+paths (e.g., from a matrix workflow).
+
+For compare-many Mode
+^^^^^^^^^^^^^^^^^^^^^
+
+Option 1: Direct File Paths (Recommended)
+:::::::::::::::::::::::::::::::::::::::::
+
+``baseline-file``
+    Direct path to the baseline result JSON file
+
+``contender-files``
+    Comma-separated direct paths to contender result JSON
+    files. Order must match ``contender-labels``.
+
+Use this for cross-environment comparisons where the same commit is benchmarked
+in different environments (both result files share the same SHA prefix).
+
+Option 2: SHA-Based Lookup
+::::::::::::::::::::::::::
+
+``baseline-sha``
+    The baseline commit SHA. Used to find the baseline result
+    file by SHA prefix.
+
+``contender-shas``
+    Comma-separated contender commit SHAs. Used to find
+    contender result files by SHA prefix.
+
+Use this when each contender ran a different commit.
+
+Comparison Mode
+~~~~~~~~~~~~~~~
+
+``comparison-mode``
+    Either ``compare`` (default, two-way) or ``compare-many``
+    (multi-way baseline vs multiple contenders).
+
+YAML-Based Pipeline Inputs
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These inputs let the action run benchmarks before comparing. Each entry can
+include environment activation via two fields:
+
+- ``run-prefix`` -- A wrapper command prepended with a space. Use this for
+  tools like pixi, conda, or nix that wrap the command.
+
+- ``setup`` -- A shell command prepended with ``&&``. Use this for sourcing
+  scripts, exporting variables, or activating virtualenvs.
+
+Both can be combined. The constructed shell command is:
+
+::
+
+    bash -c '<setup> && <run-prefix> <benchmark-command with {sha} replaced>'
+
+Each part is optional -- omit what you don't need. If an entry has no ``sha``,
+benchmarking is skipped for that entry (useful when results already exist).
+
+Wrapper pattern (pixi, conda, nix)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Use ``run-prefix``. The tool wraps the entire benchmark command:
+
+.. code:: yaml
+
+    baseline: |
+      label: main
+      sha: abc123def
+      run-prefix: pixi run -e bench
+
+This runs: ``pixi run -e bench asv run --record-samples abc123def^!``
+
+Source pattern (virtualenv, shell scripts)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Use ``setup``. The script runs first, then the benchmark command:
+
+.. code:: yaml
+
+    baseline: |
+      label: main
+      sha: abc123def
+      setup: source ./envs/bench.sh
+
+This runs: ``source ./envs/bench.sh && asv run --record-samples abc123def^!``
+
+Combined (e.g. env vars + wrapper)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: yaml
+
+    contenders: |
+      - label: pr-debug
+        sha: def456abc
+        setup: export CFLAGS="-O0 -g"
+        run-prefix: pixi run -e bench-debug
+
+This runs: ``export CFLAGS``"-O0 -g" && pixi run -e bench-debug asv run --record-samples def456abc^!=
+
+Field Reference
+^^^^^^^^^^^^^^^
+
+``baseline``
+    YAML string defining the baseline entry. Fields:
+
+    - ``label`` (string) -- Display label for the baseline column.
+
+    - ``sha`` (string) -- Commit SHA for benchmarking and result lookup.
+
+    - ``file`` (string) -- Direct path to a result JSON file (bypasses SHA lookup).
+
+    - ``run-prefix`` (string) -- Wrapper command prepended to benchmark command
+      (e.g. ``pixi run -e bench``, ``conda run -n bench``, ``nix develop -c``).
+
+    - ``setup`` (string) -- Shell command sourced before the benchmark command
+      (e.g. ``source ./envs/bench.sh``, ``export CC=gcc-12``).
+
+    - ``env`` (string) -- Environment name shown in PR comment details.
+
+    - ``description`` (string) -- Human-readable description shown in PR comment.
+
+    When ``baseline`` is provided, it overrides ``baseline-sha``, ``baseline-file``,
+    and ``baseline-label``.
+
+``contenders``
+    YAML list of contender objects for ``compare-many`` mode.
+    Each object accepts the same fields as ``baseline`` (label, sha, file,
+    run-prefix, setup, env, description). When provided, this overrides
+    ``contender-shas``, ``contender-files``, and ``contender-labels``.
+
+``benchmark-command``
+    Shell command template for running benchmarks.
+    Default: ``asv run --record-samples {sha}^!``. The placeholder ``{sha}`` is
+    replaced with the entry's commit SHA. Each entry's ``run-prefix`` is prepended
+    and ``setup`` is sourced before this command. Entries without a ``sha`` field
+    skip benchmarking.
+
+    Example with a custom command:
+
+.. code:: yaml
+
+    benchmark-command: 'asv run --quick {sha}^!'
+
+Pre-computed Output
+~~~~~~~~~~~~~~~~~~~
+
+``comparison-text-file``
+    Path to a pre-computed comparison output file. When
+    provided, the action skips running asv-spyglass entirely and parses this file
+    directly. Both ``results-path`` and SHA inputs become optional.
+
+You can also place a file named ``comparison.txt`` inside ``results-path`` for the
+same effect (checked before running asv-spyglass in ``compare`` mode).
+
+Comparison Options
+~~~~~~~~~~~~~~~~~~
+
+``asv-spyglass-ref``
+    Git ref (branch or tag) for ``asv-spyglass`` installation.
+    Default: ``enh-multiple-comparisons``. The action installs asv-spyglass via
+    ``uvx --from "git+https://github.com/HaoZeke/asv_spyglass.git@<ref>"``.
+
+``label-before`` / ``label-after``
+    Labels for the before/after columns in the
+    comparison. Default: ``main`` / ``pr``. Passed to ``asv-spyglass compare --label-before / --label-after``. Only used in ``compare`` mode.
+
+``baseline-label``
+    Label for the baseline column in ``compare-many`` mode.
+    Passed to ``asv-spyglass compare-many --label-baseline``.
+
+``contender-labels``
+    Comma-separated labels for each contender, matching
+    the order of ``contender-shas``. Passed to ``asv-spyglass compare-many --label-contender``.
+
+``asv-spyglass-args``
+    Extra CLI flags passed through to asv-spyglass
+    (e.g., ``--split --only-changed --factor 1.05``). Space-separated.
+    See `Custom ASV Flags <../../howto/custom_asv_flags.rst>`_ for details.
+
+Regression Detection
+~~~~~~~~~~~~~~~~~~~~
+
+``regression-threshold``
+    Ratio above which a benchmark counts as a critical
+    regression. Default: ``10``. For example, if a benchmark's ratio is 15.0
+    (15x slower), and the threshold is 10, it is flagged as critical.
+
+``auto-draft-on-regression``
+    When set to ``'true'`` and a critical regression
+    is detected, the action converts the PR to draft status via the GitHub GraphQL
+    API. Default: ``'false'``. This prevents accidental merges of severely regressed
+    code.
+
+Comment Formatting
+~~~~~~~~~~~~~~~~~~
+
+``comment-marker``
+    HTML comment used to identify the benchmark comment for
+    idempotent updates. Default: ``<!-- asv-benchmark-result -->``. Change this only
+    if you have multiple benchmark actions posting to the same PR.
+
+``runner-info``
+    Text shown in the "Details" section indicating which runner
+    produced the results. Default: ``ubuntu-latest``.
+
+``dashboard-url``
+    URL to an ASV dashboard. If provided, a "View full results"
+    link is added to the details section.
+
+Outputs
+-------
+
+.. table::
+
+    +-------------------------+--------+------------------------------------------+
+    | Output                  | Type   | Description                              |
+    +=========================+========+==========================================+
+    | ``comparison``          | string | Raw asv-spyglass comparison output       |
+    +-------------------------+--------+------------------------------------------+
+    | ``regression-detected`` | string | ``'true'`` or ``'false'``                |
+    +-------------------------+--------+------------------------------------------+
+    | ``comment-id``          | string | GitHub comment ID (empty if no PR found) |
+    +-------------------------+--------+------------------------------------------+
+    | ``pr-number``           | string | PR number (empty if no PR found)         |
+    +-------------------------+--------+------------------------------------------+
+
+Use these in subsequent steps:
+
+.. code:: yaml
+
+    - name: Post benchmark comment
+      id: bench
+      uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        # ...
+
+    - name: Fail on regression
+      if: steps.bench.outputs.regression-detected == 'true'
+      run: exit 1
+
+Full Examples
+-------------
+
+Two-Way Comparison
+~~~~~~~~~~~~~~~~~~
+
+.. code:: yaml
+
+    - name: Post benchmark comment
+      uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        results-path: results/
+        metadata-file: results/metadata.txt
+        regression-threshold: '10'
+        auto-draft-on-regression: 'true'
+        label-before: main
+        label-after: pr
+        runner-info: ubuntu-22.04
+        dashboard-url: https://my-project.github.io/benchmarks/
+        asv-spyglass-ref: enh-multiple-comparisons
+
+Multi-Way Comparison
+~~~~~~~~~~~~~~~~~~~~
+
+.. code:: yaml
+
+    - name: Post benchmark comment
+      uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        results-path: results/
+        comparison-mode: compare-many
+        baseline-sha: ${{ env.BASELINE_SHA }}
+        contender-shas: '${{ env.OPT_SHA }}, ${{ env.DEBUG_SHA }}'
+        baseline-label: default
+        contender-labels: 'optimized, debug'
+        runner-info: ubuntu-latest
+
+Full Pipeline with pixi (run-prefix)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: yaml
+
+    - uses: prefix-dev/setup-pixi@v0.8.0
+    - name: Benchmark and compare
+      uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        results-path: .asv/results/
+        comparison-mode: compare-many
+        baseline: |
+          label: main
+          sha: ${{ env.BASE_SHA }}
+          run-prefix: pixi run -e bench
+        contenders: |
+          - label: pr
+            sha: ${{ env.PR_SHA }}
+            run-prefix: pixi run -e bench
+          - label: pr-debug
+            sha: ${{ env.PR_SHA }}
+            run-prefix: pixi run -e bench-debug
+            description: Debug build with sanitizers
+        runner-info: ubuntu-latest
+
+Full Pipeline with virtualenv (setup)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: yaml
+
+    - name: Benchmark and compare
+      uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        results-path: .asv/results/
+        comparison-mode: compare-many
+        baseline: |
+          label: main
+          sha: ${{ env.BASE_SHA }}
+          setup: source ./envs/bench.sh
+        contenders: |
+          - label: pr
+            sha: ${{ env.PR_SHA }}
+            setup: source ./envs/bench.sh
+        runner-info: ubuntu-latest
+
+Pre-computed Output
+~~~~~~~~~~~~~~~~~~~
+
+.. code:: yaml
+
+    - name: Post benchmark comment
+      uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        comparison-text-file: comparison.txt
+        base-sha: ${{ env.BASE_SHA }}
+        pr-sha: ${{ env.PR_SHA }}

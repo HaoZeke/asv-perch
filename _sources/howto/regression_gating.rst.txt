@@ -1,0 +1,80 @@
+
+==================
+Regression Gating
+==================
+
+How to fail CI or convert PRs to draft when benchmark regressions are detected.
+
+Using the regression-detected Output
+------------------------------------
+
+The action sets ``regression-detected`` to ``true`` when any regressed benchmark's
+ratio exceeds ``regression-threshold``. Use this in a subsequent step:
+
+.. code:: yaml
+
+    - name: Post benchmark comment
+      id: bench
+      uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        results-path: results/
+        metadata-file: results/metadata.txt
+        regression-threshold: '5'
+
+    - name: Fail on regression
+      if: steps.bench.outputs.regression-detected == 'true'
+      run: |
+        echo "::error::Critical benchmark regression detected"
+        exit 1
+
+Auto-Draft on Regression
+------------------------
+
+Set ``auto-draft-on-regression: 'true'`` to automatically convert the PR to draft
+status when a critical regression is detected. This prevents accidental merges:
+
+.. code:: yaml
+
+    - name: Post benchmark comment
+      uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        results-path: results/
+        metadata-file: results/metadata.txt
+        regression-threshold: '10'
+        auto-draft-on-regression: 'true'
+
+The action uses the GitHub GraphQL API ``convertPullRequestToDraft`` mutation.
+The token needs ``pull-requests: write`` permission.
+
+Choosing a Threshold
+--------------------
+
+The ``regression-threshold`` is a ratio -- if a benchmark's "after" is 10x
+slower than "before", a threshold of 10 catches it.
+
+.. table::
+
+    +-----------+--------------+----------------------------------------+
+    | Threshold | Meaning      | Use Case                               |
+    +===========+==============+========================================+
+    |         2 | 2x slowdown  | Strict, performance-critical code      |
+    +-----------+--------------+----------------------------------------+
+    |         5 | 5x slowdown  | Moderate, catches major regressions    |
+    +-----------+--------------+----------------------------------------+
+    |        10 | 10x slowdown | Lenient, only catastrophic regressions |
+    +-----------+--------------+----------------------------------------+
+
+This threshold applies to the ``ratio`` column from asv-spyglass, which already
+accounts for statistical significance. A benchmark marked with ``~`` (statistically
+insignificant) can still trigger the threshold if the ratio is high enough,
+because statistical insignificance means the change is uncertain, not that it is
+small.
+
+Gating in compare-many Mode
+---------------------------
+
+For ``compare-many`` mode, the action checks if any contender has any regressions.
+The ``regression-detected`` output is ``true`` if any contender column contains at
+least one regression.
