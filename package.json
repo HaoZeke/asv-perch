@@ -1,0 +1,56 @@
+{
+  "name": "asv-benchmark-commenter",
+  "type": "module",
+  "private": true,
+  "description": "GitHub Action to post formatted ASV benchmark comparison results as PR comments",
+  "author": {
+    "name": "HaoZeke",
+    "email": "HaoZeke@yandex.com"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/HaoZeke/asv-benchmark-commenter",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HaoZeke/asv-benchmark-commenter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/HaoZeke/asv-benchmark-commenter/issues"
+  },
+  "keywords": ["github", "actions", "asv", "benchmarks", "performance"],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc && vite build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/exec": "^1.1.1",
+    "@actions/github": "^6.0.1",
+    "@actions/glob": "^0.5.0",
+    "js-yaml": "^4.1.1"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^2.27.3",
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@types/js-yaml": "^4.0.9",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.39.2",
+    "typescript": "^5.5.4",
+    "vite": "^7.3.0",
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,30 @@
+[project]
+name = "asv-benchmark-commenter"
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[feature.docs]
+platforms = ["linux-64"]
+
+[feature.docs.dependencies]
+emacs = ">=30.2,<31"
+sphinx = ">=8.2.3,<9"
+
+[feature.docs.pypi-dependencies]
+shibuya = ">=2026.1.9, <2027"
+sphinx-sitemap = ">=2.9.0, <3"
+
+[feature.docs.tasks.mkrst]
+cmd = "emacs --batch --load export.el"
+cwd = "docs"
+description = "Export org files to RST via Emacs ox-rst"
+
+[feature.docs.tasks.sphinxbld]
+cmd = "sphinx-build docs/source/ docs/build"
+depends-on = [{ task = "mkrst", environment = "docs" }]
+
+[feature.docs.tasks.docbld]
+depends-on = ["mkrst", "sphinxbld"]
+
+[environments]
+docs = { features = ["docs"], solve-group = "default" }
