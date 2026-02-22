@@ -1,0 +1,145 @@
+#+title: ASV Benchmark Commenter
+#+author: Rohit Goswami
+
+* About
+
+A GitHub Action that posts ASV benchmark comparison results as PR comments with
+Mann-Whitney U statistical significance testing, rich GFM formatting, and
+multi-way comparison support. Built on [[https://github.com/HaoZeke/asv_spyglass][asv-spyglass]].
+
+The action can run benchmarks and post results in one step, or work as a pure
+presentation layer with pre-existing result files. Either way, it never manages
+your build environment -- use conda, pixi, virtualenv, nix, Docker, GPU
+runners, or whatever you need.
+
+* Quick Start (Two-Way)
+
+#+begin_src yaml
+- uses: HaoZeke/asv-benchmark-commenter@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    results-path: results/
+    metadata-file: results/metadata.txt
+#+end_src
+
+* Quick Start (Multi-Way)
+
+#+begin_src yaml
+- uses: HaoZeke/asv-benchmark-commenter@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    results-path: results/
+    comparison-mode: compare-many
+    baseline-sha: ${{ env.BASELINE_SHA }}
+    contender-shas: '${{ env.OPT_SHA }}, ${{ env.DEBUG_SHA }}'
+    contender-labels: 'optimized, debug'
+#+end_src
+
+* Quick Start (Full Pipeline)
+
+Run benchmarks and compare in one step. Each entry specifies how to activate
+its environment -- the action appends =asv run --record-samples {sha}^!=
+automatically.
+
+Use =run-prefix= for wrapper tools (pixi, conda, nix):
+
+#+begin_src yaml
+- uses: prefix-dev/setup-pixi@v0.8.0
+- uses: HaoZeke/asv-benchmark-commenter@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    results-path: .asv/results/
+    comparison-mode: compare-many
+    baseline: |
+      label: main
+      sha: ${{ env.BASE_SHA }}
+      run-prefix: pixi run -e bench
+    contenders: |
+      - label: pr
+        sha: ${{ env.PR_SHA }}
+        run-prefix: pixi run -e bench
+      - label: pr-debug
+        sha: ${{ env.PR_SHA }}
+        run-prefix: pixi run -e bench-debug
+        description: Debug build with sanitizers
+#+end_src
+
+Use =setup= for source-based environments (virtualenv, shell scripts):
+
+#+begin_src yaml
+- uses: HaoZeke/asv-benchmark-commenter@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    results-path: .asv/results/
+    comparison-mode: compare-many
+    baseline: |
+      label: main
+      sha: ${{ env.BASE_SHA }}
+      setup: source ./envs/bench.sh
+    contenders: |
+      - label: pr
+        sha: ${{ env.PR_SHA }}
+        setup: source ./envs/bench.sh
+#+end_src
+
+* Essential Inputs
+
+| Input | Required | Default | Description |
+|-------+----------+---------+-------------|
+| =github-token= | yes | =${{ github.token }}= | GitHub token for API access |
+| =results-path= | conditional | -- | Path to ASV results dir (not needed with =comparison-text-file=) |
+| =comparison-text-file= | no | -- | Pre-computed comparison output (skips asv-spyglass) |
+| =comparison-mode= | no | =compare= | =compare= (two-way) or =compare-many= (multi-way) |
+| =base-sha= / =pr-sha= | conditional | -- | SHAs for =compare= mode |
+| =base-file= / =pr-file= | conditional | -- | Direct file paths for =compare= mode |
+| =baseline-sha= | conditional | -- | SHA for =compare-many= baseline |
+| =contender-shas= | conditional | -- | Comma-separated SHAs for =compare-many= contenders |
+| =baseline-file= | conditional | -- | Direct path to baseline result JSON |
+| =contender-files= | conditional | -- | Comma-separated direct paths to contender JSONs |
+| =contender-labels= | no | -- | Comma-separated labels for contenders |
+| =baseline= | no | -- | YAML config for baseline (label, sha, run-prefix/setup) |
+| =contenders= | no | -- | YAML list of contenders (label, sha, run-prefix/setup) |
+| =benchmark-command= | no | =asv run --record-samples {sha}^!= | Shell command template; ={sha}= is replaced per entry |
+| =asv-spyglass-args= | no | -- | Extra flags for asv-spyglass CLI |
+| =regression-threshold= | no | =10= | Ratio for critical regression |
+| =auto-draft-on-regression= | no | =false= | Convert PR to draft on regression |
+
+See [[https://asv-benchmark-commenter.rgoswami.me][full documentation]] for all
+inputs, outputs, and configuration details.
+
+* Why This Action
+
+- *Statistical rigor:* Mann-Whitney U test + 99% confidence intervals via ASV,
+  not naive ratio comparison
+- *Environment freedom:* The action never touches your build system. Run ASV in
+  conda, pixi, nix, Docker, GPU runners -- whatever you need
+- *Multi-way comparison:* Compare a baseline against multiple build configs or
+  environments in a single table
+
+See [[https://asv-benchmark-commenter.rgoswami.me/explanation/why_this_action.html][the
+full comparison]] with CodSpeed, benchmark-action, and inline scripts.
+
+** Outputs
+
+| Output | Description |
+|--------+-------------|
+| =comparison= | Raw asv-spyglass comparison output |
+| =regression-detected= | ='true'= or ='false'= |
+| =comment-id= | ID of created/updated comment |
+| =pr-number= | Number of the associated PR |
+
+* Development
+
+Built with [[https://bun.sh][bun]] and TypeScript.
+
+#+begin_src bash
+bun install
+bun run build      # tsc + vite
+bun run test       # vitest
+bun run lint       # eslint
+bun run typecheck  # tsc --noEmit
+#+end_src
+
+* License
+
+MIT
