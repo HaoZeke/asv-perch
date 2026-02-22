@@ -3,7 +3,7 @@ import antfu from '@antfu/eslint-config'
 export default antfu(
   {
     typescript: true,
-    ignores: ['.github', 'dist', 'node_modules', '.pixi', '*.yml', '*.yaml', '*.toml'],
+    ignores: ['.github', 'dist', 'node_modules', '.pixi', '*.yml', '*.yaml', '*.toml', '*.md'],
   },
   {
     rules: {
