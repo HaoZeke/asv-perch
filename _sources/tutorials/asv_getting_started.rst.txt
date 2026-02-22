@@ -3,7 +3,7 @@
 Getting Started
 ===============
 
-This guide walks through setting up ``asv-benchmark-commenter`` in a project that
+This guide walks through setting up ``asv-perch`` in a project that
 already has ASV benchmarks and a CI workflow that runs them on pull requests.
 
 Prerequisites
@@ -177,7 +177,7 @@ Create ``.github/workflows/ci_bench_commenter.yml``:
               github-token: ${{ secrets.GITHUB_TOKEN }}
 
           - name: Post benchmark comment
-            uses: HaoZeke/asv-benchmark-commenter@v1
+            uses: HaoZeke/asv-perch@v1
             with:
               github-token: ${{ secrets.GITHUB_TOKEN }}
               results-path: results/

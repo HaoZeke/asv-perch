@@ -21,7 +21,7 @@ When you know where the result files are (e.g., from a matrix workflow), use
 
 .. code:: yaml
 
-    - uses: HaoZeke/asv-benchmark-commenter@v1
+    - uses: HaoZeke/asv-perch@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         results-path: results/
@@ -43,7 +43,7 @@ use ``baseline-sha`` and ``contender-shas``. The action finds files by SHA prefi
 
 .. code:: yaml
 
-    - uses: HaoZeke/asv-benchmark-commenter@v1
+    - uses: HaoZeke/asv-perch@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         results-path: results/
@@ -71,7 +71,7 @@ Run ``asv-spyglass compare-many`` yourself with full control:
           > comparison.txt
 
     - name: Post results
-      uses: HaoZeke/asv-benchmark-commenter@v1
+      uses: HaoZeke/asv-perch@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         comparison-text-file: comparison.txt
@@ -109,7 +109,7 @@ via ``run-prefix`` (for pixi/conda/nix) or ``setup`` (for source-based envs):
 .. code:: yaml
 
     - uses: prefix-dev/setup-pixi@v0.8.0
-    - uses: HaoZeke/asv-benchmark-commenter@v1
+    - uses: HaoZeke/asv-perch@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         results-path: .asv/results/

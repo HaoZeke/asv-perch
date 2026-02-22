@@ -279,7 +279,7 @@ boilerplate needed.
     - uses: prefix-dev/setup-pixi@v0.8.10
       with:
         activate-environment: true
-    - uses: HaoZeke/asv-benchmark-commenter@v1
+    - uses: HaoZeke/asv-perch@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         results-path: .asv/results/
@@ -486,7 +486,7 @@ Use these in subsequent steps:
 
     - name: Post benchmark comment
       id: bench
-      uses: HaoZeke/asv-benchmark-commenter@v1
+      uses: HaoZeke/asv-perch@v1
       with:
         # ...
 
@@ -503,7 +503,7 @@ Two-Way Comparison
 .. code:: yaml
 
     - name: Post benchmark comment
-      uses: HaoZeke/asv-benchmark-commenter@v1
+      uses: HaoZeke/asv-perch@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         results-path: results/
@@ -522,7 +522,7 @@ Multi-Way Comparison
 .. code:: yaml
 
     - name: Post benchmark comment
-      uses: HaoZeke/asv-benchmark-commenter@v1
+      uses: HaoZeke/asv-perch@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         results-path: results/
@@ -540,7 +540,7 @@ Full Pipeline with pixi (run-prefix)
 
     - uses: prefix-dev/setup-pixi@v0.8.0
     - name: Benchmark and compare
-      uses: HaoZeke/asv-benchmark-commenter@v1
+      uses: HaoZeke/asv-perch@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         results-path: .asv/results/
@@ -565,7 +565,7 @@ Full Pipeline with virtualenv (setup)
 .. code:: yaml
 
     - name: Benchmark and compare
-      uses: HaoZeke/asv-benchmark-commenter@v1
+      uses: HaoZeke/asv-perch@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         results-path: .asv/results/
@@ -586,7 +586,7 @@ Pre-computed Output
 .. code:: yaml
 
     - name: Post benchmark comment
-      uses: HaoZeke/asv-benchmark-commenter@v1
+      uses: HaoZeke/asv-perch@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         comparison-text-file: comparison.txt
