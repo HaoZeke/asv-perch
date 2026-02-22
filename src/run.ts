@@ -138,8 +138,8 @@ export function resolveInputs(): ResolvedInputs {
     ? asvSpyglassArgsRaw.split(/\s+/).filter(Boolean)
     : []
 
-  const baseFileInput = getInput('base-file') || ''
-  const prFileInput = getInput('pr-file') || ''
+  let baseFileInput = getInput('base-file') || ''
+  let prFileInput = getInput('pr-file') || ''
   let baseSha = getInput('base-sha')
   let prSha = getInput('pr-sha')
   const metadataFile = getInput('metadata-file')
@@ -162,12 +162,29 @@ export function resolveInputs(): ResolvedInputs {
   const hasStructuredBaseline = baselineConfig && (baselineConfig.sha || baselineConfig.file || baselineConfig.runPrefix || baselineConfig.setup)
   const hasStructuredContenders = contenderConfigs.length > 0
 
+  // Map structured configs to compare-mode SHAs when in compare mode
+  if (comparisonMode === 'compare' && hasStructuredBaseline && hasStructuredContenders) {
+    if (baselineConfig?.sha && !baseSha) {
+      baseSha = baselineConfig.sha
+    }
+    if (contenderConfigs.length > 0 && contenderConfigs[0].sha && !prSha) {
+      prSha = contenderConfigs[0].sha
+    }
+    if (baselineConfig?.file && !baseFileInput) {
+      baseFileInput = baselineConfig.file
+    }
+    if (contenderConfigs[0]?.file && !prFileInput) {
+      prFileInput = contenderConfigs[0].file
+    }
+  }
+
   // SHAs or direct files required unless comparison-text-file or structured configs provided
   if (!comparisonTextFile && comparisonMode === 'compare') {
     const hasFiles = baseFileInput && prFileInput
     const hasShas = baseSha && prSha
-    if (!hasFiles && !hasShas) {
-      throw new Error('base-sha/pr-sha (or base-file/pr-file) are required unless comparison-text-file is provided')
+    const hasStructured = hasStructuredBaseline && hasStructuredContenders
+    if (!hasFiles && !hasShas && !hasStructured) {
+      throw new Error('base-sha/pr-sha (or base-file/pr-file, or baseline/contenders YAML) are required unless comparison-text-file is provided')
     }
   }
   if (!comparisonTextFile && comparisonMode === 'compare-many') {
@@ -203,8 +220,8 @@ export function resolveInputs(): ResolvedInputs {
     regressionThreshold: Number.parseFloat(getInput('regression-threshold') || '10'),
     autoDraftOnRegression: getInput('auto-draft-on-regression') === 'true',
     commentMarker: getInput('comment-marker') || '<!-- asv-benchmark-result -->',
-    labelBefore: getInput('label-before') || 'main',
-    labelAfter: getInput('label-after') || 'pr',
+    labelBefore: getInput('label-before') || baselineConfig?.label || 'main',
+    labelAfter: getInput('label-after') || contenderConfigs[0]?.label || 'pr',
     asvSpyglassRef: getInput('asv-spyglass-ref') || 'enh-multiple-comparisons',
     runnerInfo: getInput('runner-info') || 'ubuntu-latest',
     dashboardUrl: getInput('dashboard-url') || '',

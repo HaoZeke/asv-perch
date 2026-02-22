@@ -34212,8 +34212,8 @@ function My() {
     const U = R.map((T) => T.sha || "").filter(Boolean);
     U.length > 0 && g.length === 0 && g.push(...U), l = R.map((T) => T.label);
   }
-  const m = Ye.getInput("asv-spyglass-args") || "", I = m ? m.split(/\s+/).filter(Boolean) : [], p = Ye.getInput("base-file") || "", C = Ye.getInput("pr-file") || "";
-  let y = Ye.getInput("base-sha"), k = Ye.getInput("pr-sha");
+  const m = Ye.getInput("asv-spyglass-args") || "", I = m ? m.split(/\s+/).filter(Boolean) : [];
+  let p = Ye.getInput("base-file") || "", C = Ye.getInput("pr-file") || "", y = Ye.getInput("base-sha"), k = Ye.getInput("pr-sha");
   const D = Ye.getInput("metadata-file");
   if (D && Na(D)) {
     const N = Ua(D, "utf-8");
@@ -34224,8 +34224,8 @@ function My() {
     }
   }
   const F = w && (w.sha || w.file || w.runPrefix || w.setup), S = R.length > 0;
-  if (!t && r === "compare" && !(p && C) && !(y && k))
-    throw new Error("base-sha/pr-sha (or base-file/pr-file) are required unless comparison-text-file is provided");
+  if (r === "compare" && F && S && (w?.sha && !y && (y = w.sha), R.length > 0 && R[0].sha && !k && (k = R[0].sha), w?.file && !p && (p = w.file), R[0]?.file && !C && (C = R[0].file)), !t && r === "compare" && !(p && C) && !(y && k) && !(F && S))
+    throw new Error("base-sha/pr-sha (or base-file/pr-file, or baseline/contenders YAML) are required unless comparison-text-file is provided");
   if (!t && r === "compare-many") {
     const N = i && E.length > 0, U = A && g.length > 0;
     if (!N && !U && !(F && S))
@@ -34255,8 +34255,8 @@ function My() {
     regressionThreshold: Number.parseFloat(Ye.getInput("regression-threshold") || "10"),
     autoDraftOnRegression: Ye.getInput("auto-draft-on-regression") === "true",
     commentMarker: Ye.getInput("comment-marker") || "<!-- asv-benchmark-result -->",
-    labelBefore: Ye.getInput("label-before") || "main",
-    labelAfter: Ye.getInput("label-after") || "pr",
+    labelBefore: Ye.getInput("label-before") || w?.label || "main",
+    labelAfter: Ye.getInput("label-after") || R[0]?.label || "pr",
     asvSpyglassRef: Ye.getInput("asv-spyglass-ref") || "enh-multiple-comparisons",
     runnerInfo: Ye.getInput("runner-info") || "ubuntu-latest",
     dashboardUrl: Ye.getInput("dashboard-url") || ""

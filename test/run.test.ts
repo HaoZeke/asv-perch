@@ -138,7 +138,7 @@ describe('resolveInputs', () => {
       'results-path': '/tmp/results',
     })
 
-    expect(() => resolveInputs()).toThrow('base-sha/pr-sha (or base-file/pr-file) are required unless comparison-text-file is provided')
+    expect(() => resolveInputs()).toThrow('base-sha/pr-sha (or base-file/pr-file, or baseline/contenders YAML) are required unless comparison-text-file is provided')
   })
 
   it('explicit SHAs override metadata file', async () => {
@@ -345,6 +345,21 @@ describe('yaml baseline/contenders parsing', () => {
     const result = resolveInputs()
     expect(result.baselineConfig).not.toBeNull()
     expect(result.contenderConfigs).toHaveLength(1)
+  })
+
+  it('structured baseline/contenders satisfy compare requirements and map SHAs', async () => {
+    await mockInputs({
+      'results-path': '/tmp/results',
+      'baseline': 'label: main\nsha: abc12345\nsetup: meson setup bbdir\nrun-prefix: pixi run',
+      'contenders': '- label: pr\n  sha: def67890\n  setup: meson setup bbdir\n  run-prefix: pixi run',
+    })
+
+    // Should not throw -- structured config maps to baseSha/prSha
+    const result = resolveInputs()
+    expect(result.baseSha).toBe('abc12345')
+    expect(result.prSha).toBe('def67890')
+    expect(result.labelBefore).toBe('main')
+    expect(result.labelAfter).toBe('pr')
   })
 
   it('benchmark-command is passed through', async () => {
