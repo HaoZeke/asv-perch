@@ -1,19 +1,19 @@
 
 # Table of Contents
 
-1.  [About](#orga7f91c9)
-2.  [Quick Start (Two-Way)](#org8a13b32)
-3.  [Quick Start (Multi-Way)](#org1fc78be)
-4.  [Quick Start (Full Pipeline &#x2013; Single Job)](#org3ea84a3)
-5.  [Essential Inputs](#orgf26215d)
-6.  [Why This Action](#orgdea7cc1)
-    1.  [Outputs](#orgcd48b1c)
-7.  [Development](#orge246ade)
-8.  [License](#org854e9cb)
+1.  [About](#org8ebb331)
+2.  [Quick Start (Two-Way)](#org930c352)
+3.  [Quick Start (Multi-Way)](#org57f18ad)
+4.  [Quick Start (Full Pipeline &#x2013; Single Job)](#org42a1bef)
+5.  [Essential Inputs](#org7173203)
+6.  [Why This Action](#org62e8aa3)
+    1.  [Outputs](#org7586e12)
+7.  [Development](#orgba2d346)
+8.  [License](#org0e5621c)
 
 
 
-<a id="orga7f91c9"></a>
+<a id="org8ebb331"></a>
 
 # About
 
@@ -27,7 +27,7 @@ your build environment &#x2013; use conda, pixi, virtualenv, nix, Docker, GPU
 runners, or whatever you need.
 
 
-<a id="org8a13b32"></a>
+<a id="org930c352"></a>
 
 # Quick Start (Two-Way)
 
@@ -38,7 +38,7 @@ runners, or whatever you need.
         metadata-file: results/metadata.txt
 
 
-<a id="org1fc78be"></a>
+<a id="org57f18ad"></a>
 
 # Quick Start (Multi-Way)
 
@@ -52,7 +52,7 @@ runners, or whatever you need.
         contender-labels: 'optimized, debug'
 
 
-<a id="org3ea84a3"></a>
+<a id="org42a1bef"></a>
 
 # Quick Start (Full Pipeline &#x2013; Single Job)
 
@@ -113,7 +113,7 @@ For pure Python projects with `run-prefix` only (no build step):
             run-prefix: pixi run -e bench
 
 
-<a id="orgf26215d"></a>
+<a id="org7173203"></a>
 
 # Essential Inputs
 
@@ -296,7 +296,7 @@ See [full documentation](https://asv-perch.rgoswami.me) for all
 inputs, outputs, and configuration details.
 
 
-<a id="orgdea7cc1"></a>
+<a id="org62e8aa3"></a>
 
 # Why This Action
 
@@ -311,7 +311,7 @@ See [the
 full comparison](https://asv-perch.rgoswami.me/explanation/why_this_action.html) with CodSpeed, benchmark-action, and inline scripts.
 
 
-<a id="orgcd48b1c"></a>
+<a id="org7586e12"></a>
 
 ## Outputs
 
@@ -357,7 +357,7 @@ full comparison](https://asv-perch.rgoswami.me/explanation/why_this_action.html)
 </table>
 
 
-<a id="orge246ade"></a>
+<a id="orgba2d346"></a>
 
 # Development
 
@@ -370,7 +370,7 @@ Built with [bun](https://bun.sh) and TypeScript.
     bun run typecheck  # tsc --noEmit
 
 
-<a id="org854e9cb"></a>
+<a id="org0e5621c"></a>
 
 # License
 
