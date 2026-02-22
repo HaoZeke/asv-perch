@@ -75,6 +75,20 @@ export function shortenBenchmark(name: string): string {
   return short.trim()
 }
 
+// TODO: upstream fix in asv_runner/discovery.py -- disc_benchmarks yields
+// duplicates when the benchmark directory has __init__.py (package discovery
+// and direct module discovery both fire). Until fixed, deduplicate here.
+function deduplicateRows<T extends { benchmark: string }>(rows: T[]): T[] {
+  const seen = new Map<string, T>()
+  for (const row of rows) {
+    const key = shortenBenchmark(row.benchmark)
+    if (!seen.has(key) || row.benchmark.length < seen.get(key)!.benchmark.length) {
+      seen.set(key, { ...row, benchmark: key })
+    }
+  }
+  return [...seen.values()]
+}
+
 export function parseComparison(raw: string): ParsedComparison {
   const lines = raw.split('\n')
   const rows: BenchmarkRow[] = []
@@ -136,13 +150,18 @@ export function parseComparison(raw: string): ParsedComparison {
     })
   }
 
+  // TODO: asv_runner discovery.py yields benchmarks twice when benchmarks/
+  // has __init__.py (once as module.Class.method, once as pkg.module.Class.method).
+  // Deduplicate by normalized name, keeping the shorter original.
+  const deduped = deduplicateRows(rows)
+
   return {
-    rows,
-    regressed: rows.filter((r) => r.change === 'regressed'),
-    improved: rows.filter((r) => r.change === 'improved'),
-    unchanged: rows.filter((r) => r.change === 'unchanged'),
-    incomparable: rows.filter((r) => r.change === 'incomparable'),
-    failed: rows.filter((r) => r.change === 'failed'),
+    rows: deduped,
+    regressed: deduped.filter((r) => r.change === 'regressed'),
+    improved: deduped.filter((r) => r.change === 'improved'),
+    unchanged: deduped.filter((r) => r.change === 'unchanged'),
+    incomparable: deduped.filter((r) => r.change === 'incomparable'),
+    failed: deduped.filter((r) => r.change === 'failed'),
   }
 }
 
@@ -263,10 +282,13 @@ export function parseCompareMany(raw: string): ParsedCompareMany {
     rows.push({ benchmark, baseline, contenders })
   }
 
+  // Deduplicate rows (asv_runner double-discovery workaround)
+  const dedupedRows = deduplicateRows(rows)
+
   // Build per-contender summary
   const summaryPerContender = contenderLabels.map((label, idx) => {
     const counts = { label, regressed: 0, improved: 0, unchanged: 0, incomparable: 0, failed: 0 }
-    for (const row of rows) {
+    for (const row of dedupedRows) {
       const cell = row.contenders[idx]
       if (cell) {
         counts[cell.change]++
@@ -275,5 +297,5 @@ export function parseCompareMany(raw: string): ParsedCompareMany {
     return counts
   })
 
-  return { contenderLabels, rows, summaryPerContender }
+  return { contenderLabels, rows: dedupedRows, summaryPerContender }
 }

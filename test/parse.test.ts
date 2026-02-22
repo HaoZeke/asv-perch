@@ -187,6 +187,32 @@ describe('parseComparison with --split output', () => {
   })
 })
 
+describe('deduplication', () => {
+  it('deduplicates rows with benchmarks. prefix (asv_runner double discovery)', () => {
+    const input = `| Change | Before | After | Ratio | Benchmark (Parameter) |
+|--------|--------|-------|-------|-----------------------|
+| +      | 100ns  | 200ns |  2.00 | bench_foo.Bar.time_x  |
+|        | 101ns  | 201ns |  1.99 | benchmarks.bench_foo.Bar.time_x |
+| -      | 50ns   | 25ns  |  0.50 | bench_baz.Qux.time_y  |`
+    const result = parseComparison(input)
+    // The benchmarks.bench_foo.Bar.time_x duplicate should be removed
+    expect(result.rows).toHaveLength(2)
+    expect(result.rows[0].benchmark).toBe('bench_foo.Bar.time_x')
+    expect(result.rows[1].benchmark).toBe('bench_baz.Qux.time_y')
+    expect(result.regressed).toHaveLength(1)
+    expect(result.improved).toHaveLength(1)
+  })
+
+  it('keeps non-duplicate benchmarks. prefix rows', () => {
+    const input = `| Change | Before | After | Ratio | Benchmark (Parameter) |
+|--------|--------|-------|-------|-----------------------|
+| +      | 100ns  | 200ns |  2.00 | benchmarks.Foo.time_x |`
+    const result = parseComparison(input)
+    expect(result.rows).toHaveLength(1)
+    expect(result.rows[0].benchmark).toBe('Foo.time_x')
+  })
+})
+
 describe('shortenBenchmark', () => {
   it('strips benchmarks. prefix', () => {
     expect(shortenBenchmark('benchmarks.TimeSuite.time_values(10)'))
