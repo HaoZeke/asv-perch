@@ -92,14 +92,48 @@ include environment activation via two fields:
 - =setup= -- A shell command prepended with =&&=. Use this for sourcing
   scripts, exporting variables, or activating virtualenvs.
 
-Both can be combined. The constructed shell command is:
+Both can be combined. The ={sha}= placeholder is replaced in all three
+fields. The constructed shell command is:
 
 #+begin_example
-bash -c '<setup> && <run-prefix> <benchmark-command with {sha} replaced>'
+bash -c '<setup with {sha}> && <run-prefix with {sha}> <benchmark-command with {sha}>'
 #+end_example
 
 Each part is optional -- omit what you don't need. If an entry has no =sha=,
 benchmarking is skipped for that entry (useful when results already exist).
+
+Contender benchmarks run in parallel via =Promise.all=. If your builds
+modify shared state (same build directory), use =setup= to isolate them.
+
+*** Init command
+
+Use =init-command= to run a one-time setup before any benchmarks:
+
+#+begin_src yaml
+init-command: pixi run bash -c "pip install asv && asv machine --yes"
+#+end_src
+
+This runs once, before any baseline or contender benchmarks.
+
+*** Build pattern (C++, Fortran, Rust)
+
+Use =setup= with ={sha}= to checkout and build per-commit:
+
+#+begin_src yaml
+baseline: |
+  label: main
+  sha: abc123def
+  setup: >-
+    git checkout -f {sha} && git clean -fd &&
+    meson setup bbdir --prefix=$CONDA_PREFIX --buildtype release --wipe 2>/dev/null ||
+    meson setup bbdir --prefix=$CONDA_PREFIX --buildtype release &&
+    meson install -C bbdir
+  run-prefix: pixi run
+#+end_src
+
+The ={sha}= placeholder is replaced in =setup=, =run-prefix=, and
+=benchmark-command=. This enables one action step to handle checkout,
+build, and benchmark for each entry.
 
 *** Wrapper pattern (pixi, conda, nix)
 
@@ -160,16 +194,67 @@ This runs: =export CFLAGS="-O0 -g" && pixi run -e bench-debug asv run --record-s
   run-prefix, setup, env, description). When provided, this overrides
   =contender-shas=, =contender-files=, and =contender-labels=.
 
+- =init-command= :: Shell command run once before any benchmarks. Use for
+  one-time setup like =asv machine --yes= or stashing benchmark suites.
+
 - =benchmark-command= :: Shell command template for running benchmarks.
   Default: =asv run --record-samples {sha}^!=. The placeholder ={sha}= is
-  replaced with the entry's commit SHA. Each entry's =run-prefix= is prepended
-  and =setup= is sourced before this command. Entries without a =sha= field
-  skip benchmarking.
+  replaced in this field, =setup=, and =run-prefix=. Each entry's
+  =run-prefix= is prepended and =setup= is sourced before this command.
+  Entries without a =sha= field skip benchmarking.
 
   Example with a custom command:
 
 #+begin_src yaml
 benchmark-command: 'asv run --quick {sha}^!'
+#+end_src
+
+** Full Pipeline with C++ Build (setup + run-prefix)
+
+#+begin_src yaml
+- uses: prefix-dev/setup-pixi@v0.8.10
+  with:
+    activate-environment: true
+- name: Stash benchmarks
+  run: cp -r benchmarks /tmp/benchmarks && cp asv.conf.json /tmp/asv.conf.json
+- name: Benchmark and compare
+  uses: HaoZeke/asv-benchmark-commenter@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    results-path: .asv/results/
+    init-command: pixi run bash -c "pip install asv && asv machine --yes"
+    benchmark-command: >-
+      asv run -E "existing:$(which python)"
+      --set-commit-hash {sha} --record-samples --quick
+    baseline: |
+      label: main
+      sha: ${{ github.event.pull_request.base.sha }}
+      setup: >-
+        git checkout -f {sha} && git clean -fd &&
+        cp -r /tmp/benchmarks benchmarks &&
+        cp /tmp/asv.conf.json asv.conf.json &&
+        pixi run meson setup bbdir --prefix=$CONDA_PREFIX
+        --buildtype release --wipe 2>/dev/null ||
+        pixi run meson setup bbdir --prefix=$CONDA_PREFIX
+        --buildtype release &&
+        pixi run meson install -C bbdir
+      run-prefix: pixi run
+    contenders: |
+      - label: pr
+        sha: ${{ github.event.pull_request.head.sha }}
+        setup: >-
+          git checkout -f {sha} && git clean -fd &&
+          cp -r /tmp/benchmarks benchmarks &&
+          cp /tmp/asv.conf.json asv.conf.json &&
+          pixi run meson setup bbdir --prefix=$CONDA_PREFIX
+          --buildtype release --wipe 2>/dev/null ||
+          pixi run meson setup bbdir --prefix=$CONDA_PREFIX
+          --buildtype release &&
+          pixi run meson install -C bbdir
+        run-prefix: pixi run
+    label-before: main
+    label-after: pr
+    runner-info: ubuntu-22.04
 #+end_src
 
 ** Pre-computed Output

@@ -50,6 +50,7 @@ interface ResolvedInputs {
   contenderLabels: string[]
   benchmarkCommand: string
   initCommand: string
+  preservePaths: string[]
   asvSpyglassArgs: string[]
   regressionThreshold: number
   autoDraftOnRegression: boolean
@@ -84,6 +85,10 @@ export function resolveInputs(): ResolvedInputs {
     : []
   const benchmarkCommand = getInput('benchmark-command') || ''
   const initCommand = getInput('init-command') || ''
+  const preservePathsRaw = getInput('preserve-paths') || ''
+  const preservePaths = preservePathsRaw
+    ? preservePathsRaw.split(',').map((s) => s.trim()).filter(Boolean)
+    : []
 
   // Normalize YAML-parsed objects: map kebab-case keys to camelCase
   function normalizeConfig<T>(raw: Record<string, unknown>): T {
@@ -193,6 +198,7 @@ export function resolveInputs(): ResolvedInputs {
     contenderLabels: contenderLabelsList,
     benchmarkCommand,
     initCommand,
+    preservePaths,
     asvSpyglassArgs,
     regressionThreshold: Number.parseFloat(getInput('regression-threshold') || '10'),
     autoDraftOnRegression: getInput('auto-draft-on-regression') === 'true',
@@ -376,6 +382,24 @@ export function buildBenchmarkShellCommand(
   return benchCmd
 }
 
+// Build the git checkout + preserve command prefix for an entry.
+// When preserve-paths is set, stash files before checkout and restore after.
+export function buildCheckoutCommand(
+  sha: string,
+  preservePaths: string[],
+): string {
+  if (preservePaths.length === 0) {
+    return `git checkout -f ${sha} && git clean -fd`
+  }
+  const stashDir = '/tmp/_asv_preserve'
+  const stash = preservePaths.map((p) => `cp -r ${p} ${stashDir}/`).join(' && ')
+  const restore = preservePaths.map((p) => {
+    const basename = p.replace(/\/$/, '').split('/').pop()!
+    return `cp -r ${stashDir}/${basename} ${p}`
+  }).join(' && ')
+  return `mkdir -p ${stashDir} && ${stash} && git checkout -f ${sha} && git clean -fd && ${restore}`
+}
+
 // Execute benchmark commands for all entries that have setup/run-prefix/sha.
 // Baseline runs first, then contenders run in parallel.
 export async function executeBenchmarks(
@@ -383,6 +407,7 @@ export async function executeBenchmarks(
   contenderConfigs: ContenderConfig[],
   benchmarkCommand: string,
   initCommand?: string,
+  preservePaths: string[] = [],
 ): Promise<void> {
   const template = benchmarkCommand || DEFAULT_BENCHMARK_COMMAND
 
@@ -392,18 +417,33 @@ export async function executeBenchmarks(
     await exec('bash', ['-c', initCommand])
   }
 
+  // Helper: prepend git checkout if entry has sha and preserve-paths is set
+  function withCheckout(
+    sha: string,
+    setup: string | undefined,
+    runPrefix: string | undefined,
+  ): { setup: string | undefined, runPrefix: string | undefined } {
+    if (preservePaths.length > 0) {
+      const checkout = buildCheckoutCommand(sha, preservePaths)
+      return { setup: setup ? `${checkout} && ${setup}` : checkout, runPrefix }
+    }
+    return { setup, runPrefix }
+  }
+
   // Run baseline benchmark first
-  if (baselineConfig?.sha && (baselineConfig.setup || baselineConfig.runPrefix || benchmarkCommand)) {
-    const cmd = buildBenchmarkShellCommand(baselineConfig.setup, baselineConfig.runPrefix, baselineConfig.sha, template)
+  if (baselineConfig?.sha && (baselineConfig.setup || baselineConfig.runPrefix || benchmarkCommand || preservePaths.length > 0)) {
+    const { setup, runPrefix } = withCheckout(baselineConfig.sha, baselineConfig.setup, baselineConfig.runPrefix)
+    const cmd = buildBenchmarkShellCommand(setup, runPrefix, baselineConfig.sha, template)
     info(`Running baseline benchmark: ${cmd}`)
     await exec('bash', ['-c', cmd])
   }
 
   // Run contender benchmarks in parallel
   const contenderTasks = contenderConfigs
-    .filter((c) => c.sha && (c.setup || c.runPrefix || benchmarkCommand))
+    .filter((c) => c.sha && (c.setup || c.runPrefix || benchmarkCommand || preservePaths.length > 0))
     .map(async (contender) => {
-      const cmd = buildBenchmarkShellCommand(contender.setup, contender.runPrefix, contender.sha!, template)
+      const { setup, runPrefix } = withCheckout(contender.sha!, contender.setup, contender.runPrefix)
+      const cmd = buildBenchmarkShellCommand(setup, runPrefix, contender.sha!, template)
       info(`Running benchmark for "${contender.label}": ${cmd}`)
       await exec('bash', ['-c', cmd])
     })
@@ -527,16 +567,18 @@ export async function run(): Promise<void> {
     const octokit = getOctokit(inputs.token)
     const { owner, repo } = context.repo
 
-    // Execute benchmark commands if any configs have setup/runPrefix or benchmark-command
+    // Execute benchmark commands if any configs have setup/runPrefix/sha or benchmark-command
     const hasRunnable = inputs.baselineConfig?.runPrefix || inputs.baselineConfig?.setup
       || inputs.contenderConfigs.some((c) => c.runPrefix || c.setup)
       || inputs.benchmarkCommand
+      || inputs.preservePaths.length > 0
     if (hasRunnable && !inputs.comparisonTextFile) {
       await executeBenchmarks(
         inputs.baselineConfig,
         inputs.contenderConfigs,
         inputs.benchmarkCommand,
         inputs.initCommand || undefined,
+        inputs.preservePaths,
       )
     }
 

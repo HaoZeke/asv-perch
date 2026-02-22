@@ -71,7 +71,14 @@ inputs:
   init-command:
     description: >-
       Shell command to run once before any benchmarks. Use for one-time
-      setup like 'asv machine --yes' or stashing benchmark suites.
+      setup like 'asv machine --yes'.
+    required: false
+  preserve-paths:
+    description: >-
+      Comma-separated paths to preserve across git checkouts. When an
+      entry has a sha, the action runs git checkout -f {sha} && git clean -fd
+      automatically. These paths are stashed to /tmp before checkout and
+      restored after. Example: 'benchmarks/, asv.conf.json'.
     required: false
   baseline-label:
     description: >-

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { buildBenchmarkShellCommand, detectRegression, readComparisonTextFile, resolveInputs } from '../src/run'
+import { buildBenchmarkShellCommand, buildCheckoutCommand, detectRegression, readComparisonTextFile, resolveInputs } from '../src/run'
 import { parseCompareMany, parseComparison } from '../src/parse'
 
 // Mock @actions/core
@@ -63,6 +63,7 @@ async function mockInputs(overrides: Record<string, string>): Promise<void> {
       'contenders': '',
       'benchmark-command': '',
       'init-command': '',
+      'preserve-paths': '',
       'baseline-label': '',
       'contender-labels': '',
       'asv-spyglass-args': '',
@@ -420,6 +421,29 @@ describe('readComparisonTextFile', () => {
   it('throws for non-existent file', () => {
     expect(() => readComparisonTextFile('/tmp/nonexistent_file_12345.txt'))
       .toThrow('Comparison text file not found')
+  })
+})
+
+describe('buildCheckoutCommand', () => {
+  it('builds simple checkout without preserve-paths', () => {
+    const cmd = buildCheckoutCommand('abc123', [])
+    expect(cmd).toBe('git checkout -f abc123 && git clean -fd')
+  })
+
+  it('stashes and restores preserve-paths', () => {
+    const cmd = buildCheckoutCommand('abc123', ['benchmarks/', 'asv.conf.json'])
+    expect(cmd).toContain('mkdir -p /tmp/_asv_preserve')
+    expect(cmd).toContain('cp -r benchmarks/ /tmp/_asv_preserve/')
+    expect(cmd).toContain('cp -r asv.conf.json /tmp/_asv_preserve/')
+    expect(cmd).toContain('git checkout -f abc123 && git clean -fd')
+    expect(cmd).toContain('cp -r /tmp/_asv_preserve/benchmarks benchmarks/')
+    expect(cmd).toContain('cp -r /tmp/_asv_preserve/asv.conf.json asv.conf.json')
+  })
+
+  it('handles single preserve path', () => {
+    const cmd = buildCheckoutCommand('def456', ['benchmarks/'])
+    expect(cmd).toContain('cp -r benchmarks/ /tmp/_asv_preserve/')
+    expect(cmd).toContain('cp -r /tmp/_asv_preserve/benchmarks benchmarks/')
   })
 })
 

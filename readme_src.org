@@ -99,7 +99,8 @@ Use =setup= for source-based environments (virtualenv, shell scripts):
 | =contender-labels= | no | -- | Comma-separated labels for contenders |
 | =baseline= | no | -- | YAML config for baseline (label, sha, run-prefix/setup) |
 | =contenders= | no | -- | YAML list of contenders (label, sha, run-prefix/setup) |
-| =benchmark-command= | no | =asv run --record-samples {sha}^!= | Shell command template; ={sha}= is replaced per entry |
+| =benchmark-command= | no | =asv run --record-samples {sha}^!= | Shell command template; ={sha}= replaced in all fields |
+| =init-command= | no | -- | One-time setup before benchmarks (e.g. =asv machine --yes=) |
 | =asv-spyglass-args= | no | -- | Extra flags for asv-spyglass CLI |
 | =regression-threshold= | no | =10= | Ratio for critical regression |
 | =auto-draft-on-regression= | no | =false= | Convert PR to draft on regression |
