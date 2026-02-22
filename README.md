@@ -1,19 +1,19 @@
 
 # Table of Contents
 
-1.  [About](#org8ebb331)
-2.  [Quick Start (Two-Way)](#org930c352)
-3.  [Quick Start (Multi-Way)](#org57f18ad)
-4.  [Quick Start (Full Pipeline &#x2013; Single Job)](#org42a1bef)
-5.  [Essential Inputs](#org7173203)
-6.  [Why This Action](#org62e8aa3)
-    1.  [Outputs](#org7586e12)
-7.  [Development](#orgba2d346)
-8.  [License](#org0e5621c)
+1.  [About](#org84b4eb1)
+2.  [Quick Start (Two-Way)](#orgb492509)
+3.  [Quick Start (Multi-Way)](#org6374620)
+4.  [Quick Start (Full Pipeline &#x2013; Single Job)](#org3066b51)
+5.  [Essential Inputs](#orgbab4a6f)
+6.  [Why This Action](#org6bb18bd)
+    1.  [Outputs](#org84edca7)
+7.  [Development](#org69533c3)
+8.  [License](#org1e65510)
 
 
 
-<a id="org8ebb331"></a>
+<a id="org84b4eb1"></a>
 
 # About
 
@@ -27,7 +27,7 @@ your build environment &#x2013; use conda, pixi, virtualenv, nix, Docker, GPU
 runners, or whatever you need.
 
 
-<a id="org930c352"></a>
+<a id="orgb492509"></a>
 
 # Quick Start (Two-Way)
 
@@ -38,7 +38,7 @@ runners, or whatever you need.
         metadata-file: results/metadata.txt
 
 
-<a id="org57f18ad"></a>
+<a id="org6374620"></a>
 
 # Quick Start (Multi-Way)
 
@@ -52,7 +52,7 @@ runners, or whatever you need.
         contender-labels: 'optimized, debug'
 
 
-<a id="org42a1bef"></a>
+<a id="org3066b51"></a>
 
 # Quick Start (Full Pipeline &#x2013; Single Job)
 
@@ -113,7 +113,7 @@ For pure Python projects with `run-prefix` only (no build step):
             run-prefix: pixi run -e bench
 
 
-<a id="org7173203"></a>
+<a id="orgbab4a6f"></a>
 
 # Essential Inputs
 
@@ -137,7 +137,6 @@ For pure Python projects with `run-prefix` only (no build step):
 <th scope="col" class="org-left">Description</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td class="org-left"><code>github-token</code></td>
@@ -146,14 +145,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">GitHub token for API access</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>results-path</code></td>
 <td class="org-left">conditional</td>
 <td class="org-left">--</td>
 <td class="org-left">Path to ASV results dir (not needed with <code>comparison-text-file</code>)</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>comparison-text-file</code></td>
@@ -162,14 +159,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">Pre-computed comparison output (skips asv-spyglass)</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>comparison-mode</code></td>
 <td class="org-left">no</td>
 <td class="org-left"><code>compare</code></td>
 <td class="org-left"><code>compare</code> (two-way) or <code>compare-many</code> (multi-way)</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>base-sha</code> / <code>pr-sha</code></td>
@@ -178,14 +173,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">SHAs for <code>compare</code> mode</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>base-file</code> / <code>pr-file</code></td>
 <td class="org-left">conditional</td>
 <td class="org-left">--</td>
 <td class="org-left">Direct file paths for <code>compare</code> mode</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>baseline-sha</code></td>
@@ -194,14 +187,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">SHA for <code>compare-many</code> baseline</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>contender-shas</code></td>
 <td class="org-left">conditional</td>
 <td class="org-left">--</td>
 <td class="org-left">Comma-separated SHAs for <code>compare-many</code> contenders</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>baseline-file</code></td>
@@ -210,14 +201,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">Direct path to baseline result JSON</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>contender-files</code></td>
 <td class="org-left">conditional</td>
 <td class="org-left">--</td>
 <td class="org-left">Comma-separated direct paths to contender JSONs</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>contender-labels</code></td>
@@ -226,14 +215,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">Comma-separated labels for contenders</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>baseline</code></td>
 <td class="org-left">no</td>
 <td class="org-left">--</td>
 <td class="org-left">YAML config for baseline (label, sha, run-prefix/setup)</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>contenders</code></td>
@@ -242,14 +229,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">YAML list of contenders (label, sha, run-prefix/setup)</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>benchmark-command</code></td>
 <td class="org-left">no</td>
 <td class="org-left"><code>asv run --record-samples {sha}^!</code></td>
 <td class="org-left">Shell command template; <code>{sha}</code> replaced in all fields</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>init-command</code></td>
@@ -258,14 +243,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">One-time setup before benchmarks (e.g. <code>asv machine --yes</code>)</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>preserve-paths</code></td>
 <td class="org-left">no</td>
 <td class="org-left">--</td>
 <td class="org-left">Paths to preserve across git checkouts (e.g. <code>benchmarks/, asv.conf.json</code>)</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>asv-spyglass-args</code></td>
@@ -274,14 +257,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">Extra flags for asv-spyglass CLI</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>regression-threshold</code></td>
 <td class="org-left">no</td>
 <td class="org-left"><code>10</code></td>
 <td class="org-left">Ratio for critical regression</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>auto-draft-on-regression</code></td>
@@ -292,11 +273,11 @@ For pure Python projects with `run-prefix` only (no build step):
 </tbody>
 </table>
 
-See [full documentation](https://asv-perch.rgoswami.me) for all
+See [full documentation](https://haozeke.github.io/asv-perch) for all
 inputs, outputs, and configuration details.
 
 
-<a id="org62e8aa3"></a>
+<a id="org6bb18bd"></a>
 
 # Why This Action
 
@@ -308,10 +289,10 @@ inputs, outputs, and configuration details.
     environments in a single table
 
 See [the
-full comparison](https://asv-perch.rgoswami.me/explanation/why_this_action.html) with CodSpeed, benchmark-action, and inline scripts.
+full comparison](https://haozeke.github.io/asv-perch/explanation/why_this_action.html) with CodSpeed, benchmark-action, and inline scripts.
 
 
-<a id="org7586e12"></a>
+<a id="org84edca7"></a>
 
 ## Outputs
 
@@ -329,25 +310,21 @@ full comparison](https://asv-perch.rgoswami.me/explanation/why_this_action.html)
 <th scope="col" class="org-left">Description</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td class="org-left"><code>comparison</code></td>
 <td class="org-left">Raw asv-spyglass comparison output</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>regression-detected</code></td>
 <td class="org-left"><code>'true'</code> or <code>'false'</code></td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>comment-id</code></td>
 <td class="org-left">ID of created/updated comment</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>pr-number</code></td>
@@ -357,7 +334,7 @@ full comparison](https://asv-perch.rgoswami.me/explanation/why_this_action.html)
 </table>
 
 
-<a id="orgba2d346"></a>
+<a id="org69533c3"></a>
 
 # Development
 
@@ -370,7 +347,7 @@ Built with [bun](https://bun.sh) and TypeScript.
     bun run typecheck  # tsc --noEmit
 
 
-<a id="org0e5621c"></a>
+<a id="org1e65510"></a>
 
 # License
 

@@ -121,7 +121,7 @@ For pure Python projects with =run-prefix= only (no build step):
 | =regression-threshold= | no | =10= | Ratio for critical regression |
 | =auto-draft-on-regression= | no | =false= | Convert PR to draft on regression |
 
-See [[https://asv-perch.rgoswami.me][full documentation]] for all
+See [[https://haozeke.github.io/asv-perch][full documentation]] for all
 inputs, outputs, and configuration details.
 
 * Why This Action
@@ -133,7 +133,7 @@ inputs, outputs, and configuration details.
 - *Multi-way comparison:* Compare a baseline against multiple build configs or
   environments in a single table
 
-See [[https://asv-perch.rgoswami.me/explanation/why_this_action.html][the
+See [[https://haozeke.github.io/asv-perch/explanation/why_this_action.html][the
 full comparison]] with CodSpeed, benchmark-action, and inline scripts.
 
 ** Outputs

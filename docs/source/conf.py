@@ -21,4 +21,4 @@ html_theme_options = {
     "github_url": "https://github.com/HaoZeke/asv-perch",
 }
 
-html_baseurl = "https://asv-perch.rgoswami.me/"
+html_baseurl = "https://haozeke.github.io/asv-perch/"
