@@ -84,8 +84,8 @@ the action:
     uvx asv-spyglass compare-many \
       results/ubuntu-latest/*.json \
       results/gpu-runner/*.json \
-      --label-baseline "CPU (ubuntu-latest)" \
-      --label-contender "GPU (self-hosted)" \
+      --label "CPU (ubuntu-latest)" \
+      --label "GPU (self-hosted)" \
       > comparison.txt
 
 - name: Post

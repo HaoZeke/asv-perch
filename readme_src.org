@@ -35,21 +35,58 @@ runners, or whatever you need.
     contender-labels: 'optimized, debug'
 #+end_src
 
-* Quick Start (Full Pipeline)
+* Quick Start (Full Pipeline -- Single Job)
 
-Run benchmarks and compare in one step. Each entry specifies how to activate
-its environment -- the action appends =asv run --record-samples {sha}^!=
-automatically.
-
-Use =run-prefix= for wrapper tools (pixi, conda, nix):
+Run benchmarks and compare in one step. The action handles git checkout
+(=preserve-paths=), environment activation (=run-prefix= or =setup=), and
+the ASV invocation automatically.
 
 #+begin_src yaml
-- uses: prefix-dev/setup-pixi@v0.8.0
+- uses: prefix-dev/setup-pixi@v0.8.10
+  with:
+    activate-environment: true
 - uses: HaoZeke/asv-benchmark-commenter@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     results-path: .asv/results/
-    comparison-mode: compare-many
+    init-command: pixi run bash -c "pip install asv && asv machine --yes"
+    preserve-paths: benchmarks/, asv.conf.json
+    benchmark-command: >-
+      asv run -E "existing:$(which python)"
+      --set-commit-hash {sha} --record-samples --quick
+    baseline: |
+      label: main
+      sha: ${{ github.event.pull_request.base.sha }}
+      setup: >-
+        pixi run bash -c "meson setup bbdir
+        --prefix=$CONDA_PREFIX --libdir=lib
+        --buildtype release --wipe 2>/dev/null
+        || meson setup bbdir --prefix=$CONDA_PREFIX
+        --libdir=lib --buildtype release" &&
+        pixi run meson install -C bbdir
+      run-prefix: pixi run
+    contenders: |
+      - label: pr
+        sha: ${{ github.event.pull_request.head.sha }}
+        setup: >-
+          pixi run bash -c "meson setup bbdir
+          --prefix=$CONDA_PREFIX --libdir=lib
+          --buildtype release --wipe 2>/dev/null
+          || meson setup bbdir --prefix=$CONDA_PREFIX
+          --libdir=lib --buildtype release" &&
+          pixi run meson install -C bbdir
+        run-prefix: pixi run
+    label-before: main
+    label-after: pr
+#+end_src
+
+For pure Python projects with =run-prefix= only (no build step):
+
+#+begin_src yaml
+- uses: HaoZeke/asv-benchmark-commenter@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    results-path: .asv/results/
     baseline: |
       label: main
       sha: ${{ env.BASE_SHA }}
@@ -58,28 +95,6 @@ Use =run-prefix= for wrapper tools (pixi, conda, nix):
       - label: pr
         sha: ${{ env.PR_SHA }}
         run-prefix: pixi run -e bench
-      - label: pr-debug
-        sha: ${{ env.PR_SHA }}
-        run-prefix: pixi run -e bench-debug
-        description: Debug build with sanitizers
-#+end_src
-
-Use =setup= for source-based environments (virtualenv, shell scripts):
-
-#+begin_src yaml
-- uses: HaoZeke/asv-benchmark-commenter@v1
-  with:
-    github-token: ${{ secrets.GITHUB_TOKEN }}
-    results-path: .asv/results/
-    comparison-mode: compare-many
-    baseline: |
-      label: main
-      sha: ${{ env.BASE_SHA }}
-      setup: source ./envs/bench.sh
-    contenders: |
-      - label: pr
-        sha: ${{ env.PR_SHA }}
-        setup: source ./envs/bench.sh
 #+end_src
 
 * Essential Inputs
@@ -101,6 +116,7 @@ Use =setup= for source-based environments (virtualenv, shell scripts):
 | =contenders= | no | -- | YAML list of contenders (label, sha, run-prefix/setup) |
 | =benchmark-command= | no | =asv run --record-samples {sha}^!= | Shell command template; ={sha}= replaced in all fields |
 | =init-command= | no | -- | One-time setup before benchmarks (e.g. =asv machine --yes=) |
+| =preserve-paths= | no | -- | Paths to preserve across git checkouts (e.g. =benchmarks/, asv.conf.json=) |
 | =asv-spyglass-args= | no | -- | Extra flags for asv-spyglass CLI |
 | =regression-threshold= | no | =10= | Ratio for critical regression |
 | =auto-draft-on-regression= | no | =false= | Convert PR to draft on regression |

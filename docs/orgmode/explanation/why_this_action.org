@@ -47,21 +47,35 @@ This action is the right choice when:
 
 * Architecture
 
-This action is a presentation layer. It does not:
-- Build your project
-- Manage environments
-- Run benchmarks
-- Control which Python, compiler, or tools you use
+The action operates in two modes:
 
+** Presentation Layer (Recommended for Complex Setups)
+
+Hand the action pre-existing result files or pre-computed asv-spyglass output.
+The action never builds, never creates environments, never runs benchmarks.
 It takes ASV result files (produced however you want) and:
+
 1. Runs =asv-spyglass= to compare them (or reads pre-computed output)
 2. Parses the table
 3. Renders a rich PR comment
 4. Posts it via the GitHub API
 
 This separation means the action works with any build system, any runner,
-any environment. The benchmark workflow has full control; the commenter
-workflow is a thin formatting + posting layer.
+any environment. Pair it with a matrix strategy for parallel benchmark
+execution on separate runners.
+
+** Full Pipeline (Simplest Setup)
+
+The action can also run benchmarks for you via =baseline= / =contenders=
+YAML inputs. Each entry specifies how to activate its environment
+(=run-prefix= for pixi/conda/nix, =setup= for source-based envs). The
+action handles git checkout (via =preserve-paths=), one-time init (via
+=init-command=), and the ASV invocation. You never write the =asv run=
+command yourself.
+
+The action still never manages your build environment. You bring your own
+pixi, conda, nix, virtualenv, or whatever -- the action just wraps the
+benchmark command with the right environment activation.
 
 * ASV and asv-spyglass
 

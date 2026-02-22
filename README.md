@@ -1,19 +1,19 @@
 
 # Table of Contents
 
-1.  [About](#org77c0cff)
-2.  [Quick Start (Two-Way)](#org12a7b50)
-3.  [Quick Start (Multi-Way)](#orgf930834)
-4.  [Quick Start (Full Pipeline)](#org3d36dca)
-5.  [Essential Inputs](#org99995aa)
-6.  [Why This Action](#org349966c)
-    1.  [Outputs](#org1e6c75c)
-7.  [Development](#orgd2426ed)
-8.  [License](#org63d985b)
+1.  [About](#orgaccb6b0)
+2.  [Quick Start (Two-Way)](#org18828e1)
+3.  [Quick Start (Multi-Way)](#org8f6956c)
+4.  [Quick Start (Full Pipeline &#x2013; Single Job)](#orge5d1597)
+5.  [Essential Inputs](#orgb505c1d)
+6.  [Why This Action](#org5bff53e)
+    1.  [Outputs](#org2e57d4f)
+7.  [Development](#orgc33ca16)
+8.  [License](#orgd68a87f)
 
 
 
-<a id="org77c0cff"></a>
+<a id="orgaccb6b0"></a>
 
 # About
 
@@ -27,7 +27,7 @@ your build environment &#x2013; use conda, pixi, virtualenv, nix, Docker, GPU
 runners, or whatever you need.
 
 
-<a id="org12a7b50"></a>
+<a id="org18828e1"></a>
 
 # Quick Start (Two-Way)
 
@@ -38,7 +38,7 @@ runners, or whatever you need.
         metadata-file: results/metadata.txt
 
 
-<a id="orgf930834"></a>
+<a id="org8f6956c"></a>
 
 # Quick Start (Multi-Way)
 
@@ -52,22 +52,57 @@ runners, or whatever you need.
         contender-labels: 'optimized, debug'
 
 
-<a id="org3d36dca"></a>
+<a id="orge5d1597"></a>
 
-# Quick Start (Full Pipeline)
+# Quick Start (Full Pipeline &#x2013; Single Job)
 
-Run benchmarks and compare in one step. Each entry specifies how to activate
-its environment &#x2013; the action appends `asv run --record-samples {sha}^!`
-automatically.
+Run benchmarks and compare in one step. The action handles git checkout
+(`preserve-paths`), environment activation (`run-prefix` or `setup`), and
+the ASV invocation automatically.
 
-Use `run-prefix` for wrapper tools (pixi, conda, nix):
-
-    - uses: prefix-dev/setup-pixi@v0.8.0
+    - uses: prefix-dev/setup-pixi@v0.8.10
+      with:
+        activate-environment: true
     - uses: HaoZeke/asv-benchmark-commenter@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         results-path: .asv/results/
-        comparison-mode: compare-many
+        init-command: pixi run bash -c "pip install asv && asv machine --yes"
+        preserve-paths: benchmarks/, asv.conf.json
+        benchmark-command: >-
+          asv run -E "existing:$(which python)"
+          --set-commit-hash {sha} --record-samples --quick
+        baseline: |
+          label: main
+          sha: ${{ github.event.pull_request.base.sha }}
+          setup: >-
+            pixi run bash -c "meson setup bbdir
+            --prefix=$CONDA_PREFIX --libdir=lib
+            --buildtype release --wipe 2>/dev/null
+            || meson setup bbdir --prefix=$CONDA_PREFIX
+            --libdir=lib --buildtype release" &&
+            pixi run meson install -C bbdir
+          run-prefix: pixi run
+        contenders: |
+          - label: pr
+            sha: ${{ github.event.pull_request.head.sha }}
+            setup: >-
+              pixi run bash -c "meson setup bbdir
+              --prefix=$CONDA_PREFIX --libdir=lib
+              --buildtype release --wipe 2>/dev/null
+              || meson setup bbdir --prefix=$CONDA_PREFIX
+              --libdir=lib --buildtype release" &&
+              pixi run meson install -C bbdir
+            run-prefix: pixi run
+        label-before: main
+        label-after: pr
+
+For pure Python projects with `run-prefix` only (no build step):
+
+    - uses: HaoZeke/asv-benchmark-commenter@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        results-path: .asv/results/
         baseline: |
           label: main
           sha: ${{ env.BASE_SHA }}
@@ -76,29 +111,9 @@ Use `run-prefix` for wrapper tools (pixi, conda, nix):
           - label: pr
             sha: ${{ env.PR_SHA }}
             run-prefix: pixi run -e bench
-          - label: pr-debug
-            sha: ${{ env.PR_SHA }}
-            run-prefix: pixi run -e bench-debug
-            description: Debug build with sanitizers
-
-Use `setup` for source-based environments (virtualenv, shell scripts):
-
-    - uses: HaoZeke/asv-benchmark-commenter@v1
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        results-path: .asv/results/
-        comparison-mode: compare-many
-        baseline: |
-          label: main
-          sha: ${{ env.BASE_SHA }}
-          setup: source ./envs/bench.sh
-        contenders: |
-          - label: pr
-            sha: ${{ env.PR_SHA }}
-            setup: source ./envs/bench.sh
 
 
-<a id="org99995aa"></a>
+<a id="orgb505c1d"></a>
 
 # Essential Inputs
 
@@ -122,7 +137,6 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
 <th scope="col" class="org-left">Description</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td class="org-left"><code>github-token</code></td>
@@ -131,14 +145,12 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
 <td class="org-left">GitHub token for API access</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>results-path</code></td>
 <td class="org-left">conditional</td>
 <td class="org-left">--</td>
 <td class="org-left">Path to ASV results dir (not needed with <code>comparison-text-file</code>)</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>comparison-text-file</code></td>
@@ -147,14 +159,12 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
 <td class="org-left">Pre-computed comparison output (skips asv-spyglass)</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>comparison-mode</code></td>
 <td class="org-left">no</td>
 <td class="org-left"><code>compare</code></td>
 <td class="org-left"><code>compare</code> (two-way) or <code>compare-many</code> (multi-way)</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>base-sha</code> / <code>pr-sha</code></td>
@@ -163,14 +173,12 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
 <td class="org-left">SHAs for <code>compare</code> mode</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>base-file</code> / <code>pr-file</code></td>
 <td class="org-left">conditional</td>
 <td class="org-left">--</td>
 <td class="org-left">Direct file paths for <code>compare</code> mode</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>baseline-sha</code></td>
@@ -179,14 +187,12 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
 <td class="org-left">SHA for <code>compare-many</code> baseline</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>contender-shas</code></td>
 <td class="org-left">conditional</td>
 <td class="org-left">--</td>
 <td class="org-left">Comma-separated SHAs for <code>compare-many</code> contenders</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>baseline-file</code></td>
@@ -195,14 +201,12 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
 <td class="org-left">Direct path to baseline result JSON</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>contender-files</code></td>
 <td class="org-left">conditional</td>
 <td class="org-left">--</td>
 <td class="org-left">Comma-separated direct paths to contender JSONs</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>contender-labels</code></td>
@@ -211,14 +215,12 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
 <td class="org-left">Comma-separated labels for contenders</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>baseline</code></td>
 <td class="org-left">no</td>
 <td class="org-left">--</td>
 <td class="org-left">YAML config for baseline (label, sha, run-prefix/setup)</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>contenders</code></td>
@@ -227,14 +229,12 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
 <td class="org-left">YAML list of contenders (label, sha, run-prefix/setup)</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>benchmark-command</code></td>
 <td class="org-left">no</td>
 <td class="org-left"><code>asv run --record-samples {sha}^!</code></td>
 <td class="org-left">Shell command template; <code>{sha}</code> replaced in all fields</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>init-command</code></td>
@@ -243,6 +243,12 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
 <td class="org-left">One-time setup before benchmarks (e.g. <code>asv machine --yes</code>)</td>
 </tr>
 
+<tr>
+<td class="org-left"><code>preserve-paths</code></td>
+<td class="org-left">no</td>
+<td class="org-left">--</td>
+<td class="org-left">Paths to preserve across git checkouts (e.g. <code>benchmarks/, asv.conf.json</code>)</td>
+</tr>
 
 <tr>
 <td class="org-left"><code>asv-spyglass-args</code></td>
@@ -251,14 +257,12 @@ Use `setup` for source-based environments (virtualenv, shell scripts):
 <td class="org-left">Extra flags for asv-spyglass CLI</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>regression-threshold</code></td>
 <td class="org-left">no</td>
 <td class="org-left"><code>10</code></td>
 <td class="org-left">Ratio for critical regression</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>auto-draft-on-regression</code></td>
@@ -273,7 +277,7 @@ See [full documentation](https://asv-benchmark-commenter.rgoswami.me) for all
 inputs, outputs, and configuration details.
 
 
-<a id="org349966c"></a>
+<a id="org5bff53e"></a>
 
 # Why This Action
 
@@ -288,7 +292,7 @@ See [the
 full comparison](https://asv-benchmark-commenter.rgoswami.me/explanation/why_this_action.html) with CodSpeed, benchmark-action, and inline scripts.
 
 
-<a id="org1e6c75c"></a>
+<a id="org2e57d4f"></a>
 
 ## Outputs
 
@@ -306,25 +310,21 @@ full comparison](https://asv-benchmark-commenter.rgoswami.me/explanation/why_thi
 <th scope="col" class="org-left">Description</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td class="org-left"><code>comparison</code></td>
 <td class="org-left">Raw asv-spyglass comparison output</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>regression-detected</code></td>
 <td class="org-left"><code>'true'</code> or <code>'false'</code></td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>comment-id</code></td>
 <td class="org-left">ID of created/updated comment</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>pr-number</code></td>
@@ -334,7 +334,7 @@ full comparison](https://asv-benchmark-commenter.rgoswami.me/explanation/why_thi
 </table>
 
 
-<a id="orgd2426ed"></a>
+<a id="orgc33ca16"></a>
 
 # Development
 
@@ -347,9 +347,8 @@ Built with [bun](https://bun.sh) and TypeScript.
     bun run typecheck  # tsc --noEmit
 
 
-<a id="org63d985b"></a>
+<a id="orgd68a87f"></a>
 
 # License
 
 MIT
-
