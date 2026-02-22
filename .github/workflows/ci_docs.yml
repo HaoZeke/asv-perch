@@ -5,9 +5,11 @@ on:
     branches: [main]
     paths:
       - "docs/**"
+      - "pixi.toml"
   pull_request:
     paths:
       - "docs/**"
+  workflow_dispatch:
 
 jobs:
   build_docs:
@@ -37,8 +39,11 @@ jobs:
           path: docs/build
 
       - name: Deploy
-        if: github.event_name == 'push' && github.ref_name == 'main'
+        if: >-
+          (github.event_name == 'push' && github.ref_name == 'main') ||
+          github.event_name == 'workflow_dispatch'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: docs/build
+          cname: asv-benchmark-commenter.rgoswami.me
