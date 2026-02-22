@@ -1,0 +1,20 @@
+Benchmarks that have improved:
+
+| Change   | Before      | After       |   Ratio | Benchmark (Parameter)                                                                                    |
+|----------|-------------|-------------|---------|----------------------------------------------------------------------------------------------------------|
+| -        | 157+/-3ns   | 137+/-3ns   |    0.87 | benchmarks.TimeSuite.time_keys(10) [rgx1gen11/conda-py3.11-numpy -> rgx1gen11/conda-py3.11-numpy]        |
+| -        | 94.8+/-30us | 28.4+/-0us  |    0.30 | benchmarks.TimeSuite.time_add_arr [rgx1gen11/conda-py3.11-numpy -> rgx1gen11/conda-py3.11-numpy]         |
+
+Benchmarks that have got worse:
+
+| Change   | Before      | After       |   Ratio | Benchmark (Parameter)                                                                                    |
+|----------|-------------|-------------|---------|----------------------------------------------------------------------------------------------------------|
+| +        | 167+/-3ns   | 187+/-3ns   |    1.12 | benchmarks.TimeSuite.time_values(10) [rgx1gen11/conda-py3.11-numpy -> rgx1gen11/conda-py3.11-numpy]      |
+| +        | 200+/-5ns   | 350+/-5ns   |    1.75 | benchmarks.TimeSuite.time_values(100) [rgx1gen11/conda-py3.11-numpy -> rgx1gen11/conda-py3.11-numpy]     |
+
+Benchmarks that are not significantly changed:
+
+| Change   | Before      | After       |   Ratio | Benchmark (Parameter)                                                                                    |
+|----------|-------------|-------------|---------|----------------------------------------------------------------------------------------------------------|
+|          | 1.17+/-0us  | 1.07+/-0us  |   ~0.91 | benchmarks.TimeSuite.time_keys(200) [rgx1gen11/conda-py3.11-numpy -> rgx1gen11/conda-py3.11-numpy]       |
+|          | 2.50+/-0us  | 2.48+/-0us  |   ~0.99 | benchmarks.TimeSuite.time_keys(500) [rgx1gen11/conda-py3.11-numpy -> rgx1gen11/conda-py3.11-numpy]       |

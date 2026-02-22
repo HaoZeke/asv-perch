@@ -1,0 +1,12 @@
+| Change   | Before      | After       |   Ratio | Benchmark (Parameter)                                                                                    |
+|----------|-------------|-------------|---------|----------------------------------------------------------------------------------------------------------|
+| +        | 167+/-3ns   | 187+/-3ns   |    1.12 | benchmarks.TimeSuite.time_values(10) [rgx1gen11/conda-py3.11-numpy -> rgx1gen11/conda-py3.11-numpy]      |
+| +        | 200+/-5ns   | 350+/-5ns   |    1.75 | benchmarks.TimeSuite.time_values(100) [rgx1gen11/conda-py3.11-numpy -> rgx1gen11/conda-py3.11-numpy]     |
+| +        | 1.00+/-0us  | 15.0+/-0us  |   15.00 | benchmarks.TimeSuite.time_values(1000) [rgx1gen11/conda-py3.11-numpy -> rgx1gen11/conda-py3.11-numpy]    |
+| -        | 157+/-3ns   | 137+/-3ns   |    0.87 | benchmarks.TimeSuite.time_keys(10) [rgx1gen11/conda-py3.11-numpy -> rgx1gen11/conda-py3.11-numpy]        |
+| -        | 94.8+/-30us | 28.4+/-0us  |    0.30 | benchmarks.TimeSuite.time_add_arr [rgx1gen11/conda-py3.11-numpy -> rgx1gen11/conda-py3.11-numpy]         |
+|          | 1.17+/-0us  | 1.07+/-0us  |   ~0.91 | benchmarks.TimeSuite.time_keys(200) [rgx1gen11/conda-py3.11-numpy -> rgx1gen11/conda-py3.11-numpy]       |
+|          | 2.50+/-0us  | 2.48+/-0us  |   ~0.99 | benchmarks.TimeSuite.time_keys(500) [rgx1gen11/conda-py3.11-numpy -> rgx1gen11/conda-py3.11-numpy]       |
+|          | 5.00+/-0us  | 5.10+/-0us  |   ~1.02 | benchmarks.TimeSuite.time_keys(1000) [rgx1gen11/conda-py3.11-numpy -> rgx1gen11/conda-py3.11-numpy]      |
+|          | 10.0+/-0us  | 10.1+/-0us  |   ~1.01 | benchmarks.TimeSuite.time_keys(2000) [rgx1gen11/conda-py3.11-numpy -> rgx1gen11/conda-py3.11-numpy]      |
+|          | 100+/-5ns   | 101+/-5ns   |   ~1.01 | benchmarks.TimeSuite.time_items(10) [rgx1gen11/conda-py3.11-numpy -> rgx1gen11/conda-py3.11-numpy]       |
