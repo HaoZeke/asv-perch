@@ -1,0 +1,35 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^dist/
+      - id: end-of-file-fixer
+        exclude: ^dist/
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ["--maxkb=500", "--enforce-all"]
+        exclude: ^dist/
+      - id: check-merge-conflict
+
+  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+    rev: v9.21.0
+    hooks:
+      - id: commitlint
+        stages: [commit-msg]
+        additional_dependencies: ["@commitlint/config-conventional"]
+
+  - repo: local
+    hooks:
+      - id: typecheck
+        name: typecheck
+        entry: bun run typecheck
+        language: system
+        pass_filenames: false
+        types_or: [ts]
+      - id: lint
+        name: lint
+        entry: bun run lint
+        language: system
+        pass_filenames: false
+        types_or: [ts]

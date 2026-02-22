@@ -9,6 +9,7 @@ lerna-debug.log*
 bun-debug.log*
 
 node_modules
+.pixi
 coverage
 *.local
 
