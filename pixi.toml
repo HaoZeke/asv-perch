@@ -1,5 +1,5 @@
 [project]
-name = "asv-benchmark-commenter"
+name = "asv-perch"
 channels = ["conda-forge"]
 platforms = ["linux-64"]
 

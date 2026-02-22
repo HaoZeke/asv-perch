@@ -33,7 +33,7 @@ for this file before attempting to run asv-spyglass:
 
 # In your commenter workflow:
 - name: Post benchmark comment
-  uses: HaoZeke/asv-benchmark-commenter@v1
+  uses: HaoZeke/asv-perch@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     results-path: results/
@@ -47,7 +47,7 @@ explicit and does not require the file to be inside =results-path=:
 
 #+begin_src yaml
 - name: Post benchmark comment
-  uses: HaoZeke/asv-benchmark-commenter@v1
+  uses: HaoZeke/asv-perch@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     comparison-text-file: comparison.txt
@@ -66,7 +66,7 @@ Both options work with =comparison-mode: compare-many=:
 
 #+begin_src yaml
 - name: Post benchmark comment
-  uses: HaoZeke/asv-benchmark-commenter@v1
+  uses: HaoZeke/asv-perch@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     comparison-text-file: compare_many_output.txt

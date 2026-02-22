@@ -29,7 +29,7 @@ Use =baseline-file= and =contender-files= to point directly at result JSONs.
 No SHA-based lookup needed.
 
 #+begin_src yaml
-- uses: HaoZeke/asv-benchmark-commenter@v1
+- uses: HaoZeke/asv-perch@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     results-path: results/
@@ -142,7 +142,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Post comparison
-        uses: HaoZeke/asv-benchmark-commenter@v1
+        uses: HaoZeke/asv-perch@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           results-path: results/
@@ -168,7 +168,7 @@ If you prefer per-environment comments instead of a multi-column table, use
       > comparison_py311.txt
 
 - name: Post py3.11
-  uses: HaoZeke/asv-benchmark-commenter@v1
+  uses: HaoZeke/asv-perch@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     comparison-text-file: comparison_py311.txt
@@ -181,7 +181,7 @@ If you prefer per-environment comments instead of a multi-column table, use
 Add more entries to =contender-files= and =contender-labels=:
 
 #+begin_src yaml
-- uses: HaoZeke/asv-benchmark-commenter@v1
+- uses: HaoZeke/asv-perch@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     results-path: results/
@@ -200,7 +200,7 @@ to run everything in one step. Each contender specifies its environment via
 
 #+begin_src yaml
 - uses: prefix-dev/setup-pixi@v0.8.0
-- uses: HaoZeke/asv-benchmark-commenter@v1
+- uses: HaoZeke/asv-perch@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     results-path: .asv/results/

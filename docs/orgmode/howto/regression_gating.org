@@ -18,7 +18,7 @@ ratio exceeds =regression-threshold=. Use this in a subsequent step:
 #+begin_src yaml
 - name: Post benchmark comment
   id: bench
-  uses: HaoZeke/asv-benchmark-commenter@v1
+  uses: HaoZeke/asv-perch@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     results-path: results/
@@ -39,7 +39,7 @@ status when a critical regression is detected. This prevents accidental merges:
 
 #+begin_src yaml
 - name: Post benchmark comment
-  uses: HaoZeke/asv-benchmark-commenter@v1
+  uses: HaoZeke/asv-perch@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     results-path: results/

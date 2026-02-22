@@ -17,8 +17,8 @@ The project uses [[https://bun.sh][bun]] as the package manager and script
 runner.
 
 #+begin_src bash
-git clone https://github.com/HaoZeke/asv-benchmark-commenter
-cd asv-benchmark-commenter
+git clone https://github.com/HaoZeke/asv-perch
+cd asv-perch
 bun install
 #+end_src
 

@@ -17,7 +17,7 @@ asv-spyglass CLI invocation:
 
 #+begin_src yaml
 - name: Post benchmark comment
-  uses: HaoZeke/asv-benchmark-commenter@v1
+  uses: HaoZeke/asv-perch@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     results-path: results/
@@ -71,7 +71,7 @@ path, environment variables, specific asv-spyglass version), use the
       > comparison.txt
 
 - name: Post results
-  uses: HaoZeke/asv-benchmark-commenter@v1
+  uses: HaoZeke/asv-perch@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     comparison-text-file: comparison.txt

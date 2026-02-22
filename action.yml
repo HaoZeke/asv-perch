@@ -1,4 +1,4 @@
-name: ASV Benchmark Commenter
+name: ASV Perch
 description: >-
   Post formatted ASV benchmark comparison results as PR comments with
   regression detection, emoji indicators, and collapsible sections.

@@ -31,7 +31,7 @@ runners, or whatever you need.
 
 # Quick Start (Two-Way)
 
-    - uses: HaoZeke/asv-benchmark-commenter@v1
+    - uses: HaoZeke/asv-perch@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         results-path: results/
@@ -42,7 +42,7 @@ runners, or whatever you need.
 
 # Quick Start (Multi-Way)
 
-    - uses: HaoZeke/asv-benchmark-commenter@v1
+    - uses: HaoZeke/asv-perch@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         results-path: results/
@@ -63,7 +63,7 @@ the ASV invocation automatically.
     - uses: prefix-dev/setup-pixi@v0.8.10
       with:
         activate-environment: true
-    - uses: HaoZeke/asv-benchmark-commenter@v1
+    - uses: HaoZeke/asv-perch@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         results-path: .asv/results/
@@ -99,7 +99,7 @@ the ASV invocation automatically.
 
 For pure Python projects with `run-prefix` only (no build step):
 
-    - uses: HaoZeke/asv-benchmark-commenter@v1
+    - uses: HaoZeke/asv-perch@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         results-path: .asv/results/
@@ -292,7 +292,7 @@ For pure Python projects with `run-prefix` only (no build step):
 </tbody>
 </table>
 
-See [full documentation](https://asv-benchmark-commenter.rgoswami.me) for all
+See [full documentation](https://asv-perch.rgoswami.me) for all
 inputs, outputs, and configuration details.
 
 
@@ -308,7 +308,7 @@ inputs, outputs, and configuration details.
     environments in a single table
 
 See [the
-full comparison](https://asv-benchmark-commenter.rgoswami.me/explanation/why_this_action.html) with CodSpeed, benchmark-action, and inline scripts.
+full comparison](https://asv-perch.rgoswami.me/explanation/why_this_action.html) with CodSpeed, benchmark-action, and inline scripts.
 
 
 <a id="orgcd48b1c"></a>

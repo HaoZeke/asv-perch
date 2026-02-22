@@ -1,5 +1,5 @@
 {
-  "name": "asv-benchmark-commenter",
+  "name": "asv-perch",
   "type": "module",
   "private": true,
   "description": "GitHub Action to post formatted ASV benchmark comparison results as PR comments",
@@ -8,13 +8,13 @@
     "email": "HaoZeke@yandex.com"
   },
   "license": "MIT",
-  "homepage": "https://github.com/HaoZeke/asv-benchmark-commenter",
+  "homepage": "https://github.com/HaoZeke/asv-perch",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/HaoZeke/asv-benchmark-commenter.git"
+    "url": "git+https://github.com/HaoZeke/asv-perch.git"
   },
   "bugs": {
-    "url": "https://github.com/HaoZeke/asv-benchmark-commenter/issues"
+    "url": "https://github.com/HaoZeke/asv-perch/issues"
   },
   "keywords": ["github", "actions", "asv", "benchmarks", "performance"],
   "exports": {

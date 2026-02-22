@@ -1,4 +1,4 @@
-project = "asv-benchmark-commenter"
+project = "asv-perch"
 copyright = "2026--present, Rohit Goswami"
 author = "Rohit Goswami"
 
@@ -18,7 +18,7 @@ intersphinx_mapping = {
 html_theme = "shibuya"
 html_static_path = ["_static"]
 html_theme_options = {
-    "github_url": "https://github.com/HaoZeke/asv-benchmark-commenter",
+    "github_url": "https://github.com/HaoZeke/asv-perch",
 }
 
-html_baseurl = "https://asv-benchmark-commenter.rgoswami.me/"
+html_baseurl = "https://asv-perch.rgoswami.me/"

@@ -9,7 +9,7 @@ Migration Guide
 #+end_export
 
 This guide helps projects that currently use inline benchmark commenting logic
-migrate to the =asv-benchmark-commenter= action.
+migrate to the =asv-perch= action.
 
 * From eOn's ci_bench_commenter.yml
 
@@ -109,7 +109,7 @@ steps:
       github-token: ${{ secrets.GITHUB_TOKEN }}
 
   - name: Post benchmark comment
-    uses: HaoZeke/asv-benchmark-commenter@v1
+    uses: HaoZeke/asv-perch@v1
     with:
       github-token: ${{ secrets.GITHUB_TOKEN }}
       results-path: results/

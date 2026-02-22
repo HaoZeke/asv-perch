@@ -1,10 +1,10 @@
-#+TITLE: ASV Benchmark Commenter
+#+TITLE: ASV Perch
 #+AUTHOR: [[https://rgoswami.me][Rohit Goswami]]
 #+OPTIONS: toc:nil todo:nil num:nil author:nil title:nil ^:nil
 
 #+begin_export rst
 ===========================
-ASV Benchmark Commenter
+ASV Perch
 ===========================
 
 :Author: `Rohit Goswami <https://rgoswami.me>`_
@@ -22,7 +22,7 @@ action.
 * Quick Start
 
 #+begin_src yaml
-- uses: HaoZeke/asv-benchmark-commenter@v1
+- uses: HaoZeke/asv-perch@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     results-path: results/

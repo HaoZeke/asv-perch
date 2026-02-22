@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "asv-benchmark-commenter",
+      "name": "asv-perch",
       "dependencies": {
         "@actions/core": "^1.11.1",
         "@actions/exec": "^1.1.1",
