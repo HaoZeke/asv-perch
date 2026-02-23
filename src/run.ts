@@ -410,7 +410,7 @@ export function buildCheckoutCommand(
   const stash = preservePaths.map((p) => `cp -r ${p} ${stashDir}/`).join(' && ')
   const restore = preservePaths.map((p) => {
     const basename = p.replace(/\/$/, '').split('/').pop()!
-    return `cp -r ${stashDir}/${basename} ${p}`
+    return `rm -rf ${p} && cp -r ${stashDir}/${basename} ${p}`
   }).join(' && ')
   return `mkdir -p ${stashDir} && ${stash} && git checkout -f ${sha} && git clean -fd && ${restore}`
 }

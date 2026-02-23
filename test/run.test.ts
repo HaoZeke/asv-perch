@@ -451,14 +451,14 @@ describe('buildCheckoutCommand', () => {
     expect(cmd).toContain('cp -r benchmarks/ /tmp/_asv_preserve/')
     expect(cmd).toContain('cp -r asv.conf.json /tmp/_asv_preserve/')
     expect(cmd).toContain('git checkout -f abc123 && git clean -fd')
-    expect(cmd).toContain('cp -r /tmp/_asv_preserve/benchmarks benchmarks/')
-    expect(cmd).toContain('cp -r /tmp/_asv_preserve/asv.conf.json asv.conf.json')
+    expect(cmd).toContain('rm -rf benchmarks/ && cp -r /tmp/_asv_preserve/benchmarks benchmarks/')
+    expect(cmd).toContain('rm -rf asv.conf.json && cp -r /tmp/_asv_preserve/asv.conf.json asv.conf.json')
   })
 
   it('handles single preserve path', () => {
     const cmd = buildCheckoutCommand('def456', ['benchmarks/'])
     expect(cmd).toContain('cp -r benchmarks/ /tmp/_asv_preserve/')
-    expect(cmd).toContain('cp -r /tmp/_asv_preserve/benchmarks benchmarks/')
+    expect(cmd).toContain('rm -rf benchmarks/ && cp -r /tmp/_asv_preserve/benchmarks benchmarks/')
   })
 })
 

@@ -34347,7 +34347,7 @@ function Jy(e, s) {
     return `git checkout -f ${e} && git clean -fd`;
   const t = "/tmp/_asv_preserve", r = s.map((i) => `cp -r ${i} ${t}/`).join(" && "), A = s.map((i) => {
     const n = i.replace(/\/$/, "").split("/").pop();
-    return `cp -r ${t}/${n} ${i}`;
+    return `rm -rf ${i} && cp -r ${t}/${n} ${i}`;
   }).join(" && ");
   return `mkdir -p ${t} && ${r} && git checkout -f ${e} && git clean -fd && ${A}`;
 }
