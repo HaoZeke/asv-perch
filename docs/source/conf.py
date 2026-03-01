@@ -12,7 +12,6 @@ exclude_patterns = []
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
-    "eon": ("https://eondocs.org", None),
 }
 
 html_theme = "shibuya"
@@ -27,14 +26,24 @@ html_theme_options = {
             "title": "Ecosystem",
             "children": [
                 {
-                    "title": "rgpycrumbs",
-                    "url": "https://rgpycrumbs.rgoswami.me",
-                    "summary": "Python utilities",
+                    "title": "ASV",
+                    "url": "https://github.com/airspeed-velocity/asv",
+                    "summary": "Airspeed Velocity benchmarking",
                 },
                 {
-                    "title": "eOn",
-                    "url": "https://eondocs.org",
-                    "summary": "Saddle point search",
+                    "title": "asv-spyglass",
+                    "url": "https://github.com/airspeed-velocity/asv_spyglass",
+                    "summary": "File-oriented ASV comparisons",
+                },
+                {
+                    "title": "asv_runner",
+                    "url": "https://github.com/airspeed-velocity/asv_runner",
+                    "summary": "ASV benchmark runner",
+                },
+                {
+                    "title": "asv_samples",
+                    "url": "https://github.com/airspeed-velocity/asv_samples",
+                    "summary": "Sample ASV benchmarks",
                 },
             ],
         },
