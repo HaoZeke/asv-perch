@@ -337,7 +337,7 @@ jobs:
         run: |
           BASE_FILE=$(find results -name "${{ github.event.pull_request.base.sha | truncate 8 }}*.json" | head -1)
           PR_FILE=$(find results -name "${{ github.event.pull_request.head.sha | truncate 8 }}*.json" | head -1)
-          uvx --from "git+https://github.com/HaoZeke/asv_spyglass.git@enh-multiple-comparisons" \
+          uvx --from "git+https://github.com/airspeed-velocity/asv_spyglass.git" \
             asv-spyglass compare "$BASE_FILE" "$PR_FILE" \
             --label-before main --label-after pr > results/comparison.txt
           echo "main_sha=${{ github.event.pull_request.base.sha }}" > results/metadata.txt
@@ -363,8 +363,8 @@ same effect (checked before running asv-spyglass in =compare= mode).
 ** Comparison Options
 
 - =asv-spyglass-ref= :: Git ref (branch or tag) for =asv-spyglass= installation.
-  Default: =enh-multiple-comparisons=. The action installs asv-spyglass via
-  =uvx --from "git+https://github.com/HaoZeke/asv_spyglass.git@<ref>"=.
+  Default: =main=. The action installs asv-spyglass via
+  =uvx --from "git+https://github.com/airspeed-velocity/asv_spyglass.git@<ref>"=.
 
 - =label-before= / =label-after= :: Labels for the before/after columns in the
   comparison. Default: =main= / =pr=. Passed to =asv-spyglass compare
@@ -444,7 +444,7 @@ Use these in subsequent steps:
     label-after: pr
     runner-info: ubuntu-22.04
     dashboard-url: https://my-project.github.io/benchmarks/
-    asv-spyglass-ref: enh-multiple-comparisons
+    asv-spyglass-ref: main
 #+end_src
 
 ** Multi-Way Comparison

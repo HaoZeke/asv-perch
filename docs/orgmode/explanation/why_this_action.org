@@ -86,7 +86,7 @@ benchmark command with the right environment activation.
 - Environment isolation
 - Sample recording for statistical analysis
 
-[[https://github.com/HaoZeke/asv_spyglass][asv-spyglass]] extends ASV with:
+[[https://github.com/airspeed-velocity/asv_spyglass][asv-spyglass]] extends ASV with:
 - Formatted comparison tables (the output this action parses)
 - Multi-way comparison (=compare-many=)
 - Cross-environment comparison with labels

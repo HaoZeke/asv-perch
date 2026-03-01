@@ -5,7 +5,7 @@
 
 A GitHub Action that posts ASV benchmark comparison results as PR comments with
 Mann-Whitney U statistical significance testing, rich GFM formatting, and
-multi-way comparison support. Built on [[https://github.com/HaoZeke/asv_spyglass][asv-spyglass]].
+multi-way comparison support. Built on [[https://github.com/airspeed-velocity/asv_spyglass][asv-spyglass]].
 
 The action can run benchmarks and post results in one step, or work as a pure
 presentation layer with pre-existing result files. Either way, it never manages

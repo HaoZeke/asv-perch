@@ -98,7 +98,7 @@ jobs:
           PR_PREFIX="${{ github.event.pull_request.head.sha }}"
           BASE_FILE=$(find results -name "${BASE_PREFIX:0:8}*.json" | head -1)
           PR_FILE=$(find results -name "${PR_PREFIX:0:8}*.json" | head -1)
-          uvx --from "git+https://github.com/HaoZeke/asv_spyglass.git@enh-multiple-comparisons" \
+          uvx --from "git+https://github.com/airspeed-velocity/asv_spyglass.git" \
             asv-spyglass compare "$BASE_FILE" "$PR_FILE" \
             --label-before main --label-after pr > results/comparison.txt
           echo "main_sha=${{ github.event.pull_request.base.sha }}" > results/metadata.txt
