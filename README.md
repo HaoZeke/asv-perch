@@ -1,21 +1,25 @@
 
 # Table of Contents
 
-1.  [About](#orgeba56c5)
-2.  [Quick Start (Two-Way)](#org6349bef)
-3.  [Quick Start (Multi-Way)](#org4b944a4)
-4.  [Quick Start (Full Pipeline &#x2013; Single Job)](#org261fce1)
-5.  [Essential Inputs](#orge73d8ab)
-6.  [Why This Action](#orgad635c3)
-    1.  [Outputs](#org7fce672)
-7.  [Development](#org54c8cd9)
-8.  [License](#orgabd1e50)
+1.  [About](#orgd1953dc)
+2.  [Quick Start (Two-Way)](#orge1909f7)
+3.  [Quick Start (Multi-Way)](#org94540ae)
+4.  [Quick Start (Full Pipeline &#x2013; Single Job)](#org95a7ac2)
+5.  [Essential Inputs](#org2ce5a0d)
+6.  [Why This Action](#orgc80eba4)
+    1.  [Outputs](#org4e49701)
+7.  [Development](#orgef4cc9d)
+8.  [License](#orge8b406a)
 
 
 
-<a id="orgeba56c5"></a>
+<a id="orgd1953dc"></a>
 
 # About
+
+[![CI](https://github.com/HaoZeke/asv-perch/actions/workflows/ci.yml/badge.svg)](https://github.com/HaoZeke/asv-perch/actions/workflows/ci.yml)
+[![Docs](https://github.com/HaoZeke/asv-perch/actions/workflows/ci_docs.yml/badge.svg)](https://asv-perch.rgoswami.me)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A GitHub Action that posts ASV benchmark comparison results as PR comments with
 Mann-Whitney U statistical significance testing, rich GFM formatting, and
@@ -27,7 +31,7 @@ your build environment &#x2013; use conda, pixi, virtualenv, nix, Docker, GPU
 runners, or whatever you need.
 
 
-<a id="org6349bef"></a>
+<a id="orge1909f7"></a>
 
 # Quick Start (Two-Way)
 
@@ -38,7 +42,7 @@ runners, or whatever you need.
         metadata-file: results/metadata.txt
 
 
-<a id="org4b944a4"></a>
+<a id="org94540ae"></a>
 
 # Quick Start (Multi-Way)
 
@@ -52,7 +56,7 @@ runners, or whatever you need.
         contender-labels: 'optimized, debug'
 
 
-<a id="org261fce1"></a>
+<a id="org95a7ac2"></a>
 
 # Quick Start (Full Pipeline &#x2013; Single Job)
 
@@ -113,7 +117,7 @@ For pure Python projects with `run-prefix` only (no build step):
             run-prefix: pixi run -e bench
 
 
-<a id="orge73d8ab"></a>
+<a id="org2ce5a0d"></a>
 
 # Essential Inputs
 
@@ -296,7 +300,7 @@ See [full documentation](https://asv-perch.rgoswami.me) for all
 inputs, outputs, and configuration details.
 
 
-<a id="orgad635c3"></a>
+<a id="orgc80eba4"></a>
 
 # Why This Action
 
@@ -311,7 +315,7 @@ See [the
 full comparison](https://asv-perch.rgoswami.me/explanation/why_this_action.html) with CodSpeed, benchmark-action, and inline scripts.
 
 
-<a id="org7fce672"></a>
+<a id="org4e49701"></a>
 
 ## Outputs
 
@@ -357,7 +361,7 @@ full comparison](https://asv-perch.rgoswami.me/explanation/why_this_action.html)
 </table>
 
 
-<a id="org54c8cd9"></a>
+<a id="orgef4cc9d"></a>
 
 # Development
 
@@ -370,7 +374,7 @@ Built with [bun](https://bun.sh) and TypeScript.
     bun run typecheck  # tsc --noEmit
 
 
-<a id="orgabd1e50"></a>
+<a id="orge8b406a"></a>
 
 # License
 
