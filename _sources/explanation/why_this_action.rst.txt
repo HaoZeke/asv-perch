@@ -116,7 +116,7 @@ ASV and asv-spyglass
 
 - Sample recording for statistical analysis
 
-`asv-spyglass <https://github.com/HaoZeke/asv_spyglass>`_ extends ASV with:
+`asv-spyglass <https://github.com/airspeed-velocity/asv_spyglass>`_ extends ASV with:
 
 - Formatted comparison tables (the output this action parses)
 

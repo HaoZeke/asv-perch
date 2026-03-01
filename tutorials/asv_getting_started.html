@@ -270,7 +270,7 @@ A lightweight <code class="docutils literal notranslate"><span class="pre">combi
 </span><span data-line="53"><span class="w">          </span><span class="no">PR_PREFIX=&quot;${{ github.event.pull_request.head.sha }}&quot;</span>
 </span><span data-line="54"><span class="w">          </span><span class="no">BASE_FILE=$(find results -name &quot;${BASE_PREFIX:0:8}*.json&quot; | head -1)</span>
 </span><span data-line="55"><span class="w">          </span><span class="no">PR_FILE=$(find results -name &quot;${PR_PREFIX:0:8}*.json&quot; | head -1)</span>
-</span><span data-line="56"><span class="w">          </span><span class="no">uvx --from &quot;git+https://github.com/HaoZeke/asv_spyglass.git@enh-multiple-comparisons&quot; \</span>
+</span><span data-line="56"><span class="w">          </span><span class="no">uvx --from &quot;git+https://github.com/airspeed-velocity/asv_spyglass.git&quot; \</span>
 </span><span data-line="57"><span class="w">            </span><span class="no">asv-spyglass compare &quot;$BASE_FILE&quot; &quot;$PR_FILE&quot; \</span>
 </span><span data-line="58"><span class="w">            </span><span class="no">--label-before main --label-after pr &gt; results/comparison.txt</span>
 </span><span data-line="59"><span class="w">          </span><span class="no">echo &quot;main_sha=${{ github.event.pull_request.base.sha }}&quot; &gt; results/metadata.txt</span>
