@@ -63,6 +63,12 @@ Quick Start
 
 .. toctree::
    :maxdepth: 2
+   :caption: Community
+
+   used_by
+
+.. toctree::
+   :maxdepth: 2
    :caption: Development
 
    contributing/index

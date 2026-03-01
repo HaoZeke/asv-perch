@@ -1,0 +1,15 @@
+
+=======
+Used By
+=======
+
+Projects using ``asv-perch`` for benchmark CI.
+
+`eOn <https://github.com/TheochemUI/eOn>`_
+    Saddle point search methods
+    for atomic-scale simulations. Uses the full pipeline pattern with pixi,
+    meson-built C++ libraries, and ``comparison-text-file`` mode.
+    (`benchmark workflow <https://github.com/TheochemUI/eOn/blob/main/.github/workflows/ci_benchmark.yml>`_,
+    `commenter workflow <https://github.com/TheochemUI/eOn/blob/main/.github/workflows/ci_bench_commenter.yml>`_)
+
+Using ``asv-perch``? Open a PR to add your project here.
