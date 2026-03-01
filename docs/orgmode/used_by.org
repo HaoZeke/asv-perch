@@ -16,4 +16,11 @@ Projects using =asv-perch= for benchmark CI.
   ([[https://github.com/TheochemUI/eOn/blob/main/.github/workflows/ci_benchmark.yml][benchmark workflow]],
   [[https://github.com/TheochemUI/eOn/blob/main/.github/workflows/ci_bench_commenter.yml][commenter workflow]])
 
+- [[https://github.com/HaoZeke/rgpycrumbs][rgpycrumbs]] :: Dispatcher-based
+  analytical suite for chemical physics. Benchmarks JAX kernel regression,
+  scipy B-spline interpolation, and ASE structure analysis via pixi environments
+  and =comparison-text-file= mode.
+  ([[https://github.com/HaoZeke/rgpycrumbs/blob/main/.github/workflows/ci_benchmark.yml][benchmark workflow]],
+  [[https://github.com/HaoZeke/rgpycrumbs/blob/main/.github/workflows/ci_bench_commenter.yml][commenter workflow]])
+
 Using =asv-perch=? Open a PR to add your project here.
