@@ -23,4 +23,12 @@ Projects using =asv-perch= for benchmark CI.
   ([[https://github.com/HaoZeke/rgpycrumbs/blob/main/.github/workflows/ci_benchmark.yml][benchmark workflow]],
   [[https://github.com/HaoZeke/rgpycrumbs/blob/main/.github/workflows/ci_bench_commenter.yml][commenter workflow]])
 
+- [[https://github.com/ropensci/fastMatMR][fastMatMR]] :: R package for
+  high-performance Matrix Market I/O. Demonstrates language-agnostic ASV
+  benchmarking: =track_*= methods call =Rscript= subprocesses that time R
+  code with =system.time()= and return elapsed seconds. Uses pixi for
+  environment management and =comparison-text-file= mode.
+  ([[https://github.com/ropensci/fastMatMR/blob/feat/asv-benchmarks/.github/workflows/ci_benchmark.yml][benchmark workflow]],
+  [[https://github.com/ropensci/fastMatMR/blob/feat/asv-benchmarks/.github/workflows/ci_bench_commenter.yml][commenter workflow]])
+
 Using =asv-perch=? Open a PR to add your project here.
