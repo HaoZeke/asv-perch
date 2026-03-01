@@ -8,39 +8,29 @@ Getting Started
 ===============
 #+end_export
 
-This guide walks through setting up =asv-perch= in a project that
-already has ASV benchmarks and a CI workflow that runs them on pull requests.
+In this tutorial you will add two workflow files to a GitHub repository and
+get a formatted benchmark comparison table posted on every pull request.
+
+The end result:
+
+#+begin_example
+## Benchmark Results
+
+| Status | Benchmark | main | pr | Ratio |
+| :---: | :--- | ---: | ---: | ---: |
+| + | time_create (1000) | 520+/-10us | 310+/-8us | 0.60 |
+| - | time_position (100) | 3.10+/-0.05us | 4.80+/-0.09us | 1.55 |
+|   | time_load | 180+/-4ms | 182+/-5ms | 1.01 |
+#+end_example
 
 * Prerequisites
 
-- A GitHub repository with ASV benchmarks
-- A CI workflow ("Benchmark PR") that:
-  - Runs benchmarks for both the base (main) and PR head commits
-  - Uploads results as a workflow artifact
-- =uv= available on the runner (via =astral-sh/setup-uv=)
+- A GitHub repository with ASV benchmarks (=asv.conf.json= + =benchmarks/=)
+- =uv= available on CI runners (via =astral-sh/setup-uv@v5=)
 
-* Workflow Structure
+* Step 1: Create the Benchmark Workflow
 
-The typical setup uses two workflows:
-
-1. *Benchmark PR* -- triggered on =pull_request=, runs the benchmarks, uploads
-   results as an artifact
-2. *Comment Benchmark Results* -- triggered by =workflow_run= on the benchmark
-   workflow, downloads the artifact and posts the comment
-
-This two-workflow pattern is required because =pull_request= workflows from forks
-do not have write access to the repository. The =workflow_run= event runs in the
-context of the base repository with full permissions.
-
-* Benchmark Workflow
-
-Your benchmark workflow produces an artifact containing ASV result JSON files,
-metadata, and optionally a pre-computed comparison. There are two patterns:
-
-** Pattern 1: Matrix Strategy (Recommended)
-
-Use a matrix to run base and PR benchmarks in parallel on separate runners.
-A lightweight =combine= job runs =asv-spyglass compare= and bundles everything.
+Create =.github/workflows/benchmark.yml= and paste this entire block:
 
 #+begin_src yaml
 name: Benchmark PR
@@ -49,6 +39,7 @@ on:
     branches: [main]
 
 jobs:
+  # Run ASV for base and PR commits in parallel
   benchmark:
     strategy:
       fail-fast: false
@@ -62,28 +53,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # full history needed for checkout
+
+      # Stash benchmarks/ before checkout -- the PR branch may have
+      # added or changed benchmark files that don't exist on main
       - name: Checkout target
         run: |
           mkdir -p /tmp/_bench_preserve
           cp -r benchmarks/ /tmp/_bench_preserve/
           git checkout -f ${{ matrix.sha }}
           git clean -fd
+          rm -rf benchmarks
           cp -r /tmp/_bench_preserve/benchmarks/ benchmarks/
+
       - name: Run benchmarks
         run: |
           asv machine --yes
           asv run --record-samples --set-commit-hash ${{ matrix.sha }}
+
       - uses: actions/upload-artifact@v4
         with:
           name: bench-${{ matrix.label }}
           path: .asv/results/
 
+  # Download both results, compare, bundle into one artifact
   combine:
     needs: benchmark
     runs-on: ubuntu-latest
     steps:
       - uses: astral-sh/setup-uv@v5
+
       - uses: actions/download-artifact@v4
         with:
           name: bench-main
@@ -92,6 +91,8 @@ jobs:
         with:
           name: bench-pr
           path: results/
+
+      # Compare the two result files and write metadata
       - name: Compare
         run: |
           BASE_PREFIX="${{ github.event.pull_request.base.sha }}"
@@ -103,47 +104,25 @@ jobs:
             --label-before main --label-after pr > results/comparison.txt
           echo "main_sha=${{ github.event.pull_request.base.sha }}" > results/metadata.txt
           echo "pr_sha=${{ github.event.pull_request.head.sha }}" >> results/metadata.txt
+
       - uses: actions/upload-artifact@v4
         with:
           name: benchmark-results
           path: results/
 #+end_src
 
-** Pattern 2: Single Job
+* Step 2: Create the Commenter Workflow
 
-Run both benchmarks sequentially in one job. Simpler but slower.
-
-The artifact should contain:
-
-#+begin_example
-benchmark-results/
-  machine_name/
-    a1b2c3d4-envhash.json   # base commit results
-    e5f6g7h8-envhash.json   # PR commit results
-  benchmarks.json            # benchmark metadata
-  metadata.txt               # SHA mapping
-  comparison.txt             # optional pre-computed comparison
-#+end_example
-
-The =metadata.txt= file should contain:
-
-#+begin_example
-main_sha=a1b2c3d4e5f67890abcdef1234567890abcdef12
-pr_sha=e5f6g7h890abcdef1234567890abcdef12345678
-#+end_example
-
-Both =main_sha== and =base_sha== keys are supported for the base commit.
-
-* Commenter Workflow
-
-Create =.github/workflows/ci_bench_commenter.yml=:
+Create =.github/workflows/benchmark_comment.yml= and paste this block:
 
 #+begin_src yaml
 name: Comment benchmark results
 
+# Runs after the benchmark workflow finishes.
+# Separate workflow so fork PRs get write access via workflow_run.
 on:
   workflow_run:
-    workflows: ["Benchmark PR"]
+    workflows: ["Benchmark PR"]  # must match the name: above exactly
     types: [completed]
 
 jobs:
@@ -153,9 +132,9 @@ jobs:
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write
-      issues: write
-      actions: read
+      pull-requests: write   # post/update PR comments
+      issues: write          # required for the comment API
+      actions: read          # download artifacts from other runs
 
     steps:
       - name: Set up uv
@@ -169,6 +148,7 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      # This is the only step that uses asv-perch
       - name: Post benchmark comment
         uses: HaoZeke/asv-perch@v1
         with:
@@ -179,29 +159,36 @@ jobs:
           runner-info: ubuntu-latest
 #+end_src
 
-* Required Permissions
+* Step 3: Open a Pull Request
 
-The commenter workflow needs:
+Commit both files, push the branch, and open a PR. The benchmark workflow
+runs first. When it succeeds, the commenter workflow starts automatically
+and posts the comparison table on the PR.
 
-| Permission | Reason |
-|------------+--------|
-| =pull-requests: write= | Post/update PR comments |
-| =issues: write= | Required for comment API |
-| =actions: read= | Download artifacts from other runs |
+Push again to the same PR and the existing comment updates in place.
 
-* What Happens Next
+* Verify It Works
 
-When a pull request triggers the benchmark workflow and it succeeds:
+After both workflows finish:
 
-1. The commenter workflow starts automatically
-2. It downloads the benchmark results artifact
-3. Reads SHAs from =metadata.txt=
-4. Finds the matching JSON files by SHA prefix
-5. Runs =asv-spyglass compare= (or reads =comparison.txt=)
-6. Parses the output into regressions, improvements, unchanged
-7. Renders a formatted comment with emoji indicators
-8. Posts (or updates) the comment on the PR
-9. Writes the same content to the workflow step summary
+1. The PR has a comment with a benchmark comparison table.
+2. The Actions tab step summary shows the same table.
+3. The workflow logs show =regression-detected: true= or =false=.
 
-If the same PR is updated and benchmarks run again, the existing comment is
-updated in place (idempotent via an HTML marker).
+If no comment appears, check the commenter workflow logs. The three most
+common issues:
+
+- The =workflows:= trigger name does not match the benchmark workflow =name:=.
+- The benchmark workflow did not succeed.
+- The artifact name does not match between upload and download.
+
+* Next Steps
+
+- [[file:./multi_way_comparison.org][Multi-way comparison]] :: compare a
+  baseline against multiple build configs
+- [[file:./cross_environment.org][Cross-environment comparison]] :: compare
+  the same commit across different environments
+- [[file:../howto/precomputed_output.org][Pre-computed output]] :: skip
+  asv-spyglass entirely by handing the action a text file
+- [[file:../reference/configuration.org][Configuration reference]] :: all
+  inputs, outputs, and YAML pipeline options
