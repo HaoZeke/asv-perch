@@ -1,0 +1,19 @@
+#+TITLE: Used By
+#+AUTHOR: [[https://rgoswami.me][Rohit Goswami]]
+#+OPTIONS: toc:nil todo:nil num:nil author:nil title:nil ^:nil
+
+#+begin_export rst
+=======
+Used By
+=======
+#+end_export
+
+Projects using =asv-perch= for benchmark CI.
+
+- [[https://github.com/TheochemUI/eOn][eOn]] :: Saddle point search methods
+  for atomic-scale simulations. Uses the full pipeline pattern with pixi,
+  meson-built C++ libraries, and =comparison-text-file= mode.
+  ([[https://github.com/TheochemUI/eOn/blob/main/.github/workflows/ci_benchmark.yml][benchmark workflow]],
+  [[https://github.com/TheochemUI/eOn/blob/main/.github/workflows/ci_bench_commenter.yml][commenter workflow]])
+
+Using =asv-perch=? Open a PR to add your project here.
