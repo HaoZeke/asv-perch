@@ -222,7 +222,7 @@ export function resolveInputs(): ResolvedInputs {
     commentMarker: getInput('comment-marker') || '<!-- asv-benchmark-result -->',
     labelBefore: getInput('label-before') || baselineConfig?.label || 'main',
     labelAfter: getInput('label-after') || contenderConfigs[0]?.label || 'pr',
-    asvSpyglassRef: getInput('asv-spyglass-ref') || 'enh-multiple-comparisons',
+    asvSpyglassRef: getInput('asv-spyglass-ref') || 'main',
     runnerInfo: getInput('runner-info') || 'ubuntu-latest',
     dashboardUrl: getInput('dashboard-url') || '',
   }
@@ -287,7 +287,7 @@ export async function runComparison(
   const benchFiles = await benchGlobber.glob()
   const bconfArg = benchFiles.length > 0 ? [benchFiles[0]] : []
 
-  const spyglassUrl = `git+https://github.com/HaoZeke/asv_spyglass.git@${asvSpyglassRef}`
+  const spyglassUrl = `git+https://github.com/airspeed-velocity/asv_spyglass.git@${asvSpyglassRef}`
 
   info(`Running: uvx --from "${spyglassUrl}" asv-spyglass compare`)
   const result = await getExecOutput(
@@ -355,7 +355,7 @@ export async function runCompareMany(
     }
   }
 
-  const spyglassUrl = `git+https://github.com/HaoZeke/asv_spyglass.git@${asvSpyglassRef}`
+  const spyglassUrl = `git+https://github.com/airspeed-velocity/asv_spyglass.git@${asvSpyglassRef}`
 
   info(`Running: uvx --from "${spyglassUrl}" asv-spyglass compare-many`)
   const result = await getExecOutput(

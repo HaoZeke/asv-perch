@@ -34266,7 +34266,7 @@ function Ly() {
     commentMarker: Ye.getInput("comment-marker") || "<!-- asv-benchmark-result -->",
     labelBefore: Ye.getInput("label-before") || w?.label || "main",
     labelAfter: Ye.getInput("label-after") || R[0]?.label || "pr",
-    asvSpyglassRef: Ye.getInput("asv-spyglass-ref") || "enh-multiple-comparisons",
+    asvSpyglassRef: Ye.getInput("asv-spyglass-ref") || "main",
     runnerInfo: Ye.getInput("runner-info") || "ubuntu-latest",
     dashboardUrl: Ye.getInput("dashboard-url") || ""
   };
@@ -34288,7 +34288,7 @@ async function Gy(e, s, t, r, A, i, n = []) {
   const l = FB(t, "comparison.txt");
   if (Na(l))
     return Ye.info("Using pre-computed comparison.txt"), Ua(l, "utf-8");
-  const E = await (await Pn.create(`${t}/**/benchmarks.json`)).glob(), o = E.length > 0 ? [E[0]] : [], a = `git+https://github.com/HaoZeke/asv_spyglass.git@${i}`;
+  const E = await (await Pn.create(`${t}/**/benchmarks.json`)).glob(), o = E.length > 0 ? [E[0]] : [], a = `git+https://github.com/airspeed-velocity/asv_spyglass.git@${i}`;
   return Ye.info(`Running: uvx --from "${a}" asv-spyglass compare`), (await vr.getExecOutput(
     "uvx",
     [
@@ -34320,7 +34320,7 @@ async function Yy(e, s, t, r, A = [], i, n) {
   if (i && o.push("--label", i), n && n.length > 0)
     for (const Q of n)
       o.push("--label", Q);
-  const a = `git+https://github.com/HaoZeke/asv_spyglass.git@${r}`;
+  const a = `git+https://github.com/airspeed-velocity/asv_spyglass.git@${r}`;
   return Ye.info(`Running: uvx --from "${a}" asv-spyglass compare-many`), (await vr.getExecOutput(
     "uvx",
     [

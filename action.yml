@@ -138,7 +138,7 @@ inputs:
   asv-spyglass-ref:
     description: Git ref for asv-spyglass install
     required: false
-    default: enh-multiple-comparisons
+    default: main
   runner-info:
     description: Runner name shown in details section
     required: false
