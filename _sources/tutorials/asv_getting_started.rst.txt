@@ -6,50 +6,77 @@ Getting Started
 In this tutorial you will add two workflow files to a GitHub repository and
 get a formatted benchmark comparison table posted on every pull request.
 
-The end result looks like this on your PR:
+The end result is a PR comment like this
+(`live
+example from eOn <https://github.com/TheochemUI/eOn/pull/321#issuecomment-3979562277>`_):
 
-::
+.. raw:: html
 
-    ## Benchmark Results
+   <details>
+   <summary><strong>Example PR comment (click to expand)</strong></summary>
+   <div style="border:1px solid var(--sd-color-muted); border-radius:6px; padding:16px; margin:8px 0; background:var(--sd-color-card-background, #fff);">
+   <h3 style="margin-top:0;">Benchmark Results</h3>
+   <div style="background:#dff6dd; border-left:4px solid #2da44e; padding:8px 12px; border-radius:4px; margin-bottom:12px;">
+   <strong>1 benchmark(s) improved</strong>
+   </div>
+   <table style="width:100%; border-collapse:collapse; margin-bottom:12px;">
+   <tr style="border-bottom:2px solid #d0d7de;">
+     <th></th><th style="text-align:right;">Count</th>
+   </tr>
+   <tr><td>&#x1F7E2; Improved</td><td style="text-align:right;">1</td></tr>
+   <tr><td>&#x26AA; Unchanged</td><td style="text-align:right;">7</td></tr>
+   </table>
+   <h4>Improvements</h4>
+   <table style="width:100%; border-collapse:collapse; margin-bottom:12px;">
+   <tr style="border-bottom:2px solid #d0d7de;">
+     <th></th><th>Benchmark</th><th style="text-align:right;">Before</th>
+     <th style="text-align:right;">After</th><th style="text-align:right;">Ratio</th>
+   </tr>
+   <tr>
+     <td>&#x1F7E2;</td>
+     <td><code>bench.TimeFoo.time_foo</code></td>
+     <td style="text-align:right;">7.67&plusmn;0ms</td>
+     <td style="text-align:right;">5.94&plusmn;0ms</td>
+     <td style="text-align:right;">0.77x</td>
+   </tr>
+   </table>
+   <details style="margin-bottom:8px;">
+   <summary>7 unchanged benchmark(s)</summary>
+   <table style="width:100%; border-collapse:collapse; margin-top:8px;">
+   <tr style="border-bottom:2px solid #d0d7de;">
+     <th>Benchmark</th><th style="text-align:right;">Before</th>
+     <th style="text-align:right;">After</th><th style="text-align:right;">Ratio</th>
+   </tr>
+   <tr>
+     <td><code>bench.TimeBar.time_bar</code></td>
+     <td style="text-align:right;">38.2&plusmn;0ms</td>
+     <td style="text-align:right;">35.6&plusmn;0ms</td>
+     <td style="text-align:right;">~0.93x</td>
+   </tr>
+   <tr><td colspan="4" style="color:#666;">...</td></tr>
+   </table>
+   </details>
+   <details style="margin-bottom:8px;">
+   <summary>Details</summary>
+   <ul style="margin-top:8px;">
+     <li><strong>Base:</strong> <code>d7b3a604</code></li>
+     <li><strong>Head:</strong> <code>b22af558</code></li>
+     <li><strong>Runner:</strong> <code>ubuntu-22.04</code></li>
+   </ul>
+   </details>
+   <details>
+   <summary>Raw asv-spyglass output</summary>
+   <pre style="margin-top:8px; font-size:0.85em; overflow-x:auto;">
+   All benchmarks:
 
-    > [!TIP]
-    > **1 benchmark(s) improved**
-
-    | | Count |
-    |---|---:|
-    | :green_circle: Improved | 1 |
-    | :white_circle: Unchanged | 7 |
-
-    ### Improvements
-
-    | | Benchmark | Before | After | Ratio |
-    |---|---|--:|--:|--:|
-    | :green_circle: | `bench.TimeFoo.time_foo` | 7.67+/-0ms | 5.94+/-0ms | 0.77x |
-
-    <details>
-    <summary>7 unchanged benchmark(s)</summary>
-
-    | Benchmark | Before | After | Ratio |
-    |---|--:|--:|--:|
-    | `bench.TimeBar.time_bar` | 38.2+/-0ms | 35.6+/-0ms | ~0.93x |
-    | ...                       |            |            |        |
-    </details>
-
-    <details>
-    <summary>Details</summary>
-
-    - **Base:** `d7b3a604`
-    - **Head:** `b22af558`
-    - **Runner:** `ubuntu-22.04`
-    </details>
-
-    <details>
-    <summary>Raw asv-spyglass output</summary>
-    (full comparison table)
-    </details>
-
-See a `live
-example <https://github.com/TheochemUI/eOn/pull/321#issuecomment-3979562277>`_ from the eOn project.
+   | Change | Before   | After    | Ratio | Benchmark                       |
+   |--------|----------|----------|-------|---------------------------------|
+   |        | 38.2±0ms | 35.6±0ms |  0.93 | bench.TimeBar.time_bar          |
+   | -      | 7.67±0ms | 5.94±0ms |  0.77 | bench.TimeFoo.time_foo          |
+   </pre>
+   </details>
+   </div>
+   </details>
 
 Prerequisites
 -------------

@@ -234,49 +234,74 @@ data-aria-dark="Switch to auto color mode">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h1>
 <p>In this tutorial you will add two workflow files to a GitHub repository and
 get a formatted benchmark comparison table posted on every pull request.</p>
-<p>The end result looks like this on your PR:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1">## Benchmark Results
-</span><span data-line="2">
-</span><span data-line="3">&gt; [!TIP]
-</span><span data-line="4">&gt; **1 benchmark(s) improved**
-</span><span data-line="5">
-</span><span data-line="6">| | Count |
-</span><span data-line="7">|---|---:|
-</span><span data-line="8">| :green_circle: Improved | 1 |
-</span><span data-line="9">| :white_circle: Unchanged | 7 |
-</span><span data-line="10">
-</span><span data-line="11">### Improvements
-</span><span data-line="12">
-</span><span data-line="13">| | Benchmark | Before | After | Ratio |
-</span><span data-line="14">|---|---|--:|--:|--:|
-</span><span data-line="15">| :green_circle: | `bench.TimeFoo.time_foo` | 7.67+/-0ms | 5.94+/-0ms | 0.77x |
-</span><span data-line="16">
-</span><span data-line="17">&lt;details&gt;
-</span><span data-line="18">&lt;summary&gt;7 unchanged benchmark(s)&lt;/summary&gt;
-</span><span data-line="19">
-</span><span data-line="20">| Benchmark | Before | After | Ratio |
-</span><span data-line="21">|---|--:|--:|--:|
-</span><span data-line="22">| `bench.TimeBar.time_bar` | 38.2+/-0ms | 35.6+/-0ms | ~0.93x |
-</span><span data-line="23">| ...                       |            |            |        |
-</span><span data-line="24">&lt;/details&gt;
-</span><span data-line="25">
-</span><span data-line="26">&lt;details&gt;
-</span><span data-line="27">&lt;summary&gt;Details&lt;/summary&gt;
-</span><span data-line="28">
-</span><span data-line="29">- **Base:** `d7b3a604`
-</span><span data-line="30">- **Head:** `b22af558`
-</span><span data-line="31">- **Runner:** `ubuntu-22.04`
-</span><span data-line="32">&lt;/details&gt;
-</span><span data-line="33">
-</span><span data-line="34">&lt;details&gt;
-</span><span data-line="35">&lt;summary&gt;Raw asv-spyglass output&lt;/summary&gt;
-</span><span data-line="36">(full comparison table)
-</span><span data-line="37">&lt;/details&gt;
-</span></pre></div>
+<p>The end result is a PR comment like this
+(<a class="reference external" href="https://github.com/TheochemUI/eOn/pull/321#issuecomment-3979562277">live
+example from eOn</a>):</p>
+<details>
+<summary><strong>Example PR comment (click to expand)</strong></summary>
+<div style="border:1px solid var(--sd-color-muted); border-radius:6px; padding:16px; margin:8px 0; background:var(--sd-color-card-background, #fff);">
+<h3 style="margin-top:0;">Benchmark Results</h3>
+<div style="background:#dff6dd; border-left:4px solid #2da44e; padding:8px 12px; border-radius:4px; margin-bottom:12px;">
+<strong>1 benchmark(s) improved</strong>
 </div>
-<p>See a <a class="reference external" href="https://github.com/TheochemUI/eOn/pull/321#issuecomment-3979562277">live
-example</a> from the eOn project.</p>
-<section id="prerequisites">
+<table style="width:100%; border-collapse:collapse; margin-bottom:12px;">
+<tr style="border-bottom:2px solid #d0d7de;">
+  <th></th><th style="text-align:right;">Count</th>
+</tr>
+<tr><td>&#x1F7E2; Improved</td><td style="text-align:right;">1</td></tr>
+<tr><td>&#x26AA; Unchanged</td><td style="text-align:right;">7</td></tr>
+</table>
+<h4>Improvements</h4>
+<table style="width:100%; border-collapse:collapse; margin-bottom:12px;">
+<tr style="border-bottom:2px solid #d0d7de;">
+  <th></th><th>Benchmark</th><th style="text-align:right;">Before</th>
+  <th style="text-align:right;">After</th><th style="text-align:right;">Ratio</th>
+</tr>
+<tr>
+  <td>&#x1F7E2;</td>
+  <td><code>bench.TimeFoo.time_foo</code></td>
+  <td style="text-align:right;">7.67&plusmn;0ms</td>
+  <td style="text-align:right;">5.94&plusmn;0ms</td>
+  <td style="text-align:right;">0.77x</td>
+</tr>
+</table>
+<details style="margin-bottom:8px;">
+<summary>7 unchanged benchmark(s)</summary>
+<table style="width:100%; border-collapse:collapse; margin-top:8px;">
+<tr style="border-bottom:2px solid #d0d7de;">
+  <th>Benchmark</th><th style="text-align:right;">Before</th>
+  <th style="text-align:right;">After</th><th style="text-align:right;">Ratio</th>
+</tr>
+<tr>
+  <td><code>bench.TimeBar.time_bar</code></td>
+  <td style="text-align:right;">38.2&plusmn;0ms</td>
+  <td style="text-align:right;">35.6&plusmn;0ms</td>
+  <td style="text-align:right;">~0.93x</td>
+</tr>
+<tr><td colspan="4" style="color:#666;">...</td></tr>
+</table>
+</details>
+<details style="margin-bottom:8px;">
+<summary>Details</summary>
+<ul style="margin-top:8px;">
+  <li><strong>Base:</strong> <code>d7b3a604</code></li>
+  <li><strong>Head:</strong> <code>b22af558</code></li>
+  <li><strong>Runner:</strong> <code>ubuntu-22.04</code></li>
+</ul>
+</details>
+<details>
+<summary>Raw asv-spyglass output</summary>
+<pre style="margin-top:8px; font-size:0.85em; overflow-x:auto;">
+All benchmarks:
+
+| Change | Before   | After    | Ratio | Benchmark                       |
+|--------|----------|----------|-------|---------------------------------|
+|        | 38.2±0ms | 35.6±0ms |  0.93 | bench.TimeBar.time_bar          |
+| -      | 7.67±0ms | 5.94±0ms |  0.77 | bench.TimeFoo.time_foo          |
+</pre>
+</details>
+</div>
+</details><section id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>A GitHub repository with ASV benchmarks (<code class="docutils literal notranslate"><span class="pre">asv.conf.json</span></code> + <code class="docutils literal notranslate"><span class="pre">benchmarks/</span></code>)</p></li>
