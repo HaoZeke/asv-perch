@@ -3,6 +3,12 @@
 
 * About
 
+#+begin_export markdown
+[![CI](https://github.com/HaoZeke/asv-perch/actions/workflows/ci.yml/badge.svg)](https://github.com/HaoZeke/asv-perch/actions/workflows/ci.yml)
+[![Docs](https://github.com/HaoZeke/asv-perch/actions/workflows/ci_docs.yml/badge.svg)](https://asv-perch.rgoswami.me)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+#+end_export
+
 A GitHub Action that posts ASV benchmark comparison results as PR comments with
 Mann-Whitney U statistical significance testing, rich GFM formatting, and
 multi-way comparison support. Built on [[https://github.com/airspeed-velocity/asv_spyglass][asv-spyglass]].

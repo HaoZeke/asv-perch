@@ -11,17 +11,50 @@ Getting Started
 In this tutorial you will add two workflow files to a GitHub repository and
 get a formatted benchmark comparison table posted on every pull request.
 
-The end result:
+The end result looks like this on your PR:
 
 #+begin_example
 ## Benchmark Results
 
-| Status | Benchmark | main | pr | Ratio |
-| :---: | :--- | ---: | ---: | ---: |
-| + | time_create (1000) | 520+/-10us | 310+/-8us | 0.60 |
-| - | time_position (100) | 3.10+/-0.05us | 4.80+/-0.09us | 1.55 |
-|   | time_load | 180+/-4ms | 182+/-5ms | 1.01 |
+> [!TIP]
+> **1 benchmark(s) improved**
+
+| | Count |
+|---|---:|
+| :green_circle: Improved | 1 |
+| :white_circle: Unchanged | 7 |
+
+### Improvements
+
+| | Benchmark | Before | After | Ratio |
+|---|---|--:|--:|--:|
+| :green_circle: | `bench.TimeFoo.time_foo` | 7.67+/-0ms | 5.94+/-0ms | 0.77x |
+
+<details>
+<summary>7 unchanged benchmark(s)</summary>
+
+| Benchmark | Before | After | Ratio |
+|---|--:|--:|--:|
+| `bench.TimeBar.time_bar` | 38.2+/-0ms | 35.6+/-0ms | ~0.93x |
+| ...                       |            |            |        |
+</details>
+
+<details>
+<summary>Details</summary>
+
+- **Base:** `d7b3a604`
+- **Head:** `b22af558`
+- **Runner:** `ubuntu-22.04`
+</details>
+
+<details>
+<summary>Raw asv-spyglass output</summary>
+(full comparison table)
+</details>
 #+end_example
+
+See a [[https://github.com/TheochemUI/eOn/pull/321#issuecomment-3979562277][live
+example]] from the eOn project.
 
 * Prerequisites
 
@@ -153,7 +186,7 @@ jobs:
         uses: HaoZeke/asv-perch@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          results-path: results/
+          comparison-text-file: results/comparison.txt
           metadata-file: results/metadata.txt
           regression-threshold: '10'
           runner-info: ubuntu-latest
@@ -181,6 +214,14 @@ common issues:
 - The =workflows:= trigger name does not match the benchmark workflow =name:=.
 - The benchmark workflow did not succeed.
 - The artifact name does not match between upload and download.
+
+* Add a Badge
+
+Show that your project tracks benchmarks with =asv-perch=:
+
+#+begin_src markdown
+[![Benchmarks](https://img.shields.io/badge/benchmarks-asv--perch-orange)](https://github.com/HaoZeke/asv-perch)
+#+end_src
 
 * Next Steps
 
