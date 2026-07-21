@@ -19,6 +19,30 @@ environments. Run ASV in whatever environment you need (conda, pixi,
 virtualenv, Docker, bare metal GPU runners) and hand the result files to the
 action.
 
+#+begin_export rst
+
+.. image:: ../images/pr-comment.jpg
+   :alt: asv-perch PR comment
+   :width: 100%
+   :align: center
+
+.. raw:: html
+
+   <p style="text-align:center;opacity:0.75"><em>PR comment with regressions, improvements, and summary counts</em></p>
+
+.. list-table::
+
+   * - .. image:: ../images/pr-comment-many.jpg
+          :alt: Multi-way PR comment
+          :width: 100%
+     - .. image:: ../images/tachyon-compare.jpg
+          :alt: asv-tachyon Compare
+          :width: 100%
+   * - Multi-way ``compare-many`` comment
+     - Matching ratios in asv-tachyon Compare
+
+#+end_export
+
 * Quick Start
 
 #+begin_src yaml

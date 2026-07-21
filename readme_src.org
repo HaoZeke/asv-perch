@@ -18,6 +18,23 @@ presentation layer with pre-existing result files. Either way, it never manages
 your build environment -- use conda, pixi, virtualenv, nix, Docker, GPU
 runners, or whatever you need.
 
+#+begin_export markdown
+<p align="center">
+  <img src="https://raw.githubusercontent.com/HaoZeke/asv-perch/main/docs/images/pr-comment.jpg"
+       alt="asv-perch PR comment with regressions and improvements"
+       width="920" />
+</p>
+
+<p align="center"><em>What lands on the PR: emoji summary, ratio tables, Mann-Whitney aware marks</em></p>
+
+| Multi-way PR table | Same ratios in asv-tachyon |
+|:---:|:---:|
+| <img src="https://raw.githubusercontent.com/HaoZeke/asv-perch/main/docs/images/pr-comment-many.jpg" alt="Multi-way compare PR comment" width="440" /> | <img src="https://raw.githubusercontent.com/HaoZeke/asv-perch/main/docs/images/tachyon-compare.jpg" alt="asv-tachyon Compare view" width="440" /> |
+| `compare-many` contenders in one comment | Explore/Compare on the published site |
+
+Pair with [asv-tachyon](https://github.com/HaoZeke/asv_tachyon) for the local/published dashboard (Overview · Compare · Inventory) and [asv-spyglass](https://github.com/airspeed-velocity/asv_spyglass) for the CLI that powers both.
+#+end_export
+
 * Quick Start (Two-Way)
 
 #+begin_src yaml
