@@ -14,8 +14,11 @@ All inputs are configured in the workflow YAML under =with:=.
 
 ** Required Inputs
 
-- =github-token= :: GitHub token for API access. Default: =${{ github.token }}=.
-  The token needs =pull-requests: write= and =issues: write= permissions.
+- =github-token= :: GitHub token for API access (PR comments, auto-draft).
+  Default: =${{ github.token }}=. Required when =post-comment= is true or
+  =auto-draft-on-regression= is true; optional in token-less artifact-only
+  mode (=post-comment: false=). When posting, the token needs
+  =pull-requests: write= and =issues: write= permissions.
 
 ** Conditional Inputs
 
@@ -404,14 +407,45 @@ same effect (checked before running asv-spyglass in =compare= mode).
 - =dashboard-url= :: URL to an ASV dashboard. If provided, a "View full results"
   link is added to the details section.
 
+** Environment Inventory
+
+- =env-diff= :: When ='true'= (default), parse baseline and contender ASV
+  result JSON and append an =## Environment inventory= section to the comment
+  (added / removed / version-bumped packages and runtimes). Implemented in
+  pure TypeScript from =requirements=, =python=, and =params= fields -- does
+  not require asv-spyglass for this section. Cheap JSON parse; set ='false'=
+  to skip. Needs resolved result file paths (SHA lookup, =base-file= /
+  =pr-file=, or =baseline-file= / =contender-files=). With
+  =comparison-text-file= only, env-diff runs when those file inputs are also
+  provided.
+
+** Comment Delivery
+
+- =post-comment= :: When ='true'= (default), create or update the PR comment.
+  Set ='false'= for workflows that must not use a write token; pair with
+  =upload-comment-artifact=.
+- =upload-comment-artifact= :: When ='true'=, write the full comment markdown
+  to =comment-artifact-path= and set =comment-body-path= /
+  =comment-artifact-name= outputs for a follow-up =actions/upload-artifact=
+  step. Default: ='false'=.
+- =comment-artifact-name= :: Suggested artifact name (output only until you
+  upload). Default: =asv-perch-comment=.
+- =comment-artifact-path= :: Filesystem path for the markdown body. Default:
+  =asv-perch-comment.md=.
+
+See [[file:../howto/github_actions.org][Using with GitHub Actions]] for
+token-less and =workflow_run= recipes.
+
 * Outputs
 
 | Output | Type | Description |
 |--------+------+-------------|
 | =comparison= | string | Raw asv-spyglass comparison output |
 | =regression-detected= | string | ='true'= or ='false'= |
-| =comment-id= | string | GitHub comment ID (empty if no PR found) |
+| =comment-id= | string | GitHub comment ID (empty if no PR found or post-comment false) |
 | =pr-number= | string | PR number (empty if no PR found) |
+| =comment-body-path= | string | Path to written comment markdown when upload-comment-artifact is true |
+| =comment-artifact-name= | string | Uploaded artifact name when upload-comment-artifact is true |
 
 Use these in subsequent steps:
 

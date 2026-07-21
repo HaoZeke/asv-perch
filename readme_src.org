@@ -7,11 +7,14 @@
 [![CI](https://github.com/HaoZeke/asv-perch/actions/workflows/ci.yml/badge.svg)](https://github.com/HaoZeke/asv-perch/actions/workflows/ci.yml)
 [![Docs](https://github.com/HaoZeke/asv-perch/actions/workflows/ci_docs.yml/badge.svg)](https://asv-perch.rgoswami.me)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub](https://img.shields.io/badge/GitHub-HaoZeke%2Fasv--perch-blue?logo=github)](https://github.com/HaoZeke/asv-perch)
 #+end_export
 
 A GitHub Action that posts ASV benchmark comparison results as PR comments with
 Mann-Whitney U statistical significance testing, rich GFM formatting, and
 multi-way comparison support. Built on [[https://github.com/airspeed-velocity/asv_spyglass][asv-spyglass]].
+
+**Docs:** [[https://asv-perch.rgoswami.me][asv-perch.rgoswami.me]] · **Source:** [[https://github.com/HaoZeke/asv-perch][HaoZeke/asv-perch]] · pin =@v1= in workflows.
 
 The action can run benchmarks and post results in one step, or work as a pure
 presentation layer with pre-existing result files. Either way, it never manages
@@ -143,9 +146,46 @@ For pure Python projects with =run-prefix= only (no build step):
 | =asv-spyglass-args= | no | -- | Extra flags for asv-spyglass CLI |
 | =regression-threshold= | no | =10= | Ratio for critical regression |
 | =auto-draft-on-regression= | no | =false= | Convert PR to draft on regression |
+| =env-diff= | no | =true= | Append =## Environment inventory= from result JSON (pure TS) |
+| =post-comment= | no | =true= | Post/update PR comment (=false= for token-less artifact mode) |
+| =upload-comment-artifact= | no | =false= | Write comment markdown and upload as workflow artifact |
+| =comment-artifact-name= | no | =asv-perch-comment= | Artifact name when uploading |
+| =comment-artifact-path= | no | =asv-perch-comment.md= | Path for prepared comment body |
 
 See [[https://asv-perch.rgoswami.me][full documentation]] for all
 inputs, outputs, and configuration details.
+
+* Using with GitHub Actions
+
+Minimal compare + comment:
+
+#+begin_src yaml
+- uses: HaoZeke/asv-perch@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    results-path: results/
+    metadata-file: results/metadata.txt
+#+end_src
+
+Token-less body for fork-safe hand-off (no =pull-requests: write= on this job):
+
+#+begin_src yaml
+- uses: HaoZeke/asv-perch@v1
+  id: perch
+  with:
+    post-comment: false
+    upload-comment-artifact: true
+    results-path: results/
+    metadata-file: results/metadata.txt
+- uses: actions/upload-artifact@v4
+  with:
+    name: ${{ steps.perch.outputs.comment-artifact-name }}
+    path: ${{ steps.perch.outputs.comment-body-path }}
+#+end_src
+
+CI recipe context for ASV itself: [[https://github.com/airspeed-velocity/asv/issues/1448][asv#1448]],
+[[https://github.com/airspeed-velocity/asv/issues/796][asv#796]]. Full
+workflow patterns: [[https://asv-perch.rgoswami.me/howto/github_actions.html][Using with GitHub Actions]].
 
 * Why This Action
 
@@ -167,6 +207,8 @@ full comparison]] with CodSpeed, benchmark-action, and inline scripts.
 | =regression-detected= | ='true'= or ='false'= |
 | =comment-id= | ID of created/updated comment |
 | =pr-number= | Number of the associated PR |
+| =comment-body-path= | Path to markdown when =upload-comment-artifact= is true |
+| =comment-artifact-name= | Artifact name when upload succeeds |
 
 * Development
 

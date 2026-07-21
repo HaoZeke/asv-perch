@@ -67,6 +67,7 @@ action.
    :maxdepth: 2
    :caption: How-To Guides
 
+   howto/github_actions
    howto/migration
    howto/regression_gating
    howto/precomputed_output

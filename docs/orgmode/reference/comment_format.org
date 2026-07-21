@@ -18,8 +18,9 @@ The comment is a single GitHub Flavored Markdown body with several sections:
 1. An alert callout (WARNING, TIP, or NOTE)
 2. A summary count table
 3. Grouped benchmark tables (regressions, improvements, unchanged)
-4. A collapsible details section
-5. The raw asv-spyglass output (collapsible)
+4. Optional =## Environment inventory= section (=env-diff: true=, default)
+5. A collapsible details section
+6. The raw asv-spyglass output (collapsible)
 
 * Alert Callout
 
@@ -101,6 +102,27 @@ The action shortens benchmark names for readability:
   removed)
 
 The full names are preserved in the raw output section.
+
+* Environment Inventory
+
+When =env-diff= is true (default) and baseline/contender result JSON paths
+are available, a short section is inserted before Details:
+
+#+begin_example
+## Environment inventory
+
+Baseline (`machine/env-a`) → contender (`machine/env-b`).
+Commits: `a0f29428eeb7` → `a0f29428eeb7`.
+
+**Summary:** 1 added, 0 removed, 0 version-bumped, 1 unchanged
+
+| Status | Component | Baseline | Contender | Kind |
+|--------|-----------|----------|-----------|------|
+| added | `numpy` | ` - ` | `(empty)` | library |
+#+end_example
+
+Built in pure TypeScript from ASV result fields (=requirements=, =python=,
+=params=). Disable with =env-diff: false=.
 
 * Details Section
 

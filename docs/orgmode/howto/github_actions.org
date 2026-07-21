@@ -1,0 +1,128 @@
+#+TITLE: Using with GitHub Actions
+#+AUTHOR: [[https://rgoswami.me][Rohit Goswami]]
+#+OPTIONS: toc:nil todo:nil num:nil author:nil title:nil ^:nil
+
+#+begin_export rst
+=========================
+Using with GitHub Actions
+=========================
+#+end_export
+
+How to wire asv-perch into GitHub Actions, including marketplace use,
+fork-safe commenting, and token-less artifact hand-off.
+
+* Marketplace / action pin
+
+Publish as a composite Node action:
+
+#+begin_src yaml
+- uses: HaoZeke/asv-perch@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    results-path: results/
+    metadata-file: results/metadata.txt
+#+end_src
+
+Badges and source: [[https://github.com/HaoZeke/asv-perch][HaoZeke/asv-perch]] · docs
+[[https://asv-perch.rgoswami.me][asv-perch.rgoswami.me]].
+
+Pin a release tag (=~v1= major or a full semver) in production workflows so
+Action updates do not surprise you.
+
+* Recipe patterns from ASV
+
+Upstream ASV tracks CI / PR-comment workflows in:
+
+- [[https://github.com/airspeed-velocity/asv/issues/1448][asv#1448]] -- continuous benchmarking and PR reporting discussions
+- [[https://github.com/airspeed-velocity/asv/issues/796][asv#796]] -- earlier CI integration recipes and pain points
+
+Those threads cover matrix runners, caching, and where comparison should run.
+asv-perch is the comment/presentation piece: run ASV yourself (or let the
+action invoke it via =benchmark-command= / =run-prefix=), then hand result
+files or pre-computed spyglass text to this action.
+
+Related tools in the same stack:
+
+- [[https://github.com/airspeed-velocity/asv_spyglass][asv-spyglass]] -- Mann-Whitney aware =compare= / =compare-many= / =env-diff=
+- [[https://github.com/HaoZeke/asv_tachyon][asv-tachyon]] -- local/published dashboard (Overview · Compare · Inventory)
+
+* Typical split: benchmark job + commenter job
+
+Fork PRs cannot post comments with write =GITHUB_TOKEN= from the fork context.
+The recommended pattern is:
+
+1. =pull_request= workflow: run benchmarks, upload result artifacts
+2. =workflow_run= (or a same-repo job with write perms): download artifacts,
+   run asv-perch, post the PR comment
+
+See [[file:../explanation/fork_security.org][Fork Security]] for the threat
+model and a full skeleton.
+
+* Token-less comment body (artifact hand-off)
+
+When the job must not use =pull-requests: write=, set:
+
+#+begin_src yaml
+permissions:
+  contents: read
+  actions: write   # artifact upload only
+
+jobs:
+  prepare-comment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: benchmark-results
+          path: results/
+      - uses: HaoZeke/asv-perch@v1
+        id: perch
+        with:
+          post-comment: false
+          upload-comment-artifact: true
+          comment-artifact-name: asv-perch-comment
+          comment-artifact-path: asv-perch-comment.md
+          results-path: results/
+          metadata-file: results/metadata.txt
+          # github-token omitted / unused when post-comment is false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.perch.outputs.comment-artifact-name }}
+          path: ${{ steps.perch.outputs.comment-body-path }}
+#+end_src
+
+The action writes the full GFM body to =comment-artifact-path= (also
+=comment-body-path= output) and still writes =GITHUB_STEP_SUMMARY=. Upload
+is a separate =actions/upload-artifact= step so the Node action stays small
+and does not embed the artifact toolkit.
+
+A trusted job (or a later =workflow_run= step with write token) can download
+the markdown and post it with =gh pr comment= / the GitHub API.
+
+Default behavior is unchanged: =post-comment: true= posts/updates the PR
+comment when a token is available.
+
+* Environment inventory in the comment
+
+With =env-diff: true= (default), the action reads baseline and contender
+result JSON and appends =## Environment inventory= (added / removed /
+version-bumped libraries and runtimes). This is implemented in pure
+TypeScript from the result file fields (=requirements=, =python=, =params=);
+it does not require Python asv-spyglass for the inventory section.
+
+Disable with =env-diff: false= if you only want timing tables.
+
+* Minimal permissions
+
+| Mode | Permissions |
+|------+-------------|
+| Post PR comment | =pull-requests: write=, =issues: write= (comment API) |
+| Artifact-only (=post-comment: false=) | =contents: read=, =actions: write= |
+| =workflow_run= commenter | write on base repo token; no fork checkout |
+
+* See also
+
+- [[file:../tutorials/asv_getting_started.org][Getting Started]]
+- [[file:../reference/configuration.org][Configuration]] (=env-diff=, =post-comment=, =upload-comment-artifact=)
+- [[file:precomputed_output.org][Pre-computed Output]]
+- [[file:../explanation/fork_security.org][Fork Security]]
