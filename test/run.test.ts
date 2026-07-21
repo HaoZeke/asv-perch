@@ -45,10 +45,11 @@ const fixture = readFileSync(
   'utf-8',
 )
 
-// Helper: set up getInput mock with defaults for all known keys
+// Helper: set up getInput mock with defaults for all known keys.
+// Cast instead of vi.mocked so bun test (no vi.mocked) and vitest both work.
 async function mockInputs(overrides: Record<string, string>): Promise<void> {
   const core = await import('@actions/core')
-  const getInput = vi.mocked(core.getInput)
+  const getInput = core.getInput as ReturnType<typeof vi.fn>
   getInput.mockImplementation((name: string) => {
     if (name in overrides) {
       return overrides[name]
