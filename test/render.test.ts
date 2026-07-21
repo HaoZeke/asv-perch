@@ -73,6 +73,24 @@ describe('renderComment', () => {
     expect(body).toContain('[View full results](https://example.com/dashboard)')
   })
 
+  it('includes environment inventory section when provided', () => {
+    const parsed = parseComparison(fixture)
+    const body = renderComment(parsed, fixture, {
+      ...defaultOpts,
+      envDiffSection: '## Environment inventory\n\n**Summary:** 1 added, 0 removed, 0 version-bumped, 1 unchanged\n',
+    })
+
+    expect(body).toContain('## Environment inventory')
+    expect(body).toContain('1 added')
+  })
+
+  it('omits environment inventory when not provided', () => {
+    const parsed = parseComparison(fixture)
+    const body = renderComment(parsed, fixture, defaultOpts)
+
+    expect(body).not.toContain('## Environment inventory')
+  })
+
   it('omits dashboard link when not provided', () => {
     const parsed = parseComparison(fixture)
     const body = renderComment(parsed, fixture, defaultOpts)

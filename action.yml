@@ -6,8 +6,11 @@ author: Rohit Goswami
 
 inputs:
   github-token:
-    description: GitHub token for API access
-    required: true
+    description: >-
+      GitHub token for API access (posting PR comments, auto-draft).
+      Not required when post-comment is false and auto-draft-on-regression
+      is false (token-less artifact-only mode).
+    required: false
     default: ${{ github.token }}
   results-path:
     description: Path to downloaded ASV results directory
@@ -146,6 +149,39 @@ inputs:
   dashboard-url:
     description: Link to ASV dashboard (optional)
     required: false
+  env-diff:
+    description: >-
+      When true, parse baseline/contender ASV result JSON and append an
+      "## Environment inventory" section (added/removed/version-bumped
+      packages). Pure TypeScript -- does not require asv-spyglass for this
+      feature. Cheap JSON parse; default true. Set false to skip.
+    required: false
+    default: 'true'
+  post-comment:
+    description: >-
+      When true (default), create or update a PR comment with the comparison.
+      Set false for token-less workflows that only need the markdown body
+      (pair with upload-comment-artifact).
+    required: false
+    default: 'true'
+  upload-comment-artifact:
+    description: >-
+      When true, write the comment markdown to comment-artifact-path and set
+      comment-body-path / comment-artifact-name outputs. Pair with a follow-up
+      actions/upload-artifact step so fork/PR jobs can skip pull-requests: write
+      and hand the body to a trusted commenter.
+    required: false
+    default: 'false'
+  comment-artifact-name:
+    description: Artifact name when upload-comment-artifact is true
+    required: false
+    default: asv-perch-comment
+  comment-artifact-path:
+    description: >-
+      Filesystem path for the prepared comment markdown when
+      upload-comment-artifact is true (also exposed as comment-body-path output).
+    required: false
+    default: asv-perch-comment.md
 
 outputs:
   comparison:
@@ -156,6 +192,12 @@ outputs:
     description: ID of the created or updated comment
   pr-number:
     description: Number of the associated pull request
+  comment-body-path:
+    description: >-
+      Path to the written comment markdown when upload-comment-artifact is true
+  comment-artifact-name:
+    description: >-
+      Name of the uploaded artifact when upload-comment-artifact is true
 
 branding:
   icon: bar-chart-2

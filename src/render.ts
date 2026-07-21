@@ -16,6 +16,8 @@ export interface RenderOptions {
   regressionThreshold: number
   rawOutputLabel?: string
   contenderMeta?: ContenderMeta[]
+  /** Optional "## Environment inventory" markdown section (env-diff). */
+  envDiffSection?: string
 }
 
 function emojiForChange(change: string): string {
@@ -146,6 +148,12 @@ export function renderComment(parsed: ParsedComparison, rawOutput: string, opts:
     parts.push(renderBenchmarkTable(parsed.unchanged, false))
     parts.push('')
     parts.push('</details>')
+  }
+
+  // Environment inventory (optional, from pure-TS result JSON diff)
+  if (opts.envDiffSection) {
+    parts.push('')
+    parts.push(opts.envDiffSection.trim())
   }
 
   // Details section
@@ -307,6 +315,12 @@ export function renderCompareManyComment(parsed: ParsedCompareMany, rawOutput: s
     parts.push(renderCompareManyTable(unchangedRows, parsed.contenderLabels))
     parts.push('')
     parts.push('</details>')
+  }
+
+  // Environment inventory (optional, from pure-TS result JSON diff)
+  if (opts.envDiffSection) {
+    parts.push('')
+    parts.push(opts.envDiffSection.trim())
   }
 
   // Details section

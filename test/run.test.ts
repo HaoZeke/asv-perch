@@ -1,7 +1,16 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { buildBenchmarkShellCommand, buildCheckoutCommand, detectRegression, readComparisonTextFile, resolveInputs } from '../src/run'
+import {
+  buildBenchmarkShellCommand,
+  buildCheckoutCommand,
+  detectRegression,
+  maybeBuildEnvDiffSection,
+  parseBoolInput,
+  readComparisonTextFile,
+  resolveInputs,
+  writeCommentBodyFile,
+} from '../src/run'
 import { parseCompareMany, parseComparison } from '../src/parse'
 
 // Mock @actions/core
@@ -75,10 +84,33 @@ async function mockInputs(overrides: Record<string, string>): Promise<void> {
       'asv-spyglass-ref': 'enh-multiple-comparisons',
       'runner-info': 'ubuntu-latest',
       'dashboard-url': '',
+      'env-diff': 'true',
+      'post-comment': 'true',
+      'upload-comment-artifact': 'false',
+      'comment-artifact-name': 'asv-perch-comment',
+      'comment-artifact-path': 'asv-perch-comment.md',
     }
     return defaults[name] || ''
   })
 }
+
+describe('parseBoolInput', () => {
+  it('defaults when empty', () => {
+    expect(parseBoolInput('', true)).toBe(true)
+    expect(parseBoolInput('', false)).toBe(false)
+    expect(parseBoolInput('  ', true)).toBe(true)
+  })
+
+  it('accepts true/false forms', () => {
+    expect(parseBoolInput('true', false)).toBe(true)
+    expect(parseBoolInput('TRUE', false)).toBe(true)
+    expect(parseBoolInput('1', false)).toBe(true)
+    expect(parseBoolInput('yes', false)).toBe(true)
+    expect(parseBoolInput('false', true)).toBe(false)
+    expect(parseBoolInput('0', true)).toBe(false)
+    expect(parseBoolInput('no', true)).toBe(false)
+  })
+})
 
 describe('resolveInputs', () => {
   beforeEach(() => {
@@ -471,5 +503,81 @@ describe('compare-many parsing integration', () => {
     const parsed = parseCompareMany(compareManyFixture)
     const hasRegression = parsed.summaryPerContender.some((s) => s.regressed > 0)
     expect(hasRegression).toBe(true)
+  })
+})
+
+describe('env-diff / comment delivery inputs', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  it('defaults env-diff true and post-comment true', async () => {
+    await mockInputs({
+      'results-path': '/tmp/results',
+      'base-sha': 'abc123def456',
+      'pr-sha': 'def456abc123',
+    })
+    const result = resolveInputs()
+    expect(result.envDiff).toBe(true)
+    expect(result.postComment).toBe(true)
+    expect(result.uploadCommentArtifact).toBe(false)
+  })
+
+  it('parses env-diff false and upload-comment-artifact true', async () => {
+    await mockInputs({
+      'comparison-text-file': '/tmp/comparison.txt',
+      'env-diff': 'false',
+      'post-comment': 'false',
+      'upload-comment-artifact': 'true',
+      'comment-artifact-name': 'bench-md',
+      'comment-artifact-path': 'out/comment.md',
+    })
+    const result = resolveInputs()
+    expect(result.envDiff).toBe(false)
+    expect(result.postComment).toBe(false)
+    expect(result.uploadCommentArtifact).toBe(true)
+    expect(result.commentArtifactName).toBe('bench-md')
+    expect(result.commentArtifactPath).toBe('out/comment.md')
+  })
+
+  it('allows missing github-token when post-comment is false', async () => {
+    await mockInputs({
+      'comparison-text-file': '/tmp/comparison.txt',
+      'post-comment': 'false',
+      'github-token': '',
+    })
+    const result = resolveInputs()
+    expect(result.token).toBe('')
+    expect(result.postComment).toBe(false)
+  })
+})
+
+describe('maybeBuildEnvDiffSection', () => {
+  it('returns undefined when disabled', () => {
+    expect(maybeBuildEnvDiffSection(false, '/a.json', '/b.json')).toBeUndefined()
+  })
+
+  it('returns undefined when paths missing', () => {
+    expect(maybeBuildEnvDiffSection(true, '', '/b.json')).toBeUndefined()
+    expect(maybeBuildEnvDiffSection(true, '/a.json', '')).toBeUndefined()
+  })
+
+  it('builds section from fixture result files', () => {
+    const base = join(__dirname, 'fixtures', 'a0f29428-virtualenv-py3.12.json')
+    const cont = join(__dirname, 'fixtures', 'a0f29428-virtualenv-py3.12-numpy.json')
+    const section = maybeBuildEnvDiffSection(true, base, cont)
+    expect(section).toBeDefined()
+    expect(section).toContain('## Environment inventory')
+    expect(section).toContain('numpy')
+  })
+})
+
+describe('writeCommentBodyFile', () => {
+  it('writes markdown body to path', async () => {
+    const fs = await import('node:fs')
+    const path = join(__dirname, 'fixtures', '_tmp_comment_body.md')
+    writeCommentBodyFile(path, '## Benchmark Results\nhello')
+    expect(fs.readFileSync(path, 'utf-8')).toContain('## Benchmark Results')
+    fs.unlinkSync(path)
   })
 })

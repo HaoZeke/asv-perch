@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "commit_hash": "a0f29428eeb7563d7d5ab8385c722e8d5560bd07",
+  "env_name": "conda-py3.11-numpy",
+  "date": 1707691590000,
+  "params": {
+    "arch": "x86_64",
+    "cpu": "13th Gen Intel(R) Core(TM) i7-1365U",
+    "machine": "rgx1gen11",
+    "num_cpu": "12",
+    "os": "Linux 6.11.9-arch1-1",
+    "ram": "32504640",
+    "python": "3.11",
+    "numpy": ""
+  },
+  "python": "3.11",
+  "requirements": {
+    "numpy": ""
+  },
+  "env_vars": {},
+  "result_columns": [],
+  "results": {},
+  "durations": {}
+}

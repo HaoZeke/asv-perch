@@ -1,11 +1,12 @@
-import { appendFileSync, existsSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import process from 'node:process'
 import { getInput, info, setFailed, setOutput, warning } from '@actions/core'
 import { exec, getExecOutput } from '@actions/exec'
 import { context, getOctokit } from '@actions/github'
 import { create as createGlob } from '@actions/glob'
 import yaml from 'js-yaml'
+import { envDiffSectionFromPaths } from './inventory'
 import { parseCompareMany, parseComparison } from './parse'
 import { renderComment, renderCompareManyComment } from './render'
 
@@ -60,11 +61,36 @@ interface ResolvedInputs {
   asvSpyglassRef: string
   runnerInfo: string
   dashboardUrl: string
+  envDiff: boolean
+  postComment: boolean
+  uploadCommentArtifact: boolean
+  commentArtifactName: string
+  commentArtifactPath: string
+}
+
+/** Parse a boolean action input. Empty string uses the provided default. */
+export function parseBoolInput(raw: string, defaultValue: boolean): boolean {
+  const v = raw.trim().toLowerCase()
+  if (!v) {
+    return defaultValue
+  }
+  if (v === 'true' || v === '1' || v === 'yes') {
+    return true
+  }
+  if (v === 'false' || v === '0' || v === 'no') {
+    return false
+  }
+  return defaultValue
 }
 
 // Step 1: Resolve inputs
 export function resolveInputs(): ResolvedInputs {
-  const token = getInput('github-token', { required: true })
+  const postComment = parseBoolInput(getInput('post-comment') || '', true)
+  const uploadCommentArtifact = parseBoolInput(getInput('upload-comment-artifact') || '', false)
+  const autoDraftOnRegression = getInput('auto-draft-on-regression') === 'true'
+  // Token required when posting comments or converting PR to draft
+  const tokenRequired = postComment || autoDraftOnRegression
+  const token = getInput('github-token', { required: tokenRequired }) || ''
   const resultsPath = getInput('results-path') || ''
   const comparisonTextFile = getInput('comparison-text-file') || ''
   const comparisonMode = (getInput('comparison-mode') || 'compare') as ComparisonMode
@@ -218,14 +244,53 @@ export function resolveInputs(): ResolvedInputs {
     preservePaths,
     asvSpyglassArgs,
     regressionThreshold: Number.parseFloat(getInput('regression-threshold') || '10'),
-    autoDraftOnRegression: getInput('auto-draft-on-regression') === 'true',
+    autoDraftOnRegression,
     commentMarker: getInput('comment-marker') || '<!-- asv-benchmark-result -->',
     labelBefore: getInput('label-before') || baselineConfig?.label || 'main',
     labelAfter: getInput('label-after') || contenderConfigs[0]?.label || 'pr',
     asvSpyglassRef: getInput('asv-spyglass-ref') || 'main',
     runnerInfo: getInput('runner-info') || 'ubuntu-latest',
     dashboardUrl: getInput('dashboard-url') || '',
+    // Pure-TS JSON parse of result files -- cheap; default on when result files exist
+    envDiff: parseBoolInput(getInput('env-diff') || '', true),
+    postComment,
+    uploadCommentArtifact,
+    commentArtifactName: getInput('comment-artifact-name') || 'asv-perch-comment',
+    commentArtifactPath: getInput('comment-artifact-path') || 'asv-perch-comment.md',
   }
+}
+
+/**
+ * Build "## Environment inventory" markdown from two result JSON paths.
+ * Returns undefined when env-diff is disabled or files cannot be read.
+ */
+export function maybeBuildEnvDiffSection(
+  enabled: boolean,
+  baselinePath: string | undefined,
+  contenderPath: string | undefined,
+): string | undefined {
+  if (!enabled || !baselinePath || !contenderPath) {
+    return undefined
+  }
+  try {
+    const section = envDiffSectionFromPaths(baselinePath, contenderPath)
+    info(`Environment inventory: compared ${baselinePath} vs ${contenderPath}`)
+    return section
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    warning(`env-diff skipped: ${msg}`)
+    return undefined
+  }
+}
+
+/** Write comment body to a file for artifact upload / workflow hand-off. */
+export function writeCommentBodyFile(path: string, body: string): void {
+  const dir = dirname(path)
+  if (dir && dir !== '.') {
+    mkdirSync(dir, { recursive: true })
+  }
+  writeFileSync(path, `${body}\n`, 'utf-8')
+  info(`Wrote comment body to ${path}`)
 }
 
 // Step 2: Find result files by SHA prefix
@@ -579,7 +644,7 @@ export async function run(): Promise<void> {
   try {
     // Step 1
     const inputs = resolveInputs()
-    const octokit = getOctokit(inputs.token)
+    const octokit = inputs.token ? getOctokit(inputs.token) : null
     const { owner, repo } = context.repo
 
     // Execute benchmark commands if any configs have setup/runPrefix/sha or benchmark-command
@@ -600,6 +665,9 @@ export async function run(): Promise<void> {
     let rawOutput: string
     let commentBody: string
     let hasRegression = false
+    // Result JSON paths for optional env-diff (pure TS; no spyglass needed)
+    let envDiffBaseFile = ''
+    let envDiffContenderFile = ''
 
     // Build contender metadata for render
     const contenderMeta = inputs.contenderConfigs.length > 0
@@ -615,6 +683,15 @@ export async function run(): Promise<void> {
       rawOutput = readComparisonTextFile(inputs.comparisonTextFile)
       setOutput('comparison', rawOutput)
 
+      // Env-diff still works when explicit result files are also provided
+      envDiffBaseFile = inputs.baseFile || inputs.baselineFile
+      envDiffContenderFile = inputs.prFile || inputs.contenderFiles[0] || ''
+      const envDiffSection = maybeBuildEnvDiffSection(
+        inputs.envDiff,
+        envDiffBaseFile,
+        envDiffContenderFile,
+      )
+
       if (inputs.comparisonMode === 'compare-many') {
         const parsed = parseCompareMany(rawOutput)
         hasRegression = parsed.summaryPerContender.some((s) => s.regressed > 0)
@@ -626,6 +703,7 @@ export async function run(): Promise<void> {
           commentMarker: inputs.commentMarker,
           regressionThreshold: inputs.regressionThreshold,
           contenderMeta,
+          envDiffSection,
         })
       } else {
         const parsed = parseComparison(rawOutput)
@@ -637,6 +715,7 @@ export async function run(): Promise<void> {
           dashboardUrl: inputs.dashboardUrl || undefined,
           commentMarker: inputs.commentMarker,
           regressionThreshold: inputs.regressionThreshold,
+          envDiffSection,
         })
       }
     } else if (inputs.comparisonMode === 'compare-many') {
@@ -664,6 +743,9 @@ export async function run(): Promise<void> {
         }
       }
 
+      envDiffBaseFile = resolvedBaselineFile
+      envDiffContenderFile = resolvedContenderFiles[0] || ''
+
       rawOutput = await runCompareMany(
         resolvedBaselineFile,
         resolvedContenderFiles,
@@ -675,6 +757,12 @@ export async function run(): Promise<void> {
       )
       setOutput('comparison', rawOutput)
 
+      const envDiffSection = maybeBuildEnvDiffSection(
+        inputs.envDiff,
+        envDiffBaseFile,
+        envDiffContenderFile,
+      )
+
       const parsed = parseCompareMany(rawOutput)
       hasRegression = parsed.summaryPerContender.some((s) => s.regressed > 0)
       commentBody = renderCompareManyComment(parsed, rawOutput, {
@@ -685,6 +773,7 @@ export async function run(): Promise<void> {
         commentMarker: inputs.commentMarker,
         regressionThreshold: inputs.regressionThreshold,
         contenderMeta,
+        envDiffSection,
       })
     } else {
       // Standard compare mode: resolve files (direct paths or SHA-based lookup)
@@ -706,6 +795,9 @@ export async function run(): Promise<void> {
         resolvedPrFile = found.prFile
       }
 
+      envDiffBaseFile = resolvedBaseFile
+      envDiffContenderFile = resolvedPrFile
+
       rawOutput = await runComparison(
         resolvedBaseFile,
         resolvedPrFile,
@@ -717,6 +809,12 @@ export async function run(): Promise<void> {
       )
       setOutput('comparison', rawOutput)
 
+      const envDiffSection = maybeBuildEnvDiffSection(
+        inputs.envDiff,
+        envDiffBaseFile,
+        envDiffContenderFile,
+      )
+
       const parsed = parseComparison(rawOutput)
       hasRegression = detectRegression(parsed, inputs.regressionThreshold)
       commentBody = renderComment(parsed, rawOutput, {
@@ -726,18 +824,52 @@ export async function run(): Promise<void> {
         dashboardUrl: inputs.dashboardUrl || undefined,
         commentMarker: inputs.commentMarker,
         regressionThreshold: inputs.regressionThreshold,
+        envDiffSection,
       })
     }
 
     setOutput('regression-detected', hasRegression.toString())
+
+    // Always write job summary when possible
+    writeSummary(commentBody)
+
+    // Token-less path: prepare markdown for a follow-up actions/upload-artifact step
+    // (keeps the action bundle small; no @actions/artifact dependency)
+    if (inputs.uploadCommentArtifact) {
+      writeCommentBodyFile(inputs.commentArtifactPath, commentBody)
+      setOutput('comment-body-path', inputs.commentArtifactPath)
+      setOutput('comment-artifact-name', inputs.commentArtifactName)
+      info(
+        `upload-comment-artifact: wrote ${inputs.commentArtifactPath}. `
+        + `Add actions/upload-artifact with name "${inputs.commentArtifactName}" `
+        + 'and that path (or use comment-body-path output).',
+      )
+    } else {
+      setOutput('comment-body-path', '')
+      setOutput('comment-artifact-name', '')
+    }
+
+    // Skip PR API work when not posting and not auto-drafting
+    if (!inputs.postComment && !inputs.autoDraftOnRegression) {
+      info('post-comment=false: skipping PR comment API')
+      setOutput('comment-id', '')
+      setOutput('pr-number', '')
+      return
+    }
+
+    if (!octokit) {
+      warning('No github-token: cannot post PR comment or convert to draft')
+      setOutput('comment-id', '')
+      setOutput('pr-number', '')
+      return
+    }
 
     // Find PR -- use prSha first, fall back to baselineSha for compare-many
     const searchSha = inputs.prSha || inputs.baselineSha || inputs.baseSha
     const pr = searchSha ? await findPullRequest(octokit, owner, repo, searchSha) : null
 
     if (!pr) {
-      warning(`No PR found for SHA ${searchSha || '(none)'}. Writing summary only.`)
-      writeSummary(commentBody)
+      warning(`No PR found for SHA ${searchSha || '(none)'}. Summary/artifact only.`)
       setOutput('comment-id', '')
       setOutput('pr-number', '')
       return
@@ -746,19 +878,19 @@ export async function run(): Promise<void> {
     info(`Targeting PR #${pr.number}`)
     setOutput('pr-number', pr.number.toString())
 
-    // Post/update comment
-    const commentId = await postOrUpdateComment(
-      octokit,
-      owner,
-      repo,
-      pr.number,
-      commentBody,
-      inputs.commentMarker,
-    )
-    setOutput('comment-id', commentId.toString())
-
-    // Write summary
-    writeSummary(commentBody)
+    if (inputs.postComment) {
+      const commentId = await postOrUpdateComment(
+        octokit,
+        owner,
+        repo,
+        pr.number,
+        commentBody,
+        inputs.commentMarker,
+      )
+      setOutput('comment-id', commentId.toString())
+    } else {
+      setOutput('comment-id', '')
+    }
 
     // Convert to draft on regression
     if (hasRegression && inputs.autoDraftOnRegression) {
