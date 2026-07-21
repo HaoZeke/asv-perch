@@ -89,6 +89,7 @@ data-aria-dark="Switch to auto color mode">
 </ul>
 <p class="caption" role="heading" aria-level="3"><span class="caption-text">How-To Guides</span></p>
 <ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../howto/github_actions.html">Using with GitHub Actions</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../howto/migration.html">Migration Guide</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../howto/regression_gating.html">Regression Gating</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../howto/precomputed_output.html">Pre-computed Output</a></li>
@@ -159,6 +160,8 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#comparison-options">Comparison Options</a></li>
 <li><a class="reference internal" href="#regression-detection">Regression Detection</a></li>
 <li><a class="reference internal" href="#comment-formatting">Comment Formatting</a></li>
+<li><a class="reference internal" href="#environment-inventory">Environment Inventory</a></li>
+<li><a class="reference internal" href="#comment-delivery">Comment Delivery</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#outputs">Outputs</a></li>
@@ -266,8 +269,11 @@ data-aria-dark="Switch to auto color mode">
 <section id="required-inputs">
 <h3>Required Inputs<a class="headerlink" href="#required-inputs" title="Link to this heading">¶</a></h3>
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">github-token</span></code></dt><dd><p>GitHub token for API access. Default: <code class="docutils literal notranslate"><span class="pre">${{</span> <span class="pre">github.token</span> <span class="pre">}}</span></code>.
-The token needs <code class="docutils literal notranslate"><span class="pre">pull-requests:</span> <span class="pre">write</span></code> and <code class="docutils literal notranslate"><span class="pre">issues:</span> <span class="pre">write</span></code> permissions.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">github-token</span></code></dt><dd><p>GitHub token for API access (PR comments, auto-draft).
+Default: <code class="docutils literal notranslate"><span class="pre">${{</span> <span class="pre">github.token</span> <span class="pre">}}</span></code>. Required when <code class="docutils literal notranslate"><span class="pre">post-comment</span></code> is true or
+<code class="docutils literal notranslate"><span class="pre">auto-draft-on-regression</span></code> is true; optional in token-less artifact-only
+mode (<code class="docutils literal notranslate"><span class="pre">post-comment:</span> <span class="pre">false</span></code>). When posting, the token needs
+<code class="docutils literal notranslate"><span class="pre">pull-requests:</span> <span class="pre">write</span></code> and <code class="docutils literal notranslate"><span class="pre">issues:</span> <span class="pre">write</span></code> permissions.</p>
 </dd>
 </dl>
 </section>
@@ -676,6 +682,43 @@ link is added to the details section.</p>
 </dd>
 </dl>
 </section>
+<section id="environment-inventory">
+<h3>Environment Inventory<a class="headerlink" href="#environment-inventory" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">env-diff</span></code></dt><dd><p>When <code class="docutils literal notranslate"><span class="pre">'true'</span></code> (default), parse baseline and contender ASV
+result JSON and append an <code class="docutils literal notranslate"><span class="pre">##</span> <span class="pre">Environment</span> <span class="pre">inventory</span></code> section to the comment
+(added / removed / version-bumped packages and runtimes). Implemented in
+pure TypeScript from <code class="docutils literal notranslate"><span class="pre">requirements</span></code>, <code class="docutils literal notranslate"><span class="pre">python</span></code>, and <code class="docutils literal notranslate"><span class="pre">params</span></code> fields – does
+not require asv-spyglass for this section. Cheap JSON parse; set <code class="docutils literal notranslate"><span class="pre">'false'</span></code>
+to skip. Needs resolved result file paths (SHA lookup, <code class="docutils literal notranslate"><span class="pre">base-file</span></code> /
+<code class="docutils literal notranslate"><span class="pre">pr-file</span></code>, or <code class="docutils literal notranslate"><span class="pre">baseline-file</span></code> / <code class="docutils literal notranslate"><span class="pre">contender-files</span></code>). With
+<code class="docutils literal notranslate"><span class="pre">comparison-text-file</span></code> only, env-diff runs when those file inputs are also
+provided.</p>
+</dd>
+</dl>
+</section>
+<section id="comment-delivery">
+<h3>Comment Delivery<a class="headerlink" href="#comment-delivery" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">post-comment</span></code></dt><dd><p>When <code class="docutils literal notranslate"><span class="pre">'true'</span></code> (default), create or update the PR comment.
+Set <code class="docutils literal notranslate"><span class="pre">'false'</span></code> for workflows that must not use a write token; pair with
+<code class="docutils literal notranslate"><span class="pre">upload-comment-artifact</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">upload-comment-artifact</span></code></dt><dd><p>When <code class="docutils literal notranslate"><span class="pre">'true'</span></code>, write the full comment markdown
+to <code class="docutils literal notranslate"><span class="pre">comment-artifact-path</span></code> and set <code class="docutils literal notranslate"><span class="pre">comment-body-path</span></code> /
+<code class="docutils literal notranslate"><span class="pre">comment-artifact-name</span></code> outputs for a follow-up <code class="docutils literal notranslate"><span class="pre">actions/upload-artifact</span></code>
+step. Default: <code class="docutils literal notranslate"><span class="pre">'false'</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">comment-artifact-name</span></code></dt><dd><p>Suggested artifact name (output only until you
+upload). Default: <code class="docutils literal notranslate"><span class="pre">asv-perch-comment</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">comment-artifact-path</span></code></dt><dd><p>Filesystem path for the markdown body. Default:
+<code class="docutils literal notranslate"><span class="pre">asv-perch-comment.md</span></code>.</p>
+</dd>
+</dl>
+<p>See <a class="reference external" href="../howto/github_actions.rst">Using with GitHub Actions</a> for
+token-less and <code class="docutils literal notranslate"><span class="pre">workflow_run</span></code> recipes.</p>
+</section>
 </section>
 <section id="outputs">
 <h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">¶</a></h2>
@@ -698,11 +741,19 @@ link is added to the details section.</p>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">comment-id</span></code></p></td>
 <td><p>string</p></td>
-<td><p>GitHub comment ID (empty if no PR found)</p></td>
+<td><p>GitHub comment ID (empty if no PR found or post-comment false)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">pr-number</span></code></p></td>
 <td><p>string</p></td>
 <td><p>PR number (empty if no PR found)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">comment-body-path</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Path to written comment markdown when upload-comment-artifact is true</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">comment-artifact-name</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Uploaded artifact name when upload-comment-artifact is true</p></td>
 </tr>
 </tbody>
 </table>

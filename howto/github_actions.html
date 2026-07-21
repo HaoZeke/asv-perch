@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="teal" data-content_root="../">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Using with GitHub Actions - asv-perch documentation</title><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Migration Guide" href="migration.html" /><link rel="prev" title="Multi-Way Comparison" href="../tutorials/multi_way_comparison.html" />
+      <link rel="canonical" href="https://asv-perch.rgoswami.me/howto/github_actions.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"auto");
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e1a1ceaf" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=44020203" />
+    <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://asv-perch.rgoswami.me/howto/github_actions.html"/>
+  <meta property="og:title" content="Using with GitHub Actions"/>
+    <meta name="twitter:card" content="summary"/>
+  <!-- Umami analytics -->
+<script defer src="https://analytics.turtletech.us/script.js" data-website-id="6c097b12-98be-4136-b0f1-b872ed5d24f8"></script>
+<script>window.umami=window.umami||{track:function(){}};document.addEventListener('click',function(e){var a=e.target.closest('a');if(a&&a.hostname!==location.hostname)umami.track('Outbound Link',{url:a.href})});</script>
+<script defer src="https://antics-api.turtletech.us/antics.js"></script></head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="../index.html">
+      
+      
+      <strong>asv-perch</strong>
+    </a>
+    <div class="sy-head-nav" id="head-nav">
+      <nav class="sy-head-links"><ul>
+      <li class="link"><button class="js-menu" type="button" id="nav-trigger-1" aria-controls="nav-children-1">
+            <span>Ecosystem</span>
+            <i class="i-lucide chevron-down"></i>
+          </button>
+        <ul id="nav-children-1" aria-labelledby="nav-trigger-1"><li><a href="https://github.com/airspeed-velocity/asv">
+                <span>ASV</span>
+                <small>Airspeed Velocity benchmarking</small>
+              </a></li><li><a href="https://github.com/airspeed-velocity/asv_spyglass">
+                <span>asv-spyglass</span>
+                <small>File-oriented ASV comparisons</small>
+              </a></li><li><a href="https://github.com/airspeed-velocity/asv_runner">
+                <span>asv_runner</span>
+                <small>ASV benchmark runner</small>
+              </a></li><li><a href="https://github.com/airspeed-velocity/asv_samples">
+                <span>asv_samples</span>
+                <small>Sample ASV benchmarks</small>
+              </a></li></ul>
+      </li></ul></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/HaoZeke/asv-perch" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="head-nav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2"></span>
+          <span class="hamburger_3"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="1"><p class="caption" role="heading" aria-level="3"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../tutorials/asv_getting_started.html">Getting Started</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../tutorials/cross_environment.html">Cross-Environment Comparison</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../tutorials/multi_way_comparison.html">Multi-Way Comparison</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">How-To Guides</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Using with GitHub Actions</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="migration.html">Migration Guide</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="regression_gating.html">Regression Gating</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="precomputed_output.html">Pre-computed Output</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="custom_asv_flags.html">Custom ASV Flags</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="compare_across_machines.html">Compare Across Machines</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../reference/configuration.html">Configuration</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../reference/comment_format.html">Comment Format</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../reference/table_format.html">Table Format Reference</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../reference/statistical_methods.html">Statistical Methods</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Explanation</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../explanation/why_this_action.html">Why This Action</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../explanation/how_asv_works.html">How ASV Works</a></li>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../explanation/fork_security.html">Fork Security</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Community</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../used_by.html">Used By</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+</ul>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#marketplace-action-pin">Marketplace / action pin</a></li>
+<li><a class="reference internal" href="#recipe-patterns-from-asv">Recipe patterns from ASV</a></li>
+<li><a class="reference internal" href="#typical-split-benchmark-job-commenter-job">Typical split: benchmark job + commenter job</a></li>
+<li><a class="reference internal" href="#token-less-comment-body-artifact-hand-off">Token-less comment body (artifact hand-off)</a></li>
+<li><a class="reference internal" href="#environment-inventory-in-the-comment">Environment inventory in the comment</a></li>
+<li><a class="reference internal" href="#minimal-permissions">Minimal permissions</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</div><a class="js-repo-stats repo-stats flex items-center" href="https://github.com/HaoZeke/asv-perch"
+  data-type="github" data-user="HaoZeke" data-repo="asv-perch">
+  <span class="w-8 flex items-center justify-around shrink-0 text-3xl">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </span>
+  <span class="flex-grow px-2 break-all">
+    
+    
+      <span>HaoZeke/asv-perch</span>
+    
+    <span class="flex text-sm repo-stats-count">
+      <span class="flex items-center pr-3">
+        <iconify-icon icon="lucide:star"></iconify-icon>
+        <strong class="js-repo-stars ml-1">0</strong>
+      </span>
+      <span class="flex items-center">
+        <iconify-icon icon="lucide:git-fork"></iconify-icon>
+        <strong class="js-repo-forks ml-1">0</strong>
+      </span>
+    </span>
+  </span>
+</a><div class="edit-this-page">
+  <a href="https://github.com/HaoZeke/asv-perch/blob/main/docs/source/howto/github_actions.rst">Edit this page</a>
+</div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6">
+<div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../index.html"><span itemprop="name">asv-perch</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">Using with GitHub Actions</strong>
+        <meta itemprop="position" content="2" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="relative min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+  <div class="copy-page-wrapper relative pb-4 lg:absolute lg:top-8 lg:right-6 xl:right-12">
+  <div id="copy-page-trigger">
+    <button
+      type="button"
+      class="js-copy px-3 py-1 inline-flex items-center gap-1"
+      data-url="https://asv-perch.rgoswami.me/_sources/howto/github_actions.rst.txt"
+    >
+      <i class="i-lucide" data-icon="copy"></i>
+      <span>Copy page</span>
+    </button>
+    <button class="js-menu px-2 py-1" type="button" aria-label="More actions"
+      aria-haspopup="menu" aria-expanded="false" aria-controls="copy-page-content">
+      <i class="i-lucide chevron-down"></i>
+    </button>
+  </div>
+  <div id="copy-page-content" role="menu" aria-orientation="vertical" aria-hidden="true">
+    <div role="presentation">
+      <div class="flex flex-col" role="group">
+        <button class="js-copy" type="button" role="menuitem"
+          data-url="https://asv-perch.rgoswami.me/_sources/howto/github_actions.rst.txt">
+          <span class="iconify-icon">
+            <i class="i-lucide" data-icon="copy"></i>
+          </span>
+          <span>Copy page</span>
+        </button>
+        <a role="menuitem" href="https://asv-perch.rgoswami.me/_sources/howto/github_actions.rst.txt" target="_blank" rel="nofollow"><iconify-icon icon="bi:code-slash"></iconify-icon>
+            <span>View Source</span></a><a role="menuitem" href="https://chatgpt.com/?hints=search&q=Read%20https%3A//asv-perch.rgoswami.me/_sources/howto/github_actions.rst.txt%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+          <iconify-icon icon="bi:openai"></iconify-icon>
+          <span>Open in ChatGPT</span>
+        </a><a role="menuitem" href="https://claude.ai/new?q=Read%20https%3A//asv-perch.rgoswami.me/_sources/howto/github_actions.rst.txt%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+          <iconify-icon icon="bi:claude"></iconify-icon>
+          <span>Open in Claude</span>
+        </a></div>
+    </div>
+  </div>
+</div><article class="yue dark-code" role="main">
+          <section id="using-with-github-actions">
+<h1>Using with GitHub Actions<a class="headerlink" href="#using-with-github-actions" title="Link to this heading">¶</a></h1>
+<p>How to wire asv-perch into GitHub Actions, including marketplace use,
+fork-safe commenting, and token-less artifact hand-off.</p>
+<section id="marketplace-action-pin">
+<h2>Marketplace / action pin<a class="headerlink" href="#marketplace-action-pin" title="Link to this heading">¶</a></h2>
+<p>Publish as a composite Node action:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HaoZeke/asv-perch@v1</span>
+</span><span data-line="2"><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="3"><span class="w">    </span><span class="nt">github-token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
+</span><span data-line="4"><span class="w">    </span><span class="nt">results-path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/</span>
+</span><span data-line="5"><span class="w">    </span><span class="nt">metadata-file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/metadata.txt</span>
+</span></pre></div>
+</div>
+<p>Badges and source: <a class="reference external" href="https://github.com/HaoZeke/asv-perch">HaoZeke/asv-perch</a> · docs
+<a class="reference external" href="https://asv-perch.rgoswami.me">asv-perch.rgoswami.me</a>.</p>
+<p>Pin a release tag (<code class="docutils literal notranslate"><span class="pre">~v1</span></code> major or a full semver) in production workflows so
+Action updates do not surprise you.</p>
+</section>
+<section id="recipe-patterns-from-asv">
+<h2>Recipe patterns from ASV<a class="headerlink" href="#recipe-patterns-from-asv" title="Link to this heading">¶</a></h2>
+<p>Upstream ASV tracks CI / PR-comment workflows in:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/airspeed-velocity/asv/issues/1448">asv#1448</a> – continuous benchmarking and PR reporting discussions</p></li>
+<li><p><a class="reference external" href="https://github.com/airspeed-velocity/asv/issues/796">asv#796</a> – earlier CI integration recipes and pain points</p></li>
+</ul>
+<p>Those threads cover matrix runners, caching, and where comparison should run.
+asv-perch is the comment/presentation piece: run ASV yourself (or let the
+action invoke it via <code class="docutils literal notranslate"><span class="pre">benchmark-command</span></code> / <code class="docutils literal notranslate"><span class="pre">run-prefix</span></code>), then hand result
+files or pre-computed spyglass text to this action.</p>
+<p>Related tools in the same stack:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/airspeed-velocity/asv_spyglass">asv-spyglass</a> – Mann-Whitney aware <code class="docutils literal notranslate"><span class="pre">compare</span></code> / <code class="docutils literal notranslate"><span class="pre">compare-many</span></code> / <code class="docutils literal notranslate"><span class="pre">env-diff</span></code></p></li>
+<li><p><a class="reference external" href="https://github.com/HaoZeke/asv_tachyon">asv-tachyon</a> – local/published dashboard (Overview · Compare · Inventory)</p></li>
+</ul>
+</section>
+<section id="typical-split-benchmark-job-commenter-job">
+<h2>Typical split: benchmark job + commenter job<a class="headerlink" href="#typical-split-benchmark-job-commenter-job" title="Link to this heading">¶</a></h2>
+<p>Fork PRs cannot post comments with write <code class="docutils literal notranslate"><span class="pre">GITHUB_TOKEN</span></code> from the fork context.
+The recommended pattern is:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pull_request</span></code> workflow: run benchmarks, upload result artifacts</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">workflow_run</span></code> (or a same-repo job with write perms): download artifacts,
+run asv-perch, post the PR comment</p></li>
+</ol>
+<p>See <a class="reference external" href="../explanation/fork_security.rst">Fork Security</a> for the threat
+model and a full skeleton.</p>
+</section>
+<section id="token-less-comment-body-artifact-hand-off">
+<h2>Token-less comment body (artifact hand-off)<a class="headerlink" href="#token-less-comment-body-artifact-hand-off" title="Link to this heading">¶</a></h2>
+<p>When the job must not use <code class="docutils literal notranslate"><span class="pre">pull-requests:</span> <span class="pre">write</span></code>, set:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nt">permissions</span><span class="p">:</span>
+</span><span data-line="2"><span class="w">  </span><span class="nt">contents</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">read</span>
+</span><span data-line="3"><span class="w">  </span><span class="nt">actions</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span><span class="w">   </span><span class="c1"># artifact upload only</span>
+</span><span data-line="4">
+</span><span data-line="5"><span class="nt">jobs</span><span class="p">:</span>
+</span><span data-line="6"><span class="w">  </span><span class="nt">prepare-comment</span><span class="p">:</span>
+</span><span data-line="7"><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</span><span data-line="8"><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+</span><span data-line="9"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/download-artifact@v4</span>
+</span><span data-line="10"><span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="11"><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">benchmark-results</span>
+</span><span data-line="12"><span class="w">          </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/</span>
+</span><span data-line="13"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HaoZeke/asv-perch@v1</span>
+</span><span data-line="14"><span class="w">        </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">perch</span>
+</span><span data-line="15"><span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="16"><span class="w">          </span><span class="nt">post-comment</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span data-line="17"><span class="w">          </span><span class="nt">upload-comment-artifact</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span data-line="18"><span class="w">          </span><span class="nt">comment-artifact-name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">asv-perch-comment</span>
+</span><span data-line="19"><span class="w">          </span><span class="nt">comment-artifact-path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">asv-perch-comment.md</span>
+</span><span data-line="20"><span class="w">          </span><span class="nt">results-path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/</span>
+</span><span data-line="21"><span class="w">          </span><span class="nt">metadata-file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/metadata.txt</span>
+</span><span data-line="22"><span class="w">          </span><span class="c1"># github-token omitted / unused when post-comment is false</span>
+</span><span data-line="23"><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/upload-artifact@v4</span>
+</span><span data-line="24"><span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+</span><span data-line="25"><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ steps.perch.outputs.comment-artifact-name }}</span>
+</span><span data-line="26"><span class="w">          </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ steps.perch.outputs.comment-body-path }}</span>
+</span></pre></div>
+</div>
+<p>The action writes the full GFM body to <code class="docutils literal notranslate"><span class="pre">comment-artifact-path</span></code> (also
+<code class="docutils literal notranslate"><span class="pre">comment-body-path</span></code> output) and still writes <code class="docutils literal notranslate"><span class="pre">GITHUB_STEP_SUMMARY</span></code>. Upload
+is a separate <code class="docutils literal notranslate"><span class="pre">actions/upload-artifact</span></code> step so the Node action stays small
+and does not embed the artifact toolkit.</p>
+<p>A trusted job (or a later <code class="docutils literal notranslate"><span class="pre">workflow_run</span></code> step with write token) can download
+the markdown and post it with <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">pr</span> <span class="pre">comment</span></code> / the GitHub API.</p>
+<p>Default behavior is unchanged: <code class="docutils literal notranslate"><span class="pre">post-comment:</span> <span class="pre">true</span></code> posts/updates the PR
+comment when a token is available.</p>
+</section>
+<section id="environment-inventory-in-the-comment">
+<h2>Environment inventory in the comment<a class="headerlink" href="#environment-inventory-in-the-comment" title="Link to this heading">¶</a></h2>
+<p>With <code class="docutils literal notranslate"><span class="pre">env-diff:</span> <span class="pre">true</span></code> (default), the action reads baseline and contender
+result JSON and appends <code class="docutils literal notranslate"><span class="pre">##</span> <span class="pre">Environment</span> <span class="pre">inventory</span></code> (added / removed /
+version-bumped libraries and runtimes). This is implemented in pure
+TypeScript from the result file fields (<code class="docutils literal notranslate"><span class="pre">requirements</span></code>, <code class="docutils literal notranslate"><span class="pre">python</span></code>, <code class="docutils literal notranslate"><span class="pre">params</span></code>);
+it does not require Python asv-spyglass for the inventory section.</p>
+<p>Disable with <code class="docutils literal notranslate"><span class="pre">env-diff:</span> <span class="pre">false</span></code> if you only want timing tables.</p>
+</section>
+<section id="minimal-permissions">
+<h2>Minimal permissions<a class="headerlink" href="#minimal-permissions" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Mode</p></th>
+<th class="head"><p>Permissions</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Post PR comment</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pull-requests:</span> <span class="pre">write</span></code>, <code class="docutils literal notranslate"><span class="pre">issues:</span> <span class="pre">write</span></code> (comment API)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Artifact-only (<code class="docutils literal notranslate"><span class="pre">post-comment:</span> <span class="pre">false</span></code>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">contents:</span> <span class="pre">read</span></code>, <code class="docutils literal notranslate"><span class="pre">actions:</span> <span class="pre">write</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">workflow_run</span></code> commenter</p></td>
+<td><p>write on base repo token; no fork checkout</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="../tutorials/asv_getting_started.rst">Getting Started</a></p></li>
+<li><p><a class="reference external" href="../reference/configuration.rst">Configuration</a> (<code class="docutils literal notranslate"><span class="pre">env-diff</span></code>, <code class="docutils literal notranslate"><span class="pre">post-comment</span></code>, <code class="docutils literal notranslate"><span class="pre">upload-comment-artifact</span></code>)</p></li>
+<li><p><a class="reference external" href="precomputed_output.rst">Pre-computed Output</a></p></li>
+<li><p><a class="reference external" href="../explanation/fork_security.rst">Fork Security</a></p></li>
+</ul>
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="../tutorials/multi_way_comparison.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">Multi-Way Comparison</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="migration.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">Migration Guide</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        color: var(--sy-c-text-weak);
+        font-size: 0.9em;
+      "
+    >
+      <div
+        style="
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 1rem;
+          align-items: center;
+        "
+      >
+        
+        <span style="display: inline-flex; align-items: center; gap: 0.3em">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="1em"
+            height="1em"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M7,20H4V4h3V20z M14,20h-3V12h3V20z M21,20h-3V8h3V20z" />
+          </svg>
+          <span
+            >Analytics by
+            <a
+              href="https://umami.is/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style="color: inherit; text-decoration: underline"
+              >Umami</a
+            ></span
+          >
+        </span>
+
+        
+        <span style="display: inline-flex; align-items: center; gap: 0.3em">
+          <span>provided by</span>
+          <span style="display: inline-flex; align-items: center; gap: 0.3em">
+            <svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 64 64" aria-hidden="true"><g fill-rule="evenodd"><ellipse cx="32" cy="11" fill="#80D25B" rx="7" ry="9"/><path fill="#80D25B" d="M20.3,46c0,0-3.2,9.9.3,13.8c3.5,3.9 6.1,3.4 6.1-6C26.8,44.3 20.3,46 20.3,46Z"/><path fill="#80D25B" d="M38.3,46c0,0-3.2,9.9.4,13.8c3.5,3.9 6.1,3.4 6.1-6C44.8,44.3 38.3,46 38.3,46Z" transform="matrix(-1 0 0 1 81.8 0)"/><path fill="#80D25B" d="M20.6,21.2c0,0-6.7-5.8-10.5-5.2C6.2,16.7 6,22.2 6,24c0,1.8 1.8,13.3 3.8,12.5c2-0.8 4-8.5 4-8.5c1.9,2.3 4.8,2.5 4.8,2.5L20.6,21.2Z"/><path fill="#80D25B" d="M57.6,21.2c0,0-6.6-5.8-10.5-5.2C43.2,16.7 43,22.2 43,24c0,1.8 1.8,13.3 3.8,12.5c2-0.8 4-8.5 4-8.5c1.9,2.3 4.8,2.5 4.8,2.5L57.6,21.2Z" transform="matrix(-1 0 0 1 100.623 0)"/><path fill="#BD7575" stroke="#595959" stroke-linecap="round" stroke-width="2" d="M32,53C40.8,53 48,44.5 48,34C48,23.5 46.7,17 32,17C17.3,17 16,23.5 16,34C16,44.5 23.2,53 32,53Z"/><polygon fill="#BD7575" stroke="#595959" stroke-linecap="round" stroke-width="2" points="32 22 38.9 26 38.9 34 32 38 25.1 34 25.1 26"/><path stroke="#595959" stroke-linecap="round" stroke-width="2" d="M30,8C28.9,8 28,8.9 28,10"/><path stroke="#595959" stroke-linecap="round" stroke-width="2" d="M36,8C34.9,8 34,8.9 34,10" transform="matrix(-1 0 0 1 70 0)"/><path stroke="#595959" stroke-linecap="round" stroke-width="2" d="M32.1,38.2L32.1,52.4M32,21.7L32,17M25.2,26L17.7,23.1M25.1,34.2L16.8,38.9"/><path stroke="#595959" stroke-linecap="round" stroke-width="2" d="M46.2,26L38.7,23.1" transform="matrix(-1 0 0 1 84.951 0)"/><path stroke="#595959" stroke-linecap="round" stroke-width="2" d="M47.1,34.2L38.8,38.9" transform="matrix(-1 0 0 1 85.891 0)"/></g></svg>
+            <a
+              href="https://turtletech.us/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style="color: inherit; text-decoration: underline"
+              >TurtleTech ehf</a
+            >
+          </span>
+        </span>
+      </div>
+    </div>
+
+    
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2026--present, Rohit Goswami</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div> <div class="sy-foot-socials">
+<a href="https://github.com/HaoZeke/asv-perch" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
+    </div>
+  </div>
+</footer>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/shibuya.js?v=cac61aee"></script></body>
+</html>

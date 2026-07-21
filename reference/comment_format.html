@@ -89,6 +89,7 @@ data-aria-dark="Switch to auto color mode">
 </ul>
 <p class="caption" role="heading" aria-level="3"><span class="caption-text">How-To Guides</span></p>
 <ul>
+<li class="toctree-l1 _expand"><a class="reference internal" href="../howto/github_actions.html">Using with GitHub Actions</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../howto/migration.html">Migration Guide</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../howto/regression_gating.html">Regression Gating</a></li>
 <li class="toctree-l1 _expand"><a class="reference internal" href="../howto/precomputed_output.html">Pre-computed Output</a></li>
@@ -135,6 +136,7 @@ data-aria-dark="Switch to auto color mode">
 </ul>
 </li>
 <li><a class="reference internal" href="#benchmark-name-shortening">Benchmark Name Shortening</a></li>
+<li><a class="reference internal" href="#environment-inventory">Environment Inventory</a></li>
 <li><a class="reference internal" href="#details-section">Details Section</a></li>
 <li><a class="reference internal" href="#raw-output">Raw Output</a></li>
 <li><a class="reference internal" href="#change-classification">Change Classification</a></li>
@@ -237,6 +239,7 @@ action posts.</p>
 <li><p>An alert callout (WARNING, TIP, or NOTE)</p></li>
 <li><p>A summary count table</p></li>
 <li><p>Grouped benchmark tables (regressions, improvements, unchanged)</p></li>
+<li><p>Optional <code class="docutils literal notranslate"><span class="pre">##</span> <span class="pre">Environment</span> <span class="pre">inventory</span></code> section (<code class="docutils literal notranslate"><span class="pre">env-diff:</span> <span class="pre">true</span></code>, default)</p></li>
 <li><p>A collapsible details section</p></li>
 <li><p>The raw asv-spyglass output (collapsible)</p></li>
 </ol>
@@ -318,6 +321,25 @@ collapsed):</p>
 removed)</p></li>
 </ul>
 <p>The full names are preserved in the raw output section.</p>
+</section>
+<section id="environment-inventory">
+<h2>Environment Inventory<a class="headerlink" href="#environment-inventory" title="Link to this heading">¶</a></h2>
+<p>When <code class="docutils literal notranslate"><span class="pre">env-diff</span></code> is true (default) and baseline/contender result JSON paths
+are available, a short section is inserted before Details:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1">## Environment inventory
+</span><span data-line="2">
+</span><span data-line="3">Baseline (`machine/env-a`) → contender (`machine/env-b`).
+</span><span data-line="4">Commits: `a0f29428eeb7` → `a0f29428eeb7`.
+</span><span data-line="5">
+</span><span data-line="6">**Summary:** 1 added, 0 removed, 0 version-bumped, 1 unchanged
+</span><span data-line="7">
+</span><span data-line="8">| Status | Component | Baseline | Contender | Kind |
+</span><span data-line="9">|--------|-----------|----------|-----------|------|
+</span><span data-line="10">| added | `numpy` | ` - ` | `(empty)` | library |
+</span></pre></div>
+</div>
+<p>Built in pure TypeScript from ASV result fields (<code class="docutils literal notranslate"><span class="pre">requirements</span></code>, <code class="docutils literal notranslate"><span class="pre">python</span></code>,
+<code class="docutils literal notranslate"><span class="pre">params</span></code>). Disable with <code class="docutils literal notranslate"><span class="pre">env-diff:</span> <span class="pre">false</span></code>.</p>
 </section>
 <section id="details-section">
 <h2>Details Section<a class="headerlink" href="#details-section" title="Link to this heading">¶</a></h2>
