@@ -64,7 +64,7 @@ function renderBenchmarkTable(rows: BenchmarkRow[], includeEmoji: boolean): stri
     for (const row of rows) {
       const emoji = emojiForChange(row.change)
       const name = `\`${shortenBenchmark(row.benchmark)}\``
-      const bar = ratioBarSvg(row.ratio, ratioKind(row.change))
+      const bar = ratioBarSvg(Number(row.ratio), ratioKind(row.change))
       lines.push(`| ${emoji} | ${name} | ${row.before} | ${row.after} | ${row.ratio}x | ${bar} |`)
     }
   } else {

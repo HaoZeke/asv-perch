@@ -34206,15 +34206,22 @@ function UB(e) {
       return ":white_circle:";
   }
 }
+function Oy(e, s = "neutral") {
+  const t = Number.isFinite(e) ? Math.max(0, e) : 1, r = Math.min(t, 3) / 3, A = Math.round(40 * r), i = s === "regressed" ? "#f85149" : s === "improved" ? "#3fb950" : "#8b949e";
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="8" role="img" aria-label="${t.toFixed(2)}x"><rect width="48" height="8" fill="#21262d" rx="2"/><rect width="${A}" height="8" fill="${i}" rx="2"/></svg>`;
+}
+function Vy(e) {
+  return e === "regressed" ? "regressed" : e === "improved" ? "improved" : "neutral";
+}
 function Mr(e, s) {
   if (e.length === 0)
     return "";
   const t = [];
   if (s) {
-    t.push("| | Benchmark | Before | After | Ratio |"), t.push("|---|---|--:|--:|--:|");
+    t.push("| | Benchmark | Before | After | Ratio | |"), t.push("|---|---|--:|--:|--:|---|");
     for (const r of e) {
-      const A = UB(r.change), i = `\`${yn(r.benchmark)}\``;
-      t.push(`| ${A} | ${i} | ${r.before} | ${r.after} | ${r.ratio}x |`);
+      const A = UB(r.change), i = `\`${yn(r.benchmark)}\``, n = Oy(Number(r.ratio), Vy(r.change));
+      t.push(`| ${A} | ${i} | ${r.before} | ${r.after} | ${r.ratio}x | ${n} |`);
     }
   } else {
     t.push("| Benchmark | Before | After | Ratio |"), t.push("|---|--:|--:|--:|");
@@ -34226,12 +34233,12 @@ function Mr(e, s) {
   return t.join(`
 `);
 }
-function Oy(e) {
+function Py(e) {
   const s = [];
   return s.push("| | Count |"), s.push("|---|---:|"), e.regressed.length > 0 && s.push(`| :red_circle: Regressed | ${e.regressed.length} |`), e.improved.length > 0 && s.push(`| :green_circle: Improved | ${e.improved.length} |`), e.unchanged.length > 0 && s.push(`| :white_circle: Unchanged | ${e.unchanged.length} |`), e.incomparable.length > 0 && s.push(`| :grey_question: Incomparable | ${e.incomparable.length} |`), e.failed.length > 0 && s.push(`| :warning: Failed | ${e.failed.length} |`), s.join(`
 `);
 }
-function Vy(e) {
+function Wy(e) {
   const s = e.regressed.length, t = e.improved.length;
   return s > 0 ? `> [!WARNING]
 > **${s} benchmark(s) regressed**` : t > 0 ? `> [!TIP]
@@ -34240,12 +34247,12 @@ function Vy(e) {
 }
 function bQ(e, s, t) {
   const r = [];
-  r.push(t.commentMarker), r.push("## Benchmark Results"), r.push(""), r.push(Vy(e)), r.push(""), r.push(Oy(e)), e.regressed.length > 0 && (r.push(""), r.push("### Regressions"), r.push(""), r.push(Mr(e.regressed, !0))), e.improved.length > 0 && (r.push(""), r.push("### Improvements"), r.push(""), r.push(Mr(e.improved, !0))), e.failed.length > 0 && (r.push(""), r.push("### Failed"), r.push(""), r.push(Mr(e.failed, !0))), e.incomparable.length > 0 && (r.push(""), r.push("<details>"), r.push(`<summary>${e.incomparable.length} incomparable benchmark(s)</summary>`), r.push(""), r.push(Mr(e.incomparable, !1)), r.push(""), r.push("</details>")), e.unchanged.length > 0 && (r.push(""), r.push("<details>"), r.push(`<summary>${e.unchanged.length} unchanged benchmark(s)</summary>`), r.push(""), r.push(Mr(e.unchanged, !1)), r.push(""), r.push("</details>")), t.envDiffSection && (r.push(""), r.push(t.envDiffSection.trim())), r.push(""), r.push("<details>"), r.push("<summary>Details</summary>"), r.push(""), t.baseSha && r.push(`- **Base:** \`${t.baseSha.slice(0, 8)}\``), t.prSha && r.push(`- **Head:** \`${t.prSha.slice(0, 8)}\``), r.push(`- **Runner:** \`${t.runnerInfo}\``), t.dashboardUrl && r.push(`- **Dashboard:** [View full results](${t.dashboardUrl})`), r.push(""), r.push("</details>");
+  r.push(t.commentMarker), r.push("## Benchmark Results"), r.push(""), r.push(Wy(e)), r.push(""), r.push(Py(e)), e.regressed.length > 0 && (r.push(""), r.push("### Regressions"), r.push(""), r.push(Mr(e.regressed, !0))), e.improved.length > 0 && (r.push(""), r.push("### Improvements"), r.push(""), r.push(Mr(e.improved, !0))), e.failed.length > 0 && (r.push(""), r.push("### Failed"), r.push(""), r.push(Mr(e.failed, !0))), e.incomparable.length > 0 && (r.push(""), r.push("<details>"), r.push(`<summary>${e.incomparable.length} incomparable benchmark(s)</summary>`), r.push(""), r.push(Mr(e.incomparable, !1)), r.push(""), r.push("</details>")), e.unchanged.length > 0 && (r.push(""), r.push("<details>"), r.push(`<summary>${e.unchanged.length} unchanged benchmark(s)</summary>`), r.push(""), r.push(Mr(e.unchanged, !1)), r.push(""), r.push("</details>")), t.envDiffSection && (r.push(""), r.push(t.envDiffSection.trim())), r.push(""), r.push("<details>"), r.push("<summary>Details</summary>"), r.push(""), t.baseSha && r.push(`- **Base:** \`${t.baseSha.slice(0, 8)}\``), t.prSha && r.push(`- **Head:** \`${t.prSha.slice(0, 8)}\``), r.push(`- **Runner:** \`${t.runnerInfo}\``), t.dashboardUrl && r.push(`- **Dashboard:** [View full results](${t.dashboardUrl})`), r.push(""), r.push("</details>");
   const A = t.rawOutputLabel || "Raw asv-spyglass output";
   return r.push(""), r.push("<details>"), r.push(`<summary>${A}</summary>`), r.push(""), r.push("```"), r.push(s.trim()), r.push("```"), r.push(""), r.push("</details>"), r.join(`
 `);
 }
-function Py(e) {
+function qy(e) {
   switch (e) {
     case "+":
       return ":red_circle:";
@@ -34282,7 +34289,7 @@ function kQ(e, s) {
     }
     const g = UB(n), c = `\`${yn(i.benchmark)}\``, u = [`| ${g}`, c, i.baseline];
     for (const o of i.contenders) {
-      const a = Py(o.mark);
+      const a = qy(o.mark);
       u.push(`${a} ${o.value} (${o.ratio})`);
     }
     t.push(`${u.join(" | ")} |`);
@@ -34290,14 +34297,14 @@ function kQ(e, s) {
   return t.join(`
 `);
 }
-function Wy(e) {
+function jy(e) {
   const s = e.summaryPerContender.reduce((r, A) => r + A.regressed, 0), t = e.summaryPerContender.reduce((r, A) => r + A.improved, 0);
   return s > 0 ? `> [!WARNING]
 > **${s} regression(s) detected across contenders**` : t > 0 ? `> [!TIP]
 > **${t} improvement(s) detected across contenders**` : `> [!NOTE]
 > **All benchmarks unchanged across contenders**`;
 }
-function qy(e) {
+function Zy(e) {
   const s = [], t = ["| | Contender"], r = ["|---", "---"], A = [":red_circle: Regressed", ":green_circle: Improved", ":white_circle: Unchanged"];
   s.push(`${t.join(" | ")} | ${A.join(" | ")} |`), s.push(`${r.join("|")}|---:|---:|---:|`);
   for (const i of e.summaryPerContender)
@@ -34307,7 +34314,7 @@ function qy(e) {
 }
 function FQ(e, s, t) {
   const r = [];
-  r.push(t.commentMarker), r.push("## Benchmark Results (Multi-Way Comparison)"), r.push(""), r.push(Wy(e)), r.push(""), r.push(qy(e));
+  r.push(t.commentMarker), r.push("## Benchmark Results (Multi-Way Comparison)"), r.push(""), r.push(jy(e)), r.push(""), r.push(Zy(e));
   const A = e.rows.filter(
     (g) => g.contenders.some((c) => c.change === "regressed" || c.change === "improved" || c.change === "failed")
   ), i = e.rows.filter(
@@ -34329,7 +34336,7 @@ function Da(e, s) {
   const t = e.trim().toLowerCase();
   return t ? t === "true" || t === "1" || t === "yes" ? !0 : t === "false" || t === "0" || t === "no" ? !1 : s : s;
 }
-function jy() {
+function Ky() {
   const e = Da(Te.getInput("post-comment") || "", !0), s = Da(Te.getInput("upload-comment-artifact") || "", !1), t = Te.getInput("auto-draft-on-regression") === "true", r = e || t, A = Te.getInput("github-token", { required: r }) || "", i = Te.getInput("results-path") || "", n = Te.getInput("comparison-text-file") || "", g = Te.getInput("comparison-mode") || "compare";
   let c = Te.getInput("baseline-sha") || "", u = Te.getInput("baseline-file") || "";
   const o = Te.getInput("contender-shas") || "", a = o ? o.split(",").map((Z) => Z.trim()).filter(Boolean) : [], l = Te.getInput("contender-files") || "";
@@ -34421,12 +34428,12 @@ function Ra(e, s, t) {
       return;
     }
 }
-function Zy(e, s) {
+function Xy(e, s) {
   const t = GB(e);
   t && t !== "." && MB(t, { recursive: !0 }), LB(e, `${s}
 `, "utf-8"), Te.info(`Wrote comment body to ${e}`);
 }
-async function Ky(e, s, t) {
+async function zy(e, s, t) {
   const r = s.slice(0, 8), A = t.slice(0, 8), n = await (await qn.create(`${e}/**/*.json`)).glob();
   let g = "", c = "";
   for (const u of n) {
@@ -34439,7 +34446,7 @@ async function Ky(e, s, t) {
     throw new Error(`No result file found for PR SHA prefix ${A} in ${e}`);
   return Te.info(`Base result: ${g}`), Te.info(`PR result: ${c}`), { baseFile: g, prFile: c };
 }
-async function Xy(e, s, t, r, A, i, n = []) {
+async function $y(e, s, t, r, A, i, n = []) {
   const g = vB(t, "comparison.txt");
   if (La(g))
     return Te.info("Using pre-computed comparison.txt"), wn(g, "utf-8");
@@ -34470,7 +34477,7 @@ async function SQ(e, s) {
       return i;
   throw new Error(`No result file found for SHA prefix ${t} in ${e}`);
 }
-async function zy(e, s, t, r, A = [], i, n) {
+async function ew(e, s, t, r, A = [], i, n) {
   const c = await (await qn.create(`${t}/**/benchmarks.json`)).glob(), u = c.length > 0 ? ["--bconf", c[0]] : [], o = [];
   if (i && o.push("--label", i), n && n.length > 0)
     for (const E of n)
@@ -34492,12 +34499,12 @@ async function zy(e, s, t, r, A = [], i, n) {
     { silent: !1 }
   )).stdout;
 }
-const $y = "asv run --record-samples {sha}^!";
+const Aw = "asv run --record-samples {sha}^!";
 function NQ(e, s, t, r) {
   const A = r.replace(/\{sha\}/g, t), i = e?.replace(/\{sha\}/g, t), n = s?.replace(/\{sha\}/g, t), g = n ? `${n} ${A}` : A;
   return i ? `${i} && ${g}` : g;
 }
-function ew(e, s) {
+function tw(e, s) {
   if (s.length === 0)
     return `git checkout -f ${e} && git clean -fd`;
   const t = "/tmp/_asv_preserve", r = s.map((i) => `cp -r ${i} ${t}/`).join(" && "), A = s.map((i) => {
@@ -34506,12 +34513,12 @@ function ew(e, s) {
   }).join(" && ");
   return `mkdir -p ${t} && ${r} && git checkout -f ${e} && git clean -fd && ${A}`;
 }
-async function Aw(e, s, t, r, A = []) {
-  const i = t || $y;
+async function rw(e, s, t, r, A = []) {
+  const i = t || Aw;
   r && (Te.info(`Running init command: ${r}`), await vr.exec("bash", ["-c", r]));
   function n(c, u, o) {
     if (A.length > 0) {
-      const a = ew(c, A);
+      const a = tw(c, A);
       return { setup: u ? `${a} && ${u}` : a, runPrefix: o };
     }
     return { setup: u, runPrefix: o };
@@ -34526,7 +34533,7 @@ async function Aw(e, s, t, r, A = []) {
   });
   g.length > 0 && await Promise.all(g);
 }
-function tw(e) {
+function nw(e) {
   if (!La(e))
     throw new Error(`Comparison text file not found: ${e}`);
   return Te.info(`Using pre-computed comparison file: ${e}`), wn(e, "utf-8");
@@ -34534,7 +34541,7 @@ function tw(e) {
 function UQ(e, s) {
   return e.regressed.some((t) => t.ratioNum >= s);
 }
-async function rw(e, s, t, r) {
+async function sw(e, s, t, r) {
   const { data: A } = await e.rest.search.issuesAndPullRequests({
     q: `repo:${s}/${t} is:pr sha:${r}`,
     per_page: 1
@@ -34544,7 +34551,7 @@ async function rw(e, s, t, r) {
     nodeId: A.items[0].node_id
   };
 }
-async function nw(e, s, t, r, A, i) {
+async function iw(e, s, t, r, A, i) {
   const { data: n } = await e.rest.issues.listComments({
     owner: s,
     repo: t,
@@ -34568,12 +34575,12 @@ async function nw(e, s, t, r, A, i) {
     return c.id;
   }
 }
-function sw(e) {
+function ow(e) {
   const s = TQ.env.GITHUB_STEP_SUMMARY;
   s && (TB(s, `${e}
 `), Te.info("Written to GITHUB_STEP_SUMMARY"));
 }
-async function iw(e, s, t) {
+async function aw(e, s, t) {
   await e.graphql(`
     mutation($id: ID!) {
       convertPullRequestToDraft(input: {pullRequestId: $id}) {
@@ -34585,10 +34592,10 @@ async function iw(e, s, t) {
     }
   `, { id: s }), Te.info(`PR #${t} converted to draft due to critical regression`);
 }
-async function ow() {
+async function cw() {
   try {
-    const e = jy(), s = e.token ? Jl.getOctokit(e.token) : null, { owner: t, repo: r } = Jl.context.repo;
-    (e.baselineConfig?.runPrefix || e.baselineConfig?.setup || e.contenderConfigs.some((E) => E.runPrefix || E.setup) || e.benchmarkCommand || e.preservePaths.length > 0) && !e.comparisonTextFile && await Aw(
+    const e = Ky(), s = e.token ? Jl.getOctokit(e.token) : null, { owner: t, repo: r } = Jl.context.repo;
+    (e.baselineConfig?.runPrefix || e.baselineConfig?.setup || e.contenderConfigs.some((E) => E.runPrefix || E.setup) || e.benchmarkCommand || e.preservePaths.length > 0) && !e.comparisonTextFile && await rw(
       e.baselineConfig,
       e.contenderConfigs,
       e.benchmarkCommand,
@@ -34602,7 +34609,7 @@ async function ow() {
       description: E.description
     })) : void 0;
     if (e.comparisonTextFile) {
-      i = tw(e.comparisonTextFile), Te.setOutput("comparison", i), c = e.baseFile || e.baselineFile, u = e.prFile || e.contenderFiles[0] || "";
+      i = nw(e.comparisonTextFile), Te.setOutput("comparison", i), c = e.baseFile || e.baselineFile, u = e.prFile || e.contenderFiles[0] || "";
       const E = Ra(
         e.envDiff,
         c,
@@ -34645,7 +34652,7 @@ async function ow() {
           Te.info(`Contender result (${d.slice(0, 8)}): ${f}`), Q.push(f);
         }
       }
-      c = E, u = Q[0] || "", i = await zy(
+      c = E, u = Q[0] || "", i = await ew(
         E,
         Q,
         e.resultsPath,
@@ -34674,14 +34681,14 @@ async function ow() {
       if (e.baseFile && e.prFile)
         E = e.baseFile, Q = e.prFile, Te.info(`Base result (direct): ${E}`), Te.info(`PR result (direct): ${Q}`);
       else {
-        const d = await Ky(
+        const d = await zy(
           e.resultsPath,
           e.baseSha,
           e.prSha
         );
         E = d.baseFile, Q = d.prFile;
       }
-      c = E, u = Q, i = await Xy(
+      c = E, u = Q, i = await $y(
         E,
         Q,
         e.resultsPath,
@@ -34705,7 +34712,7 @@ async function ow() {
         envDiffSection: B
       });
     }
-    if (Te.setOutput("regression-detected", g.toString()), sw(n), e.uploadCommentArtifact ? (Zy(e.commentArtifactPath, n), Te.setOutput("comment-body-path", e.commentArtifactPath), Te.setOutput("comment-artifact-name", e.commentArtifactName), Te.info(
+    if (Te.setOutput("regression-detected", g.toString()), ow(n), e.uploadCommentArtifact ? (Xy(e.commentArtifactPath, n), Te.setOutput("comment-body-path", e.commentArtifactPath), Te.setOutput("comment-artifact-name", e.commentArtifactName), Te.info(
       `upload-comment-artifact: wrote ${e.commentArtifactPath}. Add actions/upload-artifact with name "${e.commentArtifactName}" and that path (or use comment-body-path output).`
     )) : (Te.setOutput("comment-body-path", ""), Te.setOutput("comment-artifact-name", "")), !e.postComment && !e.autoDraftOnRegression) {
       Te.info("post-comment=false: skipping PR comment API"), Te.setOutput("comment-id", ""), Te.setOutput("pr-number", "");
@@ -34715,13 +34722,13 @@ async function ow() {
       Te.warning("No github-token: cannot post PR comment or convert to draft"), Te.setOutput("comment-id", ""), Te.setOutput("pr-number", "");
       return;
     }
-    const a = e.prSha || e.baselineSha || e.baseSha, l = a ? await rw(s, t, r, a) : null;
+    const a = e.prSha || e.baselineSha || e.baseSha, l = a ? await sw(s, t, r, a) : null;
     if (!l) {
       Te.warning(`No PR found for SHA ${a || "(none)"}. Summary/artifact only.`), Te.setOutput("comment-id", ""), Te.setOutput("pr-number", "");
       return;
     }
     if (Te.info(`Targeting PR #${l.number}`), Te.setOutput("pr-number", l.number.toString()), e.postComment) {
-      const E = await nw(
+      const E = await iw(
         s,
         t,
         r,
@@ -34732,10 +34739,10 @@ async function ow() {
       Te.setOutput("comment-id", E.toString());
     } else
       Te.setOutput("comment-id", "");
-    g && e.autoDraftOnRegression && await iw(s, l.nodeId, l.number);
+    g && e.autoDraftOnRegression && await aw(s, l.nodeId, l.number);
   } catch (e) {
     e instanceof Error ? Te.setFailed(e.message) : Te.setFailed(String(e));
   }
 }
-ow().catch(() => TQ.exit(1));
+cw().catch(() => TQ.exit(1));
 //# sourceMappingURL=index.js.map
