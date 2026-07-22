@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { parseCompareMany, parseComparison } from '../src/parse'
-import { renderComment, renderCompareManyComment } from '../src/render'
+import { ratioBarSvg, renderComment, renderCompareManyComment } from '../src/render'
 
 const fixture = readFileSync(
   join(__dirname, 'fixtures', 'comparison.txt'),
@@ -236,8 +236,6 @@ describe('renderCompareManyComment', () => {
     expect(body).not.toContain('**Head:**')
   })
 })
-
-import { ratioBarSvg } from '../src/render'
 
 describe('ratioBarSvg', () => {
   it('encodes ratio in bar width', () => {

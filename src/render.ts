@@ -38,16 +38,20 @@ export function ratioBarSvg(ratio: number, kind: 'regressed' | 'improved' | 'neu
   const color = kind === 'regressed' ? '#f85149' : kind === 'improved' ? '#3fb950' : '#8b949e'
   // 48x8 bar; empty track + fill
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="8" role="img" aria-label="${r.toFixed(2)}x">` +
-    `<rect width="48" height="8" fill="#21262d" rx="2"/>` +
-    `<rect width="${w}" height="8" fill="${color}" rx="2"/>` +
-    `</svg>`
+    `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="8" role="img" aria-label="${r.toFixed(2)}x">`
+    + `<rect width="48" height="8" fill="#21262d" rx="2"/>`
+    + `<rect width="${w}" height="8" fill="${color}" rx="2"/>`
+    + `</svg>`
   )
 }
 
 function ratioKind(change: string): 'regressed' | 'improved' | 'neutral' {
-  if (change === 'regressed') return 'regressed'
-  if (change === 'improved') return 'improved'
+  if (change === 'regressed') {
+    return 'regressed'
+  }
+  if (change === 'improved') {
+    return 'improved'
+  }
   return 'neutral'
 }
 
