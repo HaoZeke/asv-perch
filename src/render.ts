@@ -30,6 +30,27 @@ function emojiForChange(change: string): string {
   }
 }
 
+/** Tiny ratio bar for GFM (inline SVG). width encodes min(ratio, 3)/3. */
+export function ratioBarSvg(ratio: number, kind: 'regressed' | 'improved' | 'neutral' = 'neutral'): string {
+  const r = Number.isFinite(ratio) ? Math.max(0, ratio) : 1
+  const frac = Math.min(r, 3) / 3
+  const w = Math.round(40 * frac)
+  const color = kind === 'regressed' ? '#f85149' : kind === 'improved' ? '#3fb950' : '#8b949e'
+  // 48x8 bar; empty track + fill
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="8" role="img" aria-label="${r.toFixed(2)}x">` +
+    `<rect width="48" height="8" fill="#21262d" rx="2"/>` +
+    `<rect width="${w}" height="8" fill="${color}" rx="2"/>` +
+    `</svg>`
+  )
+}
+
+function ratioKind(change: string): 'regressed' | 'improved' | 'neutral' {
+  if (change === 'regressed') return 'regressed'
+  if (change === 'improved') return 'improved'
+  return 'neutral'
+}
+
 function renderBenchmarkTable(rows: BenchmarkRow[], includeEmoji: boolean): string {
   if (rows.length === 0) {
     return ''
@@ -38,12 +59,13 @@ function renderBenchmarkTable(rows: BenchmarkRow[], includeEmoji: boolean): stri
   const lines: string[] = []
 
   if (includeEmoji) {
-    lines.push('| | Benchmark | Before | After | Ratio |')
-    lines.push('|---|---|--:|--:|--:|')
+    lines.push('| | Benchmark | Before | After | Ratio | |')
+    lines.push('|---|---|--:|--:|--:|---|')
     for (const row of rows) {
       const emoji = emojiForChange(row.change)
       const name = `\`${shortenBenchmark(row.benchmark)}\``
-      lines.push(`| ${emoji} | ${name} | ${row.before} | ${row.after} | ${row.ratio}x |`)
+      const bar = ratioBarSvg(row.ratio, ratioKind(row.change))
+      lines.push(`| ${emoji} | ${name} | ${row.before} | ${row.after} | ${row.ratio}x | ${bar} |`)
     }
   } else {
     lines.push('| Benchmark | Before | After | Ratio |')

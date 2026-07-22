@@ -236,3 +236,14 @@ describe('renderCompareManyComment', () => {
     expect(body).not.toContain('**Head:**')
   })
 })
+
+import { ratioBarSvg } from '../src/render'
+
+describe('ratioBarSvg', () => {
+  it('encodes ratio in bar width', () => {
+    const s = ratioBarSvg(1.5, 'regressed')
+    expect(s).toContain('svg')
+    expect(s).toContain('#f85149')
+    expect(s).toContain('width="20"') // 40 * 1.5/3 = 20
+  })
+})
