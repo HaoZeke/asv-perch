@@ -219,7 +219,9 @@ preserve-paths: benchmarks/, asv.conf.json
   Default: =asv run --record-samples {sha}^!=. The placeholder ={sha}= is
   replaced in this field, =setup=, and =run-prefix=. Each entry's
   =run-prefix= is prepended and =setup= is sourced before this command.
-  Entries without a =sha= field skip benchmarking.
+  Entries without a =sha= field skip benchmarking. A command containing
+  =--quick= (or =-q=) logs a warning: it records one sample per benchmark, so the
+  comparison cannot test differences for significance.
 
   Example with a custom command:
 

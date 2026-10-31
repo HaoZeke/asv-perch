@@ -490,6 +490,12 @@ export async function executeBenchmarks(
   preservePaths: string[] = [],
 ): Promise<void> {
   const template = benchmarkCommand || DEFAULT_BENCHMARK_COMMAND
+  if (/(?:^|\s)(?:--quick|-q)(?:\s|$)/.test(template)) {
+    // asv compare needs 7 samples per side (or 6 and 7) before Mann-Whitney
+    // can reach p < 0.002; --quick (-q) records one, so only the ratio is
+    // compared.
+    warning('benchmark-command uses --quick: one sample per benchmark, so differences are not tested for significance')
+  }
 
   // Run init command once (e.g. asv machine --yes)
   if (initCommand) {

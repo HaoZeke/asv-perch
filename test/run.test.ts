@@ -6,6 +6,7 @@ import {
   buildBenchmarkShellCommand,
   buildCheckoutCommand,
   detectRegression,
+  executeBenchmarks,
   maybeBuildEnvDiffSection,
   parseBoolInput,
   readComparisonTextFile,
@@ -614,5 +615,38 @@ describe('asv-spyglass-ref default', () => {
     })
 
     expect(resolveInputs().asvSpyglassRef).toBe('main')
+  })
+})
+
+describe('executeBenchmarks --quick warning', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  async function warnings(benchmarkCommand: string): Promise<string[]> {
+    const core = await import('@actions/core')
+    await executeBenchmarks({ label: 'main', sha: 'abc123' }, [], benchmarkCommand)
+    return (core.warning as ReturnType<typeof vi.fn>).mock.calls.map((c) => String(c[0]))
+  }
+
+  it('warns when benchmark-command uses --quick', async () => {
+    const calls = await warnings('asv run --quick {sha}^!')
+    expect(calls).toHaveLength(1)
+    expect(calls[0]).toContain('--quick')
+    expect(calls[0]).toContain('significance')
+  })
+
+  it('warns when --quick ends the command', async () => {
+    expect(await warnings('asv run {sha}^! --quick')).toHaveLength(1)
+  })
+
+  it('warns on the -q short flag', async () => {
+    expect(await warnings('asv continuous -q main {sha}')).toHaveLength(1)
+  })
+
+  it('does not warn without --quick', async () => {
+    expect(await warnings('asv run --record-samples {sha}^!')).toEqual([])
+    expect(await warnings('')).toEqual([])
+    expect(await warnings('asv run --quicker {sha}^!')).toEqual([])
   })
 })
