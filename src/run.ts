@@ -248,7 +248,7 @@ export function resolveInputs(): ResolvedInputs {
     commentMarker: getInput('comment-marker') || '<!-- asv-benchmark-result -->',
     labelBefore: getInput('label-before') || baselineConfig?.label || 'main',
     labelAfter: getInput('label-after') || contenderConfigs[0]?.label || 'pr',
-    asvSpyglassRef: getInput('asv-spyglass-ref') || 'main',
+    asvSpyglassRef: getInput('asv-spyglass-ref') || 'v0.3.1',
     runnerInfo: getInput('runner-info') || 'ubuntu-latest',
     dashboardUrl: getInput('dashboard-url') || '',
     // Pure-TS JSON parse of result files -- cheap; default on when result files exist

@@ -139,9 +139,12 @@ inputs:
     required: false
     default: pr
   asv-spyglass-ref:
-    description: Git ref for asv-spyglass install
+    description: >-
+      Git ref for asv-spyglass install. Defaults to a release tag so the
+      comparison output does not change when asv-spyglass main moves; set
+      to main to track development.
     required: false
-    default: main
+    default: v0.3.1
   runner-info:
     description: Runner name shown in details section
     required: false

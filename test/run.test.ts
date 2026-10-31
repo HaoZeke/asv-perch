@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import yaml from 'js-yaml'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   buildBenchmarkShellCommand,
@@ -580,5 +581,38 @@ describe('writeCommentBodyFile', () => {
     writeCommentBodyFile(path, '## Benchmark Results\nhello')
     expect(fs.readFileSync(path, 'utf-8')).toContain('## Benchmark Results')
     fs.unlinkSync(path)
+  })
+})
+
+describe('asv-spyglass-ref default', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  it('defaults to a pinned release tag', async () => {
+    await mockInputs({
+      'base-sha': 'abc123',
+      'pr-sha': 'def456',
+      'asv-spyglass-ref': '',
+    })
+
+    expect(resolveInputs().asvSpyglassRef).toBe('v0.3.1')
+  })
+
+  it('matches the action.yml default', () => {
+    const action = yaml.load(readFileSync(join(__dirname, '..', 'action.yml'), 'utf-8')) as {
+      inputs: Record<string, { default?: string }>
+    }
+    expect(action.inputs['asv-spyglass-ref'].default).toBe('v0.3.1')
+  })
+
+  it('keeps an explicit ref', async () => {
+    await mockInputs({
+      'base-sha': 'abc123',
+      'pr-sha': 'def456',
+      'asv-spyglass-ref': 'main',
+    })
+
+    expect(resolveInputs().asvSpyglassRef).toBe('main')
   })
 })

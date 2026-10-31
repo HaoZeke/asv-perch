@@ -366,7 +366,8 @@ same effect (checked before running asv-spyglass in =compare= mode).
 ** Comparison Options
 
 - =asv-spyglass-ref= :: Git ref (branch or tag) for =asv-spyglass= installation.
-  Default: =main=. The action installs asv-spyglass via
+  Default: =v0.3.1= (a release tag, so the comparison output does not change
+  when asv-spyglass =main= moves). The action installs asv-spyglass via
   =uvx --from "git+https://github.com/airspeed-velocity/asv_spyglass.git@<ref>"=.
 
 - =label-before= / =label-after= :: Labels for the before/after columns in the

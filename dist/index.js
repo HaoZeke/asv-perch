@@ -34406,7 +34406,7 @@ function Ky() {
     commentMarker: Te.getInput("comment-marker") || "<!-- asv-benchmark-result -->",
     labelBefore: Te.getInput("label-before") || I?.label || "main",
     labelAfter: Te.getInput("label-after") || C[0]?.label || "pr",
-    asvSpyglassRef: Te.getInput("asv-spyglass-ref") || "main",
+    asvSpyglassRef: Te.getInput("asv-spyglass-ref") || "v0.3.1",
     runnerInfo: Te.getInput("runner-info") || "ubuntu-latest",
     dashboardUrl: Te.getInput("dashboard-url") || "",
     // Pure-TS JSON parse of result files -- cheap; default on when result files exist
