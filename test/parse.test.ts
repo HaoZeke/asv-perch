@@ -195,12 +195,26 @@ describe('deduplication', () => {
 |        | 101ns  | 201ns |  1.99 | benchmarks.bench_foo.Bar.time_x |
 | -      | 50ns   | 25ns  |  0.50 | bench_baz.Qux.time_y  |`
     const result = parseComparison(input)
-    // The benchmarks.bench_foo.Bar.time_x duplicate should be removed
-    expect(result.rows).toHaveLength(2)
-    expect(result.rows[0].benchmark).toBe('bench_foo.Bar.time_x')
-    expect(result.rows[1].benchmark).toBe('bench_baz.Qux.time_y')
+    // Different measurements that only share a shortened name are both kept.
+    expect(result.rows).toHaveLength(3)
+    expect(result.rows.map((r) => r.benchmark)).toEqual([
+      'bench_foo.Bar.time_x',
+      'benchmarks.bench_foo.Bar.time_x',
+      'bench_baz.Qux.time_y',
+    ])
     expect(result.regressed).toHaveLength(1)
     expect(result.improved).toHaveLength(1)
+  })
+
+  it('collapses a shortened name only when the measurements match', () => {
+    const input = `| Change | Before | After | Ratio | Benchmark (Parameter) |
+|--------|--------|-------|-------|-----------------------|
+| +      | 100ns  | 200ns |  2.00 | benchmarks.bench_foo.Bar.time_x |
+| +      | 100ns  | 200ns |  2.00 | bench_foo.Bar.time_x |`
+    const result = parseComparison(input)
+    expect(result.rows).toHaveLength(1)
+    expect(result.rows[0].benchmark).toBe('bench_foo.Bar.time_x')
+    expect(result.regressed).toHaveLength(1)
   })
 
   it('keeps non-duplicate benchmarks. prefix rows', () => {

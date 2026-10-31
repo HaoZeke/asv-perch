@@ -283,6 +283,28 @@ export function maybeBuildEnvDiffSection(
   }
 }
 
+/** Environment inventory for every contender, not only the first. */
+export function buildEnvDiffSections(
+  enabled: boolean,
+  baselinePath: string | undefined,
+  contenderPaths: Array<string | undefined>,
+): string | undefined {
+  if (!enabled || !baselinePath) {
+    return undefined
+  }
+  const parts: string[] = []
+  for (const path of contenderPaths) {
+    if (!path) {
+      continue
+    }
+    const section = maybeBuildEnvDiffSection(true, baselinePath, path)
+    if (section) {
+      parts.push(section)
+    }
+  }
+  return parts.length > 0 ? parts.join('\n\n') : undefined
+}
+
 /** Write comment body to a file for artifact upload / workflow hand-off. */
 export function writeCommentBodyFile(path: string, body: string): void {
   const dir = dirname(path)
@@ -293,38 +315,55 @@ export function writeCommentBodyFile(path: string, body: string): void {
   info(`Wrote comment body to ${path}`)
 }
 
-// Step 2: Find result files by SHA prefix
+function commitHashInFile(file: string): string | null {
+  try {
+    const data = JSON.parse(readFileSync(file, 'utf-8')) as { commit_hash?: unknown }
+    if (typeof data.commit_hash === 'string' && /^[0-9a-f]+$/i.test(data.commit_hash)) {
+      return data.commit_hash.toLowerCase()
+    }
+  } catch {
+    return null
+  }
+  return null
+}
+
+/** Result files whose ``commit_hash`` starts with ``sha``. Filename prefixes are not used. */
+export async function resultFilesForCommit(resultsPath: string, sha: string): Promise<string[]> {
+  const want = sha.toLowerCase()
+  if (!/^[0-9a-f]+$/.test(want)) {
+    throw new Error(`Not a commit SHA: ${sha}`)
+  }
+  const globber = await createGlob(`${resultsPath}/**/*.json`)
+  const allFiles = await globber.glob()
+  const matches: { file: string, commit: string }[] = []
+  for (const f of allFiles) {
+    const basename = f.split('/').pop() || ''
+    if (basename === 'machine.json' || basename === 'benchmarks.json') {
+      continue
+    }
+    const commit = commitHashInFile(f)
+    if (commit && commit.startsWith(want)) {
+      matches.push({ file: f, commit })
+    }
+  }
+  const commits = [...new Set(matches.map((m) => m.commit))]
+  if (commits.length === 0) {
+    throw new Error(`No result file found for commit ${sha} in ${resultsPath}`)
+  }
+  if (commits.length > 1) {
+    throw new Error(`Commit prefix ${sha} matches multiple commits: ${commits.join(', ')}`)
+  }
+  return matches.map((m) => m.file).sort()
+}
+
+// Step 2: Find result files by the commit hash stored in the JSON.
 export async function findResultFiles(
   resultsPath: string,
   baseSha: string,
   prSha: string,
 ): Promise<{ baseFile: string, prFile: string }> {
-  const basePrefix = baseSha.slice(0, 8)
-  const prPrefix = prSha.slice(0, 8)
-
-  const globber = await createGlob(`${resultsPath}/**/*.json`)
-  const allFiles = await globber.glob()
-
-  let baseFile = ''
-  let prFile = ''
-
-  for (const f of allFiles) {
-    const basename = f.split('/').pop() || ''
-    if (basename.startsWith(basePrefix)) {
-      baseFile = f
-    }
-    if (basename.startsWith(prPrefix)) {
-      prFile = f
-    }
-  }
-
-  if (!baseFile) {
-    throw new Error(`No result file found for base SHA prefix ${basePrefix} in ${resultsPath}`)
-  }
-  if (!prFile) {
-    throw new Error(`No result file found for PR SHA prefix ${prPrefix} in ${resultsPath}`)
-  }
-
+  const baseFile = await findResultFileByPrefix(resultsPath, baseSha)
+  const prFile = await findResultFileByPrefix(resultsPath, prSha)
   info(`Base result: ${baseFile}`)
   info(`PR result: ${prFile}`)
   return { baseFile, prFile }
@@ -373,23 +412,17 @@ export async function runComparison(
   return result.stdout
 }
 
-// Find a result file by SHA prefix
+// Find one result file for a commit. Several environments for the same
+// commit are deterministic: the lexicographically first path is used.
 export async function findResultFileByPrefix(
   resultsPath: string,
   sha: string,
 ): Promise<string> {
-  const prefix = sha.slice(0, 8)
-  const globber = await createGlob(`${resultsPath}/**/*.json`)
-  const allFiles = await globber.glob()
-
-  for (const f of allFiles) {
-    const basename = f.split('/').pop() || ''
-    if (basename.startsWith(prefix)) {
-      return f
-    }
+  const files = await resultFilesForCommit(resultsPath, sha)
+  if (files.length > 1) {
+    warning(`Commit ${sha} has ${files.length} result files; using ${files[0]}`)
   }
-
-  throw new Error(`No result file found for SHA prefix ${prefix} in ${resultsPath}`)
+  return files[0]
 }
 
 // Step 3b: Run asv-spyglass compare-many
@@ -442,6 +475,11 @@ export async function runCompareMany(
 
 const DEFAULT_BENCHMARK_COMMAND = 'asv run --record-samples {sha}^!'
 
+/** Quote one token for POSIX sh, including embedded single quotes. */
+export function shellQuote(value: string): string {
+  return `'${value.replace(/'/g, `'\\''`)}'`
+}
+
 // Build the shell command for a benchmark run.
 // setup:      sourced/eval'd before the command (joined with &&)
 // run-prefix: prepended with a space (wrapper pattern: pixi run -e bench CMD)
@@ -471,13 +509,15 @@ export function buildCheckoutCommand(
   if (preservePaths.length === 0) {
     return `git checkout -f ${sha} && git clean -fd`
   }
-  const stashDir = '/tmp/_asv_preserve'
-  const stash = preservePaths.map((p) => `cp -r ${p} ${stashDir}/`).join(' && ')
+  const stashDir = '.asv-perch-preserve'
+  const quotedStash = shellQuote(stashDir)
+  const stash = preservePaths.map((p) => `cp -r ${shellQuote(p)} ${quotedStash}/`).join(' && ')
   const restore = preservePaths.map((p) => {
     const basename = p.replace(/\/$/, '').split('/').pop()!
-    return `rm -rf ${p} && cp -r ${stashDir}/${basename} ${p}`
+    const saved = shellQuote(`${stashDir}/${basename}`)
+    return `rm -rf ${shellQuote(p)} && cp -r ${saved} ${shellQuote(p)}`
   }).join(' && ')
-  return `mkdir -p ${stashDir} && ${stash} && git checkout -f ${sha} && git clean -fd && ${restore}`
+  return `mkdir -p ${quotedStash} && ${stash} && git checkout -f ${sha} && git clean -fd && ${restore}`
 }
 
 // Execute benchmark commands for all entries that have setup/run-prefix/sha.
@@ -524,18 +564,16 @@ export async function executeBenchmarks(
     await exec('bash', ['-c', cmd])
   }
 
-  // Run contender benchmarks in parallel
-  const contenderTasks = contenderConfigs
-    .filter((c) => c.sha && (c.setup || c.runPrefix || benchmarkCommand || preservePaths.length > 0))
-    .map(async (contender) => {
-      const { setup, runPrefix } = withCheckout(contender.sha!, contender.setup, contender.runPrefix)
-      const cmd = buildBenchmarkShellCommand(setup, runPrefix, contender.sha!, template)
-      info(`Running benchmark for "${contender.label}": ${cmd}`)
-      await exec('bash', ['-c', cmd])
-    })
-
-  if (contenderTasks.length > 0) {
-    await Promise.all(contenderTasks)
+  // Run contenders one after another. Concurrent timing runs on one
+  // runner perturb each other.
+  for (const contender of contenderConfigs) {
+    if (!contender.sha || !(contender.setup || contender.runPrefix || benchmarkCommand || preservePaths.length > 0)) {
+      continue
+    }
+    const { setup, runPrefix } = withCheckout(contender.sha, contender.setup, contender.runPrefix)
+    const cmd = buildBenchmarkShellCommand(setup, runPrefix, contender.sha, template)
+    info(`Running benchmark for "${contender.label}": ${cmd}`)
+    await exec('bash', ['-c', cmd])
   }
 }
 
@@ -671,9 +709,6 @@ export async function run(): Promise<void> {
     let rawOutput: string
     let commentBody: string
     let hasRegression = false
-    // Result JSON paths for optional env-diff (pure TS; no spyglass needed)
-    let envDiffBaseFile = ''
-    let envDiffContenderFile = ''
 
     // Build contender metadata for render
     const contenderMeta = inputs.contenderConfigs.length > 0
@@ -689,13 +724,15 @@ export async function run(): Promise<void> {
       rawOutput = readComparisonTextFile(inputs.comparisonTextFile)
       setOutput('comparison', rawOutput)
 
-      // Env-diff still works when explicit result files are also provided
-      envDiffBaseFile = inputs.baseFile || inputs.baselineFile
-      envDiffContenderFile = inputs.prFile || inputs.contenderFiles[0] || ''
-      const envDiffSection = maybeBuildEnvDiffSection(
+      // Env-diff still works when explicit result files are also provided.
+      // Every contender file is included, not only the first.
+      const envDiffPaths = inputs.contenderFiles.length > 0
+        ? inputs.contenderFiles
+        : [inputs.prFile]
+      const envDiffSection = buildEnvDiffSections(
         inputs.envDiff,
-        envDiffBaseFile,
-        envDiffContenderFile,
+        inputs.baseFile || inputs.baselineFile,
+        envDiffPaths,
       )
 
       if (inputs.comparisonMode === 'compare-many') {
@@ -749,9 +786,6 @@ export async function run(): Promise<void> {
         }
       }
 
-      envDiffBaseFile = resolvedBaselineFile
-      envDiffContenderFile = resolvedContenderFiles[0] || ''
-
       rawOutput = await runCompareMany(
         resolvedBaselineFile,
         resolvedContenderFiles,
@@ -763,10 +797,10 @@ export async function run(): Promise<void> {
       )
       setOutput('comparison', rawOutput)
 
-      const envDiffSection = maybeBuildEnvDiffSection(
+      const envDiffSection = buildEnvDiffSections(
         inputs.envDiff,
-        envDiffBaseFile,
-        envDiffContenderFile,
+        resolvedBaselineFile,
+        resolvedContenderFiles,
       )
 
       const parsed = parseCompareMany(rawOutput)
@@ -801,9 +835,6 @@ export async function run(): Promise<void> {
         resolvedPrFile = found.prFile
       }
 
-      envDiffBaseFile = resolvedBaseFile
-      envDiffContenderFile = resolvedPrFile
-
       rawOutput = await runComparison(
         resolvedBaseFile,
         resolvedPrFile,
@@ -815,10 +846,10 @@ export async function run(): Promise<void> {
       )
       setOutput('comparison', rawOutput)
 
-      const envDiffSection = maybeBuildEnvDiffSection(
+      const envDiffSection = buildEnvDiffSections(
         inputs.envDiff,
-        envDiffBaseFile,
-        envDiffContenderFile,
+        resolvedBaseFile,
+        [resolvedPrFile],
       )
 
       const parsed = parseComparison(rawOutput)

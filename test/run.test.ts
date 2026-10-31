@@ -5,12 +5,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   buildBenchmarkShellCommand,
   buildCheckoutCommand,
+  buildEnvDiffSections,
   detectRegression,
   executeBenchmarks,
+  findResultFileByPrefix,
   maybeBuildEnvDiffSection,
   parseBoolInput,
   readComparisonTextFile,
   resolveInputs,
+  resultFilesForCommit,
+  run,
+  shellQuote,
   writeCommentBodyFile,
 } from '../src/run'
 import { parseCompareMany, parseComparison } from '../src/parse'
@@ -482,18 +487,25 @@ describe('buildCheckoutCommand', () => {
 
   it('stashes and restores preserve-paths', () => {
     const cmd = buildCheckoutCommand('abc123', ['benchmarks/', 'asv.conf.json'])
-    expect(cmd).toContain('mkdir -p /tmp/_asv_preserve')
-    expect(cmd).toContain('cp -r benchmarks/ /tmp/_asv_preserve/')
-    expect(cmd).toContain('cp -r asv.conf.json /tmp/_asv_preserve/')
+    expect(cmd).toContain(`mkdir -p ${shellQuote('.asv-perch-preserve')}`)
+    expect(cmd).toContain(`cp -r ${shellQuote('benchmarks/')} ${shellQuote('.asv-perch-preserve')}/`)
+    expect(cmd).toContain(`cp -r ${shellQuote('asv.conf.json')} ${shellQuote('.asv-perch-preserve')}/`)
     expect(cmd).toContain('git checkout -f abc123 && git clean -fd')
-    expect(cmd).toContain('rm -rf benchmarks/ && cp -r /tmp/_asv_preserve/benchmarks benchmarks/')
-    expect(cmd).toContain('rm -rf asv.conf.json && cp -r /tmp/_asv_preserve/asv.conf.json asv.conf.json')
+    expect(cmd).toContain(`rm -rf ${shellQuote('benchmarks/')} && cp -r ${shellQuote('.asv-perch-preserve/benchmarks')} ${shellQuote('benchmarks/')}`)
+    expect(cmd).toContain(`rm -rf ${shellQuote('asv.conf.json')} && cp -r ${shellQuote('.asv-perch-preserve/asv.conf.json')} ${shellQuote('asv.conf.json')}`)
+    expect(cmd).not.toContain('cp -r benchmarks/')
   })
 
   it('handles single preserve path', () => {
     const cmd = buildCheckoutCommand('def456', ['benchmarks/'])
-    expect(cmd).toContain('cp -r benchmarks/ /tmp/_asv_preserve/')
-    expect(cmd).toContain('rm -rf benchmarks/ && cp -r /tmp/_asv_preserve/benchmarks benchmarks/')
+    expect(cmd).toContain(`cp -r ${shellQuote('benchmarks/')} ${shellQuote('.asv-perch-preserve')}/`)
+    expect(cmd).toContain(`rm -rf ${shellQuote('benchmarks/')} && cp -r ${shellQuote('.asv-perch-preserve/benchmarks')} ${shellQuote('benchmarks/')}`)
+  })
+
+  it('quotes preserve paths that contain spaces or quotes', () => {
+    const cmd = buildCheckoutCommand('abc123', ['my dir/a\'b'])
+    expect(cmd).toContain(`cp -r ${shellQuote('my dir/a\'b')} `)
+    expect(cmd).not.toContain('cp -r my dir')
   })
 })
 
@@ -572,6 +584,130 @@ describe('maybeBuildEnvDiffSection', () => {
     expect(section).toBeDefined()
     expect(section).toContain('## Environment inventory')
     expect(section).toContain('numpy')
+  })
+})
+
+describe('contender execution order', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  it('awaits each contender before starting the next', async () => {
+    const execMod = await import('@actions/exec')
+    const calls: string[] = []
+    let releaseFirst: (() => void) | undefined
+    const gate = new Promise<void>((resolve) => {
+      releaseFirst = resolve
+    })
+    ;(execMod.exec as ReturnType<typeof vi.fn>).mockImplementation(async (_bin: string, args: string[]) => {
+      const cmd = String(args[1])
+      calls.push(`start:${cmd}`)
+      if (calls.length === 1) {
+        await gate
+      }
+      calls.push(`end:${cmd}`)
+    })
+
+    const pending = executeBenchmarks(
+      null,
+      [
+        { label: 'a', sha: 'aaaaaaaa', setup: 'echo A' },
+        { label: 'b', sha: 'bbbbbbbb', setup: 'echo B' },
+      ],
+      'asv run {sha}',
+    )
+    await new Promise((resolve) => setTimeout(resolve, 30))
+    expect(calls.some((c) => c.includes('echo B'))).toBe(false)
+    releaseFirst!()
+    await pending
+    const endA = calls.findIndex((c) => c.startsWith('end:') && c.includes('echo A'))
+    const startB = calls.findIndex((c) => c.startsWith('start:') && c.includes('echo B'))
+    expect(endA).toBeGreaterThanOrEqual(0)
+    expect(startB).toBeGreaterThan(endA)
+  })
+})
+
+describe('result file commit hash', () => {
+  it('selects the file whose commit_hash matches, not an 8-character filename prefix', async () => {
+    const fs = await import('node:fs')
+    const dir = join(__dirname, 'fixtures', 'sha-match')
+    fs.mkdirSync(dir, { recursive: true })
+    const shared = 'abcdef01'
+    const fullA = `${shared}${'a'.repeat(32)}`
+    const fullB = `${shared}${'b'.repeat(32)}`
+    const fileA = join(dir, `${shared}-env-a.json`)
+    const fileB = join(dir, `${shared}-env-b.json`)
+    const body = (commit: string) => JSON.stringify({ commit_hash: commit, results: {} })
+    fs.writeFileSync(fileA, body(fullA))
+    fs.writeFileSync(fileB, body(fullB))
+    const notes = join(dir, `${shared}-notes.json`)
+    // A filename that starts with the prefix but is not a result for either commit.
+    fs.writeFileSync(notes, JSON.stringify({ note: true }))
+    const glob = await import('@actions/glob')
+    ;(glob.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+      glob: async () => [fileB, notes, fileA],
+    })
+
+    const matches = await resultFilesForCommit(dir, fullA)
+    expect(matches).toEqual([fileA])
+    expect(await findResultFileByPrefix(dir, fullB)).toBe(fileB)
+    await expect(resultFilesForCommit(dir, shared)).rejects.toThrow(/multiple commits/)
+    fs.rmSync(dir, { recursive: true, force: true })
+  })
+})
+
+describe('buildEnvDiffSections', () => {
+  it('includes every contender, not only the first', async () => {
+    const fs = await import('node:fs')
+    const dir = join(__dirname, 'fixtures', 'env-diff-many')
+    fs.mkdirSync(dir, { recursive: true })
+    const base = join(dir, 'base.json')
+    const one = join(dir, 'one.json')
+    const two = join(dir, 'two.json')
+    const result = (name: string, req: Record<string, string>) => JSON.stringify({
+      commit_hash: 'a'.repeat(40),
+      env_name: name,
+      python: '3.12',
+      params: { machine: 'bench', python: '3.12' },
+      requirements: req,
+    })
+    fs.writeFileSync(base, result('base', {}))
+    fs.writeFileSync(one, result('one', { alpha: '1' }))
+    fs.writeFileSync(two, result('two', { beta: '2' }))
+    const section = buildEnvDiffSections(true, base, [one, two])
+    expect(section).toContain('alpha')
+    expect(section).toContain('beta')
+    fs.rmSync(dir, { recursive: true, force: true })
+  })
+})
+
+describe('spyglass failure', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  it('stops before the regression threshold when spyglass exits nonzero', async () => {
+    const base = join(__dirname, 'fixtures', 'a0f29428-virtualenv-py3.12.json')
+    const pr = join(__dirname, 'fixtures', 'a0f29428-virtualenv-py3.12-numpy.json')
+    await mockInputs({
+      'base-file': base,
+      'pr-file': pr,
+      'post-comment': 'false',
+      'env-diff': 'false',
+    })
+    const execMod = await import('@actions/exec')
+    const core = await import('@actions/core')
+    const glob = await import('@actions/glob')
+    ;(glob.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+      glob: async () => [],
+    })
+    ;(execMod.getExecOutput as ReturnType<typeof vi.fn>).mockRejectedValue(
+      new Error('The process failed with exit code 3'),
+    )
+    await run()
+    expect(core.setFailed).toHaveBeenCalledWith('The process failed with exit code 3')
+    const keys = (core.setOutput as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[0])
+    expect(keys).not.toContain('regression-detected')
   })
 })
 
