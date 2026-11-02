@@ -5,16 +5,12 @@
 set -eu
 ROOT=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
-VENV="$ROOT/.venv-version"
-if [ ! -x "$VENV/bin/python" ]; then
-  python3 -m venv "$VENV"
-fi
-if ! "$VENV/bin/python" -c 'import cogapp' >/dev/null 2>&1; then
-  "$VENV/bin/pip" install --disable-pip-version-check -r "$ROOT/scripts/requirements-version-sot.txt"
-fi
+. "$ROOT/scripts/version_venv.sh"
 echo "cog --check"
 "$VENV/bin/python" -m cogapp --check \
-  --check-fail-msg "Regenerate with: python3 -m cogapp -r readme_src.org README.md docs/source/changelog.rst" \
+  --check-fail-msg "Regenerate with: .venv-version/bin/python -m cogapp -r readme_src.org README.md docs/source/changelog.rst" \
   readme_src.org README.md docs/source/changelog.rst
 echo "version-consistency"
 "$VENV/bin/python" "$ROOT/scripts/check_version_sot.py"
+echo "version-consistency tests"
+"$VENV/bin/python" -m unittest discover -s "$ROOT/scripts" -p 'test_*.py'

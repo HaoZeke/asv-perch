@@ -73,8 +73,9 @@ def read_version_string(version: str) -> str:
 def major_version(version: str) -> str:
     """Return the major component.
 
-    Workflow examples pin the moving major tag (``@v1``). That number is
-    the first semver component (https://semver.org/spec/v2.0.0.html).
+    Workflow examples pin the moving major tag, the letter v and this
+    number after the at sign. That number is the first semver component
+    (https://semver.org/spec/v2.0.0.html).
     """
     major, _minor, _patch = read_version_string(version).split(".")
     return major

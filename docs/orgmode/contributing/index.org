@@ -82,10 +82,11 @@ value (https://semver.org/spec/v2.0.0.html).
 Sphinx reads the field when the docs are built
 (https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-release).
 Cog fills the readme badge and the changelog link
-(https://cog.readthedocs.io/en/latest/). From the repository root:
+(https://cog.readthedocs.io/en/latest/). From the repository root, after
+=bash scripts/cog_check.sh= has created the virtualenv:
 
 #+begin_src bash
-python3 -m cogapp -r readme_src.org README.md docs/source/changelog.rst
+.venv-version/bin/python -m cogapp -r readme_src.org README.md docs/source/changelog.rst
 #+end_src
 
 Release notes use towncrier
@@ -93,11 +94,19 @@ Release notes use towncrier
 =towncrier.toml= does not store a version.
 =scripts/towncrier_build.sh= passes =--version= from =package.json=
 (https://towncrier.readthedocs.io/en/stable/tutorial.html#detecting-version).
+It rejects a =--version= of its own, which towncrier would use in place of the =package.json= one.
+The check fails on a release heading above the towncrier marker, or on one for a version later than =package.json=.
 
-Tool installs for those commands are pinned in
+The towncrier and cog versions are pinned in
 =scripts/requirements-version-sot.txt=. =bash scripts/cog_check.sh=
-creates a virtualenv and runs =cog --check= and
-=scripts/check_version_sot.py=.
+creates a virtualenv and runs =cog --check=,
+=scripts/check_version_sot.py= and its tests in =scripts/test_*.py=.
+Both scripts rebuild =.venv-version= when its python, cog, towncrier or
+install marker is missing, or when the pins change.
+
+The scripts need Python 3.11 or newer, because the check reads
+=towncrier.toml= with =tomllib= (https://docs.python.org/3/library/tomllib.html).
+They stop with an error on an older Python.
 
 * Conventions
 

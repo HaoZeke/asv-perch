@@ -4,20 +4,21 @@
 # towncrier runs from the pinned virtualenv that scripts/cog_check.sh uses,
 # so the build does not depend on a towncrier found on PATH.
 set -eu
+# towncrier keeps the last --version it is given, so a caller's own
+# --version would replace the package.json one. Exit status 2 matches
+# the status towncrier gives for its own usage errors.
+for arg in "$@"; do
+  case $arg in
+    --version | --version=*)
+      echo "towncrier_build: the version comes from package.json, drop $arg" >&2
+      exit 2
+      ;;
+  esac
+done
 ROOT=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
-VENV="$ROOT/.venv-version"
-if [ ! -x "$VENV/bin/python" ]; then
-  python3 -m venv "$VENV"
-fi
-if [ ! -x "$VENV/bin/towncrier" ]; then
-  "$VENV/bin/pip" install --disable-pip-version-check -r "$ROOT/scripts/requirements-version-sot.txt"
-fi
-if [ ! -x "$VENV/bin/towncrier" ]; then
-  echo "towncrier_build: $VENV/bin/towncrier is missing after install" >&2
-  exit 1
-fi
+. "$ROOT/scripts/version_venv.sh"
 VERSION=$(
-  python3 -c 'import sys
+  "$VENV/bin/python" -c 'import sys
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
 from project_version import read_version
