@@ -13,6 +13,7 @@ from __future__ import annotations
 import os
 import re
 import sys
+import tomllib
 from pathlib import Path
 
 from project_version import (
@@ -68,6 +69,11 @@ COG_FILES = (
     "README.md",
     "docs/source/changelog.rst",
 )
+
+
+# towncrier writes each release below this line and keeps the text above it.
+# https://towncrier.readthedocs.io/en/stable/configuration.html
+TOWNCRIER_DEFAULT_START = ".. towncrier release notes start"
 
 
 class Drift(Exception):
@@ -229,10 +235,15 @@ def _check_literal_copies(version: str) -> list[str]:
     }
     # The badge and the changelog link each mention the version twice:
     # once in the visible text and once in the release-tag URL.
+    notes_file, notes_start = _towncrier_notes()
     seen: dict[str, int] = {}
     for path in _text_files():
         rel = path.relative_to(ROOT).as_posix()
-        count = path.read_text(encoding="utf-8").count(version)
+        text = path.read_text(encoding="utf-8")
+        if rel == notes_file:
+            # Release sections below the marker are towncrier output.
+            text = text.split(notes_start, 1)[0]
+        count = text.count(version)
         if count == 0:
             continue
         seen[rel] = count
@@ -251,6 +262,17 @@ def _check_literal_copies(version: str) -> list[str]:
             if rel not in seen:
                 errors.append(f"{rel} does not contain the project version")
     return errors
+
+
+def _towncrier_notes() -> tuple[str, str]:
+    """Return the release-notes file and the line towncrier writes below."""
+    config = tomllib.loads(
+        (ROOT / "towncrier.toml").read_text(encoding="utf-8")
+    )["tool"]["towncrier"]
+    return (
+        config["filename"],
+        config.get("start_string", TOWNCRIER_DEFAULT_START).rstrip("\n"),
+    )
 
 
 def _text_files() -> list[Path]:
