@@ -10,6 +10,9 @@ bun-debug.log*
 
 node_modules
 .pixi
+.venv-version
+__pycache__/
+*.pyc
 coverage
 *.local
 

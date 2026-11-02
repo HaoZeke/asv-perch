@@ -31,6 +31,8 @@ bun install
 | =bun run lint= | Run ESLint |
 | =bun run lint:fix= | Run ESLint with auto-fix |
 | =bun run typecheck= | TypeScript type checking (no emit) |
+| =python3 scripts/check_version_sot.py= | Compare generated version text to =package.json= |
+| =bash scripts/cog_check.sh= | =cog --check= plus the version comparison |
 
 * Project Structure
 
@@ -68,6 +70,34 @@ since the GitHub runner does not install dependencies.
 
 The =dist/index.js= file must be committed to the repository -- GitHub reads it
 directly when running the action.
+
+* Version
+
+The version is written by hand in the =version= field of =package.json=
+(https://docs.npmjs.com/cli/v10/configuring-npm/package-json#version).
+That value is the numeric core of the current release tag. The moving
+major tag used in workflow examples is the first component of the same
+value (https://semver.org/spec/v2.0.0.html).
+
+Sphinx reads the field when the docs are built
+(https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-release).
+Cog fills the readme badge and the changelog link
+(https://cog.readthedocs.io/en/latest/). From the repository root:
+
+#+begin_src bash
+python3 -m cogapp -r readme_src.org README.md docs/source/changelog.rst
+#+end_src
+
+Release notes use towncrier
+(https://towncrier.readthedocs.io/en/stable/).
+=towncrier.toml= does not store a version.
+=scripts/towncrier_build.sh= passes =--version= from =package.json=
+(https://towncrier.readthedocs.io/en/stable/tutorial.html#detecting-version).
+
+Tool installs for those commands are pinned in
+=scripts/requirements-version-sot.txt=. =bash scripts/cog_check.sh=
+creates a virtualenv and runs =cog --check= and
+=scripts/check_version_sot.py=.
 
 * Conventions
 

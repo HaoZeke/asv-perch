@@ -1,0 +1,7 @@
+# Non-Python project. The version is not stored here.
+# https://towncrier.readthedocs.io/en/stable/configuration.html
+# scripts/towncrier_build.sh passes --version from package.json.
+[tool.towncrier]
+name = "asv-perch"
+filename = "docs/source/changelog.rst"
+directory = "changelog.d"

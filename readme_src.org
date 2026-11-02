@@ -8,6 +8,18 @@
 [![Docs](https://github.com/HaoZeke/asv-perch/actions/workflows/ci_docs.yml/badge.svg)](https://asv-perch.rgoswami.me)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub](https://img.shields.io/badge/GitHub-HaoZeke%2Fasv--perch-blue?logo=github)](https://github.com/HaoZeke/asv-perch)
+<!-- [[[cog
+import pathlib
+import sys
+import cog
+root = pathlib.Path("package.json").resolve().parent
+sys.path.insert(0, str(root / "scripts"))
+from project_version import read_version, readme_badge
+version = read_version(root / "package.json")
+cog.outl(readme_badge(version))
+]]] -->
+[![Version](https://img.shields.io/badge/version-1.2.2-blue)](https://github.com/HaoZeke/asv-perch/releases/tag/v1.2.2)
+<!-- [[[end]]] -->
 #+end_export
 
 A GitHub Action that posts ASV benchmark comparison results as PR comments with

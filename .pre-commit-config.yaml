@@ -33,3 +33,9 @@ repos:
         language: system
         pass_filenames: false
         types_or: [ts]
+      - id: version-sot
+        name: version source of truth
+        entry: bash scripts/cog_check.sh
+        language: system
+        pass_filenames: false
+        always_run: true

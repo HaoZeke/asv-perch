@@ -102,4 +102,5 @@ action.
    :caption: Development
 
    contributing/index
+   changelog
 #+end_export

@@ -1,6 +1,20 @@
+import sys
+from pathlib import Path
+
+# docs/source/conf.py is two directories below the repository root.
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_REPO_ROOT / "scripts"))
+from project_version import read_version, short_version
+
 project = "asv-perch"
 copyright = "2026--present, Rohit Goswami"
 author = "Rohit Goswami"
+
+# release is the full package.json version. version is the Sphinx short
+# X.Y form. Both are read at build time, not written here.
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-release
+release = read_version(_REPO_ROOT / "package.json")
+version = short_version(release)
 
 extensions = [
     "sphinx.ext.intersphinx",

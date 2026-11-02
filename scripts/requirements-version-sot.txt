@@ -1,0 +1,11 @@
+# cogapp 3.6.0 is the release that added --check-fail-msg, which the drift
+# check prints so a failure names the regenerate command.
+# https://cog.readthedocs.io/en/latest/changes.html
+# https://pypi.org/project/cogapp/3.6.0/
+cogapp==3.6.0
+# towncrier 26.9.0 is the current stable release. This is not a Python
+# package, so the version is not discovered from package metadata. The
+# build script passes --version from package.json.
+# https://towncrier.readthedocs.io/en/stable/tutorial.html#detecting-version
+# https://pypi.org/project/towncrier/26.9.0/
+towncrier==26.9.0
