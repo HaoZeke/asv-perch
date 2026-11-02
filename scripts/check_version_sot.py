@@ -10,6 +10,7 @@ Towncrier must not store a second copy; scripts/towncrier_build.sh passes
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import sys
@@ -58,11 +59,28 @@ TEXT_SUFFIXES = {
     ".yml",
 }
 
-PIN_RE = re.compile(r"asv-perch@v(\d+(?:\.\d+\.\d+)?)")
+# A pin captures the whole git ref after the at sign, so the refs v1.2
+# and v1.99 are read whole and fail, rather than as major 1.
+# A trailing full stop is sentence punctuation, not part of a semver tag
+# (https://semver.org/spec/v2.0.0.html#backusnaur-form-grammar-for-valid-semver-versions).
+PIN_RE = re.compile(r"asv-perch@v([0-9][0-9A-Za-z.+-]*)")
 PROSE_PIN_RES = (
-    re.compile(r"=@v(\d+)="),
-    re.compile(r"=~v(\d+)="),
-    re.compile(r"`@v(\d+)`"),
+    # The bracketed delimiters keep these lines from matching themselves.
+    re.compile(r"[=]@v([^=\s]+)[=]"),
+    re.compile(r"[=]~v([^=\s]+)[=]"),
+    re.compile(r"[`]@v([^`\s]+)[`]"),
+)
+# npm lists other packages' versions under these keys
+# (https://docs.npmjs.com/cli/v10/configuring-npm/package-json#dependencies).
+# They are not copies of this project's version.
+NPM_DEPENDENCY_KEYS = (
+    "bundleDependencies",
+    "bundledDependencies",
+    "dependencies",
+    "devDependencies",
+    "optionalDependencies",
+    "overrides",
+    "peerDependencies",
 )
 COG_FILES = (
     "readme_src.org",
@@ -74,6 +92,9 @@ COG_FILES = (
 # towncrier writes each release below this line and keeps the text above it.
 # https://towncrier.readthedocs.io/en/stable/configuration.html
 TOWNCRIER_DEFAULT_START = ".. towncrier release notes start"
+# The bundled templates render this title when title_format is empty.
+# https://towncrier.readthedocs.io/en/stable/configuration.html
+TOWNCRIER_DEFAULT_TITLE = "{name} {version} ({project_date})"
 
 
 class Drift(Exception):
@@ -98,6 +119,7 @@ def main() -> int:
     errors.extend(_check_cog(version))
     errors.extend(_check_conf())
     errors.extend(_check_towncrier(version))
+    errors.extend(_check_release_headings())
     errors.extend(_check_pins(version))
     errors.extend(_check_literal_copies(version))
 
@@ -175,7 +197,7 @@ def _check_towncrier(version: str) -> list[str]:
     config = (ROOT / "towncrier.toml").read_text(encoding="utf-8")
     if re.search(r"(?m)^version\s*=", config):
         errors.append("towncrier.toml must not set version")
-    if version in config:
+    if _version_token(version).search(config):
         errors.append("towncrier.toml must not contain the project version")
     script = (ROOT / "scripts/towncrier_build.sh").read_text(encoding="utf-8")
     if "--version" not in script or "package.json" not in script:
@@ -198,6 +220,7 @@ def _check_pins(version: str) -> list[str]:
         lines = path.read_text(encoding="utf-8").splitlines()
         for number, line in enumerate(lines, start=1):
             for pin in PIN_RE.findall(line):
+                pin = pin.rstrip(".")
                 found += 1
                 if not _pin_ok(pin, major, version):
                     errors.append(
@@ -224,6 +247,36 @@ def _pin_ok(pin: str, major: str, version: str) -> bool:
     return False
 
 
+def _version_token(version: str) -> re.Pattern[str]:
+    """Match the version as a whole token, not inside another version.
+
+    A digit or dot on either side means a longer number (``11.2.3``,
+    ``1.2.30``, ``1.2.3.4``). A two-character comparison operator before
+    it means a version specifier for another package, such as
+    ``==1.2.3`` (PEP 440,
+    https://peps.python.org/pep-0440/#version-specifiers).
+    A single ``=`` or ``~`` is not skipped, since org markup wraps verbatim
+    and code text in them (``=1.2.3=``, ``~1.2.3~``).
+    npm ranges such as ``^1.2.3`` sit in the package.json dependency
+    tables, which _manifest_text removes before the scan.
+    A full workflow pin is left to _check_pins, which already requires it
+    to equal the current version.
+    """
+    return re.compile(
+        r"(?<![0-9.])(?<!==)(?<!~=)(?<!>=)(?<!<=)(?<!!=)(?<!asv-perch@v)"
+        + re.escape(version)
+        + r"(?![0-9]|\.[0-9])"
+    )
+
+
+def _manifest_text(text: str) -> str:
+    """Return package.json without the tables that hold dependency versions."""
+    data = json.loads(text)
+    for key in NPM_DEPENDENCY_KEYS:
+        data.pop(key, None)
+    return json.dumps(data)
+
+
 def _check_literal_copies(version: str) -> list[str]:
     """The full version string may appear only in the canonical field and cog output."""
     errors: list[str] = []
@@ -236,6 +289,7 @@ def _check_literal_copies(version: str) -> list[str]:
     # The badge and the changelog link each mention the version twice:
     # once in the visible text and once in the release-tag URL.
     notes_file, notes_start = _towncrier_notes()
+    token = _version_token(version)
     seen: dict[str, int] = {}
     for path in _text_files():
         rel = path.relative_to(ROOT).as_posix()
@@ -243,7 +297,9 @@ def _check_literal_copies(version: str) -> list[str]:
         if rel == notes_file:
             # Release sections below the marker are towncrier output.
             text = text.split(notes_start, 1)[0]
-        count = text.count(version)
+        if rel == "package.json":
+            text = _manifest_text(text)
+        count = len(token.findall(text))
         if count == 0:
             continue
         seen[rel] = count
@@ -264,11 +320,54 @@ def _check_literal_copies(version: str) -> list[str]:
     return errors
 
 
-def _towncrier_notes() -> tuple[str, str]:
-    """Return the release-notes file and the line towncrier writes below."""
-    config = tomllib.loads(
+def _check_release_headings() -> list[str]:
+    """Each release may have one heading in the notes file.
+
+    towncrier refuses a second build only when the rendered title_format
+    line is already present, and that line includes the build date
+    (https://towncrier.readthedocs.io/en/stable/configuration.html).
+    A rebuild on another day would add a second heading, so the check
+    reads every heading below the marker and compares versions.
+    """
+    config = _towncrier_config()
+    notes_file, notes_start = _towncrier_notes()
+    title_format = config.get("title_format") or TOWNCRIER_DEFAULT_TITLE
+    heading = re.compile(
+        re.escape(title_format)
+        .replace(re.escape("{name}"), re.escape(config.get("name", "")))
+        .replace(re.escape("{version}"), r"(?P<version>\S+)")
+        .replace(re.escape("{project_date}"), r".+")
+    )
+    text = (ROOT / notes_file).read_text(encoding="utf-8")
+    if notes_start not in text:
+        return [f"{notes_file} is missing the towncrier start marker"]
+    body = text.split(notes_start, 1)[1]
+    seen: dict[str, int] = {}
+    errors: list[str] = []
+    for number, line in enumerate(body.splitlines(), start=1):
+        match = heading.fullmatch(line.strip())
+        if match is None:
+            continue
+        release = match.group("version")
+        if release in seen:
+            errors.append(
+                f"{notes_file} has a second release heading for {release} "
+                f"(lines {seen[release]} and {number} below the marker)"
+            )
+        else:
+            seen[release] = number
+    return errors
+
+
+def _towncrier_config() -> dict:
+    return tomllib.loads(
         (ROOT / "towncrier.toml").read_text(encoding="utf-8")
     )["tool"]["towncrier"]
+
+
+def _towncrier_notes() -> tuple[str, str]:
+    """Return the release-notes file and the line towncrier writes below."""
+    config = _towncrier_config()
     return (
         config["filename"],
         config.get("start_string", TOWNCRIER_DEFAULT_START).rstrip("\n"),

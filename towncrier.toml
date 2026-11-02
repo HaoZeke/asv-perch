@@ -5,3 +5,7 @@
 name = "asv-perch"
 filename = "docs/source/changelog.rst"
 directory = "changelog.d"
+# Same title the bundled template renders. Setting it makes towncrier
+# refuse a second build when this line is already in the notes file.
+# scripts/check_version_sot.py also fails on a repeated release heading.
+title_format = "{name} {version} ({project_date})"
