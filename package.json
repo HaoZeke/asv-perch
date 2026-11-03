@@ -1,6 +1,7 @@
 {
   "name": "asv-perch",
   "type": "module",
+  "version": "1.2.2",
   "private": true,
   "description": "GitHub Action to post formatted ASV benchmark comparison results as PR comments",
   "author": {
@@ -31,6 +32,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest --run",
+    "test:version": "python3 scripts/check_version_sot.py",
     "test:watch": "vitest",
     "test:coverage": "vitest --coverage",
     "typecheck": "tsc --noEmit"

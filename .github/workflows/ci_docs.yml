@@ -6,9 +6,13 @@ on:
     paths:
       - "docs/**"
       - "pixi.toml"
+      - "package.json"
+      - "scripts/project_version.py"
   pull_request:
     paths:
       - "docs/**"
+      - "package.json"
+      - "scripts/project_version.py"
   workflow_dispatch:
 
 jobs:

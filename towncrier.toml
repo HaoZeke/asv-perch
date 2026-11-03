@@ -1,0 +1,17 @@
+# Non-Python project. The version is not stored here.
+# https://towncrier.readthedocs.io/en/stable/configuration.html
+# scripts/towncrier_build.sh passes --version from package.json.
+[tool.towncrier]
+name = "asv-perch"
+filename = "docs/source/changelog.rst"
+directory = "changelog.d"
+# Same title the bundled template renders. Setting it makes towncrier
+# refuse a second build when this line is already in the notes file.
+# scripts/check_version_sot.py also fails on a repeated release heading.
+title_format = "{name} {version} ({project_date})"
+# docs/source/changelog.rst opens with a "=" title, and docutils ranks
+# section levels in the order their underline styles first appear
+# (https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html#sections).
+# Release headings take "-" so they sit one level below that title, and
+# fragment types take "~" one level below each release.
+underlines = ["-", "~", "^"]

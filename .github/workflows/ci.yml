@@ -34,3 +34,6 @@ jobs:
 
       - name: Verify dist exists
         run: test -f dist/index.js
+
+      - name: Check version drift
+        run: bash scripts/cog_check.sh
