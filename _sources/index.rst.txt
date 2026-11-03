@@ -94,3 +94,4 @@ Quick Start
    :caption: Development
 
    contributing/index
+   changelog

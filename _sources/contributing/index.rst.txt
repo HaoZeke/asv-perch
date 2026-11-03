@@ -23,19 +23,23 @@ Available Commands
 
 .. table::
 
-    +-----------------------+-----------------------------------------------------+
-    | Command               | Description                                         |
-    +=======================+=====================================================+
-    | ``bun run build``     | TypeScript check + Vite bundle to ``dist/index.js`` |
-    +-----------------------+-----------------------------------------------------+
-    | ``bun run test``      | Run all tests with vitest                           |
-    +-----------------------+-----------------------------------------------------+
-    | ``bun run lint``      | Run ESLint                                          |
-    +-----------------------+-----------------------------------------------------+
-    | ``bun run lint:fix``  | Run ESLint with auto-fix                            |
-    +-----------------------+-----------------------------------------------------+
-    | ``bun run typecheck`` | TypeScript type checking (no emit)                  |
-    +-----------------------+-----------------------------------------------------+
+    +------------------------------------------+-----------------------------------------------------+
+    | Command                                  | Description                                         |
+    +==========================================+=====================================================+
+    | ``bun run build``                        | TypeScript check + Vite bundle to ``dist/index.js`` |
+    +------------------------------------------+-----------------------------------------------------+
+    | ``bun run test``                         | Run all tests with vitest                           |
+    +------------------------------------------+-----------------------------------------------------+
+    | ``bun run lint``                         | Run ESLint                                          |
+    +------------------------------------------+-----------------------------------------------------+
+    | ``bun run lint:fix``                     | Run ESLint with auto-fix                            |
+    +------------------------------------------+-----------------------------------------------------+
+    | ``bun run typecheck``                    | TypeScript type checking (no emit)                  |
+    +------------------------------------------+-----------------------------------------------------+
+    | ``python3 scripts/check_version_sot.py`` | Compare generated version text to ``package.json``  |
+    +------------------------------------------+-----------------------------------------------------+
+    | ``bash scripts/cog_check.sh``            | ``cog --check`` plus the version comparison         |
+    +------------------------------------------+-----------------------------------------------------+
 
 Project Structure
 -----------------
@@ -89,6 +93,44 @@ since the GitHub runner does not install dependencies.
 
 The ``dist/index.js`` file must be committed to the repository -- GitHub reads it
 directly when running the action.
+
+Version
+-------
+
+The version is written by hand in the ``version`` field of ``package.json``
+(`https://docs.npmjs.com/cli/v10/configuring-npm/package-json#version <https://docs.npmjs.com/cli/v10/configuring-npm/package-json#version>`_).
+That value is the numeric core of the current release tag. The moving
+major tag used in workflow examples is the first component of the same
+value (`https://semver.org/spec/v2.0.0.html <https://semver.org/spec/v2.0.0.html>`_).
+
+Sphinx reads the field when the docs are built
+(`https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-release <https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-release>`_).
+Cog fills the readme badge and the changelog link
+(`https://cog.readthedocs.io/en/latest/ <https://cog.readthedocs.io/en/latest/>`_). From the repository root, after
+``bash scripts/cog_check.sh`` has created the virtualenv:
+
+.. code:: bash
+
+    .venv-version/bin/python -m cogapp -r readme_src.org README.md docs/source/changelog.rst
+
+Release notes use towncrier
+(`https://towncrier.readthedocs.io/en/stable/ <https://towncrier.readthedocs.io/en/stable/>`_).
+``towncrier.toml`` does not store a version.
+``scripts/towncrier_build.sh`` passes ``--version`` from ``package.json``
+(`https://towncrier.readthedocs.io/en/stable/tutorial.html#detecting-version <https://towncrier.readthedocs.io/en/stable/tutorial.html#detecting-version>`_).
+It rejects a ``--version`` of its own, which towncrier would use in place of the ``package.json`` one.
+The check fails on a release heading above the towncrier marker, or on one for a version later than ``package.json``.
+
+The towncrier and cog versions are pinned in
+``scripts/requirements-version-sot.txt``. ``bash scripts/cog_check.sh``
+creates a virtualenv and runs ``cog --check``,
+``scripts/check_version_sot.py`` and its tests in ``scripts/test_*.py``.
+Both scripts rebuild ``.venv-version`` when its python, cog, towncrier or
+install marker is missing, or when the pins change.
+
+The scripts need Python 3.11 or newer, because the check reads
+``towncrier.toml`` with ``tomllib`` (`https://docs.python.org/3/library/tomllib.html <https://docs.python.org/3/library/tomllib.html>`_).
+They stop with an error on an older Python.
 
 Conventions
 -----------
