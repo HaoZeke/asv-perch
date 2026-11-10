@@ -78,15 +78,45 @@ export function shortenBenchmark(name: string): string {
 // TODO: upstream fix in asv_runner/discovery.py -- disc_benchmarks yields
 // duplicates when the benchmark directory has __init__.py (package discovery
 // and direct module discovery both fire). Until fixed, deduplicate here.
+function measurementSignature(row: { benchmark: string }): string {
+  const rec = row as unknown as Record<string, unknown>
+  if ('before' in rec && 'after' in rec && 'ratio' in rec) {
+    return JSON.stringify([rec.mark, rec.before, rec.after, rec.ratio])
+  }
+  if ('baseline' in rec && 'contenders' in rec) {
+    return JSON.stringify([rec.baseline, rec.contenders])
+  }
+  return JSON.stringify(rec)
+}
+
+// Collapse only rows that are the same measurement under a shortened name
+// (the asv_runner double-discovery case). Distinct results that merely
+// shorten to the same string are kept under their original names.
 function deduplicateRows<T extends { benchmark: string }>(rows: T[]): T[] {
-  const seen = new Map<string, T>()
+  const groups = new Map<string, T[]>()
+  const order: string[] = []
   for (const row of rows) {
     const key = shortenBenchmark(row.benchmark)
-    if (!seen.has(key) || row.benchmark.length < seen.get(key)!.benchmark.length) {
-      seen.set(key, { ...row, benchmark: key })
+    const group = groups.get(key)
+    if (group) {
+      group.push(row)
+    } else {
+      groups.set(key, [row])
+      order.push(key)
     }
   }
-  return [...seen.values()]
+  const out: T[] = []
+  for (const key of order) {
+    const group = groups.get(key)!
+    const signatures = new Set(group.map(measurementSignature))
+    if (signatures.size === 1) {
+      const kept = group.reduce((a, b) => (a.benchmark.length <= b.benchmark.length ? a : b))
+      out.push({ ...kept, benchmark: key })
+    } else {
+      out.push(...group)
+    }
+  }
+  return out
 }
 
 export function parseComparison(raw: string): ParsedComparison {
