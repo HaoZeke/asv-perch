@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import {
   formatResolvableChange,
   helpSupportsCompareJson,
+  helpSupportsCompareLatex,
   jsonCriticalRegression,
   parseComparison,
   resolvableChangeLine,
@@ -126,6 +127,10 @@ describe('helpSupportsCompareJson', () => {
     expect(helpSupportsCompareJson('--format {github,latex,json}')).toBe(true)
     expect(helpSupportsCompareJson('--format {github,latex}')).toBe(false)
     expect(helpSupportsCompareJson('usage: asv compare [-h] revision1 revision2')).toBe(false)
+    expect(helpSupportsCompareLatex('--format {github,latex,json}')).toBe(true)
+    expect(helpSupportsCompareLatex('--format {github,latex}')).toBe(true)
+    expect(helpSupportsCompareLatex('usage: asv compare [-h] [--factor FACTOR] revision1 revision2')).toBe(false)
+    expect(helpSupportsCompareLatex('--sort {name,ratio,default}')).toBe(false)
   })
 })
 

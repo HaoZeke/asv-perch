@@ -480,6 +480,14 @@ export function helpSupportsCompareJson(helpText: string): boolean {
 }
 
 /**
+ * True when `asv compare --help` lists latex among the --format choices.
+ * asv 0.6.6 has no --format flag, so the .tex artifact is skipped.
+ */
+export function helpSupportsCompareLatex(helpText: string): boolean {
+  return /\{[^}\n]*\blatex\b[^}\n]*\}/.test(helpText)
+}
+
+/**
  * schema_version 1 JSON is parsed. Anything else that is not that document
  * is the markdown table older asv builds print.
  */

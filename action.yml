@@ -192,6 +192,18 @@ inputs:
       upload-comment-artifact is true (also exposed as comment-body-path output).
     required: false
     default: asv-perch-comment.md
+  latex-table:
+    description: >-
+      When true, and asv compare accepts --format=latex, write the booktabs
+      table to latex-table-path and set the latex-table-path output for a
+      follow-up actions/upload-artifact step. asv 0.6.6 has no LaTeX format,
+      so the step is skipped with a notice.
+    required: false
+    default: 'false'
+  latex-table-path:
+    description: Where to write the .tex file when latex-table is true
+    required: false
+    default: asv-compare.tex
 
 outputs:
   comparison:
@@ -208,6 +220,10 @@ outputs:
   comment-artifact-name:
     description: >-
       Name of the uploaded artifact when upload-comment-artifact is true
+  latex-table-path:
+    description: >-
+      Path of the written .tex file when latex-table is true and this asv
+      supports --format=latex. Empty when the table was skipped.
 
 branding:
   icon: bar-chart-2

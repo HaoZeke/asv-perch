@@ -395,6 +395,14 @@ same effect (checked before running asv-spyglass in =compare= mode).
   A slower verdict counts even when its ratio is under
   =regression-threshold=. Default: ='false'=, which keeps the threshold check.
 
+- =latex-table= :: When ='true'= and =asv compare= accepts =--format=latex=,
+  write the booktabs table to =latex-table-path= and set the
+  =latex-table-path= output so a later step can upload it. asv 0.6.6 has
+  no LaTeX format, and the action skips with a notice. Default: ='false'=.
+
+- =latex-table-path= :: Filesystem path for that =.tex= file. Default:
+  =asv-compare.tex=.
+
 - =auto-draft-on-regression= :: When set to ='true'= and a critical regression
   is detected, the action converts the PR to draft status via the GitHub GraphQL
   API. Default: ='false'=. This prevents accidental merges of severely regressed

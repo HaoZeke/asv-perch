@@ -8,6 +8,7 @@ import {
   maybeBuildEnvDiffSection,
   parseBoolInput,
   readAsvCompareJson,
+  readAsvCompareLatex,
   readComparisonTextFile,
   resolveInputs,
   selectResultFile,
@@ -21,6 +22,7 @@ vi.mock('@actions/core', () => ({
   setOutput: vi.fn(),
   setFailed: vi.fn(),
   info: vi.fn(),
+  notice: vi.fn(),
   warning: vi.fn(),
   summary: { addRaw: vi.fn().mockReturnThis(), write: vi.fn() },
 }))
@@ -524,6 +526,8 @@ describe('env-diff / comment delivery inputs', () => {
     expect(result.envDiff).toBe(true)
     expect(result.postComment).toBe(true)
     expect(result.regressionOnVerdict).toBe(false)
+    expect(result.latexTable).toBe(false)
+    expect(result.latexTablePath).toBe('asv-compare.tex')
     expect(result.uploadCommentArtifact).toBe(false)
   })
 
@@ -534,6 +538,8 @@ describe('env-diff / comment delivery inputs', () => {
       'post-comment': 'false',
       'upload-comment-artifact': 'true',
       'regression-on-verdict': 'true',
+      'latex-table': 'true',
+      'latex-table-path': 'out/compare.tex',
       'comment-artifact-name': 'bench-md',
       'comment-artifact-path': 'out/comment.md',
     })
@@ -542,6 +548,8 @@ describe('env-diff / comment delivery inputs', () => {
     expect(result.postComment).toBe(false)
     expect(result.uploadCommentArtifact).toBe(true)
     expect(result.regressionOnVerdict).toBe(true)
+    expect(result.latexTable).toBe(true)
+    expect(result.latexTablePath).toBe('out/compare.tex')
     expect(result.commentArtifactName).toBe('bench-md')
     expect(result.commentArtifactPath).toBe('out/comment.md')
   })
@@ -651,6 +659,40 @@ describe('readAsvCompareJson', () => {
     mocked.mockClear()
     await expect(readAsvCompareJson('', 'def')).resolves.toBeNull()
     expect(mocked).not.toHaveBeenCalled()
+  })
+})
+
+describe('readAsvCompareLatex', () => {
+  it('returns the booktabs table when asv advertises latex', async () => {
+    const exec = await import('@actions/exec')
+    const mocked = exec.getExecOutput as ReturnType<typeof vi.fn>
+    const tex = '% Requires \\usepackage{booktabs,siunitx}\n\\begin{tabular}{llrrrc}\n\\end{tabular}\n'
+    mocked.mockImplementation(async (_cmd: string, args: string[] = []) => {
+      if (args.includes('--help')) {
+        return { exitCode: 0, stdout: '--format {github,latex,json}\n', stderr: '' }
+      }
+      return { exitCode: 0, stdout: tex, stderr: '' }
+    })
+    await expect(readAsvCompareLatex('abc', 'def')).resolves.toBe(tex)
+    const latexCall = mocked.mock.calls.find((call) => (call[1] as string[]).includes('latex'))
+    expect(latexCall?.[1]).toEqual(['compare', 'abc', 'def', '--format', 'latex'])
+  })
+
+  it('notices and skips asv 0.6.6, which has no latex format', async () => {
+    const exec = await import('@actions/exec')
+    const core = await import('@actions/core')
+    const mocked = exec.getExecOutput as ReturnType<typeof vi.fn>
+    const skipped = core.notice as ReturnType<typeof vi.fn>
+    mocked.mockClear()
+    skipped.mockClear()
+    mocked.mockResolvedValue({
+      exitCode: 0,
+      stdout: 'usage: asv compare [-h] [--factor FACTOR] [--sort {name,ratio,default}] revision1 revision2\n',
+      stderr: '',
+    })
+    await expect(readAsvCompareLatex('abc', 'def')).resolves.toBeNull()
+    expect(mocked).toHaveBeenCalledTimes(1)
+    expect(skipped).toHaveBeenCalledWith(expect.stringContaining('no --format=latex'))
   })
 })
 

@@ -1,13 +1,13 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import process from 'node:process'
-import { getInput, info, setFailed, setOutput, warning } from '@actions/core'
+import { getInput, info, notice, setFailed, setOutput, warning } from '@actions/core'
 import { exec, getExecOutput } from '@actions/exec'
 import { context, getOctokit } from '@actions/github'
 import { create as createGlob } from '@actions/glob'
 import yaml from 'js-yaml'
 import { envDiffSectionFromPaths } from './inventory'
-import { helpSupportsCompareJson, jsonCriticalRegression, parseCompareMany, selectComparison } from './parse'
+import { helpSupportsCompareJson, helpSupportsCompareLatex, jsonCriticalRegression, parseCompareMany, selectComparison } from './parse'
 import type { ParsedComparison } from './parse'
 import type { RenderOptions } from './render'
 import { renderCompareJsonComment, renderCompareManyComment, renderTwoWayComment } from './render'
@@ -57,6 +57,8 @@ interface ResolvedInputs {
   asvSpyglassArgs: string[]
   regressionThreshold: number
   regressionOnVerdict: boolean
+  latexTable: boolean
+  latexTablePath: string
   autoDraftOnRegression: boolean
   commentMarker: string
   labelBefore: string
@@ -248,6 +250,8 @@ export function resolveInputs(): ResolvedInputs {
     asvSpyglassArgs,
     regressionThreshold: Number.parseFloat(getInput('regression-threshold') || '10'),
     regressionOnVerdict: parseBoolInput(getInput('regression-on-verdict') || '', false),
+    latexTable: parseBoolInput(getInput('latex-table') || '', false),
+    latexTablePath: getInput('latex-table-path') || 'asv-compare.tex',
     autoDraftOnRegression,
     commentMarker: getInput('comment-marker') || '<!-- asv-benchmark-result -->',
     labelBefore: getInput('label-before') || baselineConfig?.label || 'main',
@@ -635,6 +639,48 @@ export async function readAsvCompareJson(baseSha: string, prSha: string): Promis
   return result.stdout
 }
 
+/**
+ * Run `asv compare --format latex` when this asv advertises it.
+ * Returns null, after a notice, on asv 0.6.6 and on any failed compare.
+ */
+export async function readAsvCompareLatex(baseSha: string, prSha: string): Promise<string | null> {
+  if (!baseSha || !prSha) {
+    notice('latex-table skipped: base and head SHAs are required')
+    return null
+  }
+  let help
+  try {
+    help = await getExecOutput('asv', ['compare', '--help'], {
+      silent: true,
+      ignoreReturnCode: true,
+    })
+  } catch {
+    notice('latex-table skipped: asv compare is not available')
+    return null
+  }
+  const helpText = `${help.stdout}\n${help.stderr}`
+  if (help.exitCode !== 0 || !helpSupportsCompareLatex(helpText)) {
+    notice('latex-table skipped: this asv compare has no --format=latex')
+    return null
+  }
+  let result
+  try {
+    result = await getExecOutput('asv', ['compare', baseSha, prSha, '--format', 'latex'], {
+      silent: true,
+      ignoreReturnCode: true,
+    })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    notice(`latex-table skipped: asv compare --format latex failed (${msg})`)
+    return null
+  }
+  if (result.exitCode !== 0 || !result.stdout.includes('\\begin{tabular}')) {
+    notice('latex-table skipped: asv compare --format latex did not write a table')
+    return null
+  }
+  return result.stdout
+}
+
 // Step 7: Find PR by SHA
 export async function findPullRequest(
   octokit: ReturnType<typeof getOctokit>,
@@ -942,6 +988,22 @@ export async function run(): Promise<void> {
     }
 
     setOutput('regression-detected', hasRegression.toString())
+
+    if (inputs.latexTable) {
+      const tex = await readAsvCompareLatex(inputs.baseSha, inputs.prSha)
+      if (tex) {
+        writeCommentBodyFile(inputs.latexTablePath, tex)
+        setOutput('latex-table-path', inputs.latexTablePath)
+        info(
+          `latex-table: wrote ${inputs.latexTablePath}. `
+          + 'Upload that path with actions/upload-artifact.',
+        )
+      } else {
+        setOutput('latex-table-path', '')
+      }
+    } else {
+      setOutput('latex-table-path', '')
+    }
 
     // Always write job summary when possible
     writeSummary(commentBody)
