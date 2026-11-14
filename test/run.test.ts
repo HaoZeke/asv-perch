@@ -7,6 +7,7 @@ import {
   detectRegression,
   maybeBuildEnvDiffSection,
   parseBoolInput,
+  readAsvCompareJson,
   readComparisonTextFile,
   resolveInputs,
   writeCommentBodyFile,
@@ -570,6 +571,61 @@ describe('maybeBuildEnvDiffSection', () => {
     expect(section).toBeDefined()
     expect(section).toContain('## Environment inventory')
     expect(section).toContain('numpy')
+  })
+})
+
+describe('readAsvCompareJson', () => {
+  it('returns schema_version 1 when asv advertises json', async () => {
+    const exec = await import('@actions/exec')
+    const mocked = exec.getExecOutput as ReturnType<typeof vi.fn>
+    const payload = '{"schema_version":1,"before":{},"after":{},"records":[]}\n'
+    mocked.mockImplementation(async (_cmd: string, args: string[] = []) => {
+      if (args.includes('--help')) {
+        return { exitCode: 0, stdout: '--format {github,latex,json}\n', stderr: '' }
+      }
+      return { exitCode: 0, stdout: payload, stderr: '' }
+    })
+    await expect(readAsvCompareJson('abc', 'def')).resolves.toBe(payload)
+  })
+
+  it('returns null for older asv that has no json format', async () => {
+    const exec = await import('@actions/exec')
+    const mocked = exec.getExecOutput as ReturnType<typeof vi.fn>
+    mocked.mockClear()
+    mocked.mockResolvedValue({
+      exitCode: 0,
+      stdout: '--format {github,latex}\n',
+      stderr: '',
+    })
+    await expect(readAsvCompareJson('abc', 'def')).resolves.toBeNull()
+    expect(mocked).toHaveBeenCalledTimes(1)
+  })
+
+  it('returns null when the json compare command fails', async () => {
+    const exec = await import('@actions/exec')
+    const mocked = exec.getExecOutput as ReturnType<typeof vi.fn>
+    mocked.mockImplementation(async (_cmd: string, args: string[] = []) => {
+      if (args.includes('--help')) {
+        return { exitCode: 0, stdout: '--format {github,latex,json}\n', stderr: '' }
+      }
+      return { exitCode: 2, stdout: '', stderr: 'not a project' }
+    })
+    await expect(readAsvCompareJson('abc', 'def')).resolves.toBeNull()
+  })
+
+  it('returns null when asv is not on PATH', async () => {
+    const exec = await import('@actions/exec')
+    const mocked = exec.getExecOutput as ReturnType<typeof vi.fn>
+    mocked.mockRejectedValue(new Error('spawn asv ENOENT'))
+    await expect(readAsvCompareJson('abc', 'def')).resolves.toBeNull()
+  })
+
+  it('skips the probe when a revision is missing', async () => {
+    const exec = await import('@actions/exec')
+    const mocked = exec.getExecOutput as ReturnType<typeof vi.fn>
+    mocked.mockClear()
+    await expect(readAsvCompareJson('', 'def')).resolves.toBeNull()
+    expect(mocked).not.toHaveBeenCalled()
   })
 })
 

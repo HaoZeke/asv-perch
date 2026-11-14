@@ -160,6 +160,26 @@ The original asv-spyglass output is preserved in a final collapsible section:
 
 This is useful for debugging or when the parsed rendering misses something.
 
+* JSON compare records
+
+When the installed asv accepts =asv compare --format json= and the payload
+has =schema_version= 1, the comment is built from those records instead of
+a scraped markdown table. Older asv builds keep the markdown path above.
+
+Each record contributes its verdict (=slower=, =faster=, =unchanged=, or
+=failed=), the ratio with its 95% interval, the rounds used, and the A/A
+band. A parameterized benchmark is one row per parameter combination.
+A line under the alert names the smallest change the run can resolve: the
+widest distance from 1 to an A/A band edge. A smaller change still meets
+that band.
+
+#+begin_example
+Smallest change this run can resolve: 4.0%.
+#+end_example
+
+The ratio column is =1.03 [1.02, 1.04]=. Missing intervals, rounds, and
+bands are =n/a=. The raw section is the JSON document.
+
 * Change Classification
 
 The action classifies each benchmark row based on the change mark from

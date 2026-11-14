@@ -1,5 +1,5 @@
-import type { BenchmarkRow, CompareManyRow, ParsedCompareMany, ParsedComparison } from './parse'
-import { shortenBenchmark } from './parse'
+import type { BenchmarkRow, CompareJsonDocument, CompareJsonRecord, CompareManyRow, ParsedCompareMany, ParsedComparison } from './parse'
+import { compareJsonBenchmarkLabel, formatRatioInterval, resolvableChangeLine, selectComparison, shortenBenchmark } from './parse'
 
 export interface ContenderMeta {
   label: string
@@ -387,4 +387,183 @@ export function renderCompareManyComment(parsed: ParsedCompareMany, rawOutput: s
   parts.push('</details>')
 
   return parts.join('\n')
+}
+
+function jsonGroups(doc: CompareJsonDocument): Record<CompareJsonRecord['verdict'], CompareJsonRecord[]> {
+  return {
+    slower: doc.records.filter((record) => record.verdict === 'slower'),
+    faster: doc.records.filter((record) => record.verdict === 'faster'),
+    unchanged: doc.records.filter((record) => record.verdict === 'unchanged'),
+    failed: doc.records.filter((record) => record.verdict === 'failed'),
+  }
+}
+
+function formatRounds(rounds: number | null): string {
+  if (rounds === null || !Number.isFinite(rounds)) {
+    return 'n/a'
+  }
+  return String(rounds)
+}
+
+function formatRatioCell(record: CompareJsonRecord): string {
+  if (record.ratioCi) {
+    return formatRatioInterval(record.ratioCi)
+  }
+  if (record.ratio === null) {
+    return 'n/a'
+  }
+  return record.ratio.toFixed(2)
+}
+
+function renderJsonSummary(groups: ReturnType<typeof jsonGroups>): string {
+  const lines = ['| | Count |', '|---|---:|']
+  if (groups.slower.length > 0) {
+    lines.push(`| :red_circle: Slower | ${groups.slower.length} |`)
+  }
+  if (groups.faster.length > 0) {
+    lines.push(`| :green_circle: Faster | ${groups.faster.length} |`)
+  }
+  if (groups.unchanged.length > 0) {
+    lines.push(`| :white_circle: Unchanged | ${groups.unchanged.length} |`)
+  }
+  if (groups.failed.length > 0) {
+    lines.push(`| :warning: Failed | ${groups.failed.length} |`)
+  }
+  return lines.join('\n')
+}
+
+function renderJsonAlert(groups: ReturnType<typeof jsonGroups>): string {
+  if (groups.slower.length > 0) {
+    return `> [!WARNING]\n> **${groups.slower.length} benchmark(s) slower**`
+  }
+  if (groups.faster.length > 0) {
+    return `> [!TIP]\n> **${groups.faster.length} benchmark(s) faster**`
+  }
+  return `> [!NOTE]\n> **All benchmarks unchanged**`
+}
+
+function renderJsonTable(rows: CompareJsonRecord[], showEnv: boolean, includeEmoji: boolean): string {
+  if (rows.length === 0) {
+    return ''
+  }
+  const lines: string[] = []
+  if (includeEmoji) {
+    lines.push('| | Benchmark | Verdict | Ratio (95% CI) | Rounds | A/A |')
+    lines.push('|---|---|---|--:|--:|--:|')
+  } else {
+    lines.push('| Benchmark | Verdict | Ratio (95% CI) | Rounds | A/A |')
+    lines.push('|---|---|--:|--:|--:|')
+  }
+  for (const row of rows) {
+    const name = `\`${compareJsonBenchmarkLabel(row, showEnv)}\``
+    const ratio = formatRatioCell(row)
+    const rounds = formatRounds(row.rounds)
+    const band = formatRatioInterval(row.aaBand)
+    if (includeEmoji) {
+      const emoji = row.verdict === 'slower'
+        ? ':red_circle:'
+        : row.verdict === 'faster'
+          ? ':green_circle:'
+          : ':warning:'
+      lines.push(`| ${emoji} | ${name} | ${row.verdict} | ${ratio} | ${rounds} | ${band} |`)
+    } else {
+      lines.push(`| ${name} | ${row.verdict} | ${ratio} | ${rounds} | ${band} |`)
+    }
+  }
+  return lines.join('\n')
+}
+
+export function renderCompareJsonComment(
+  doc: CompareJsonDocument,
+  rawOutput: string,
+  opts: RenderOptions,
+): string {
+  const groups = jsonGroups(doc)
+  const envs = new Set(doc.records.map((record) => `${record.machine}/${record.environment}`))
+  const showEnv = envs.size > 1
+  const parts: string[] = []
+
+  parts.push(opts.commentMarker)
+  parts.push('## Benchmark Results')
+  parts.push('')
+  parts.push(renderJsonAlert(groups))
+  parts.push('')
+  parts.push(resolvableChangeLine(doc.records))
+
+  if (doc.records.length > 0) {
+    parts.push('')
+    parts.push(renderJsonSummary(groups))
+  }
+
+  if (groups.slower.length > 0) {
+    parts.push('')
+    parts.push('### Slower')
+    parts.push('')
+    parts.push(renderJsonTable(groups.slower, showEnv, true))
+  }
+  if (groups.faster.length > 0) {
+    parts.push('')
+    parts.push('### Faster')
+    parts.push('')
+    parts.push(renderJsonTable(groups.faster, showEnv, true))
+  }
+  if (groups.failed.length > 0) {
+    parts.push('')
+    parts.push('### Failed')
+    parts.push('')
+    parts.push(renderJsonTable(groups.failed, showEnv, true))
+  }
+  if (groups.unchanged.length > 0) {
+    parts.push('')
+    parts.push('<details>')
+    parts.push(`<summary>${groups.unchanged.length} unchanged benchmark(s)</summary>`)
+    parts.push('')
+    parts.push(renderJsonTable(groups.unchanged, showEnv, false))
+    parts.push('')
+    parts.push('</details>')
+  }
+
+  if (opts.envDiffSection) {
+    parts.push('')
+    parts.push(opts.envDiffSection.trim())
+  }
+
+  parts.push('')
+  parts.push('<details>')
+  parts.push('<summary>Details</summary>')
+  parts.push('')
+  const baseSha = opts.baseSha || doc.before.commit
+  const prSha = opts.prSha || doc.after.commit
+  if (baseSha) {
+    parts.push(`- **Base:** \`${baseSha.slice(0, 8)}\``)
+  }
+  if (prSha) {
+    parts.push(`- **Head:** \`${prSha.slice(0, 8)}\``)
+  }
+  parts.push(`- **Runner:** \`${opts.runnerInfo}\``)
+  if (opts.dashboardUrl) {
+    parts.push(`- **Dashboard:** [View full results](${opts.dashboardUrl})`)
+  }
+  parts.push('')
+  parts.push('</details>')
+
+  parts.push('')
+  parts.push('<details>')
+  parts.push('<summary>Raw asv compare output</summary>')
+  parts.push('')
+  parts.push('```')
+  parts.push(rawOutput.trim())
+  parts.push('```')
+  parts.push('')
+  parts.push('</details>')
+
+  return parts.join('\n')
+}
+
+export function renderTwoWayComment(raw: string, opts: RenderOptions): string {
+  const selected = selectComparison(raw)
+  if (selected.kind === 'json') {
+    return renderCompareJsonComment(selected.doc, raw, opts)
+  }
+  return renderComment(selected.parsed, raw, opts)
 }

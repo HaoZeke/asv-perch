@@ -299,3 +299,235 @@ export function parseCompareMany(raw: string): ParsedCompareMany {
 
   return { contenderLabels, rows: dedupedRows, summaryPerContender }
 }
+
+export type CompareVerdict = 'slower' | 'faster' | 'unchanged' | 'failed'
+
+export interface CompareMeasurement {
+  median: number | null
+  unit: string
+}
+
+export interface CompareJsonRecord {
+  name: string
+  params: string[]
+  machine: string
+  environment: string
+  before: CompareMeasurement
+  after: CompareMeasurement
+  ratio: number | null
+  ratioCi: [number, number, number] | null
+  rounds: number | null
+  verdict: CompareVerdict
+  aaBand: [number, number, number] | null
+}
+
+export interface CompareJsonDocument {
+  schemaVersion: 1
+  before: { commit: string, label: string }
+  after: { commit: string, label: string }
+  records: CompareJsonRecord[]
+}
+
+export type SelectedComparison =
+  | { kind: 'json', doc: CompareJsonDocument }
+  | { kind: 'markdown', parsed: ParsedComparison }
+
+const COMPARE_VERDICTS: CompareVerdict[] = ['slower', 'faster', 'unchanged', 'failed']
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function asTriple(value: unknown, label: string): [number, number, number] | null {
+  if (value == null) {
+    return null
+  }
+  if (!Array.isArray(value) || value.length < 3) {
+    throw new Error(`asv compare ${label} must be [point, low, high] or null`)
+  }
+  const nums = value.slice(0, 3).map((item) => (typeof item === 'number' ? item : Number.NaN))
+  if (nums.some((item) => !Number.isFinite(item))) {
+    return null
+  }
+  return [nums[0], nums[1], nums[2]]
+}
+
+function asMeasurement(value: unknown): CompareMeasurement {
+  if (!isRecord(value)) {
+    return { median: null, unit: '' }
+  }
+  const median = typeof value.median === 'number' && Number.isFinite(value.median)
+    ? value.median
+    : null
+  const unit = typeof value.unit === 'string' ? value.unit : ''
+  return { median, unit }
+}
+
+function asParams(value: unknown): string[] {
+  if (value == null) {
+    return []
+  }
+  if (!Array.isArray(value)) {
+    throw new TypeError('asv compare params must be a list')
+  }
+  return value.map((item) => String(item))
+}
+
+function asVerdict(value: unknown): CompareVerdict {
+  if (typeof value === 'string' && COMPARE_VERDICTS.includes(value as CompareVerdict)) {
+    return value as CompareVerdict
+  }
+  throw new Error('asv compare verdict must be slower, faster, unchanged, or failed')
+}
+
+function asRounds(value: unknown): number | null {
+  if (value == null) {
+    return null
+  }
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new TypeError('asv compare rounds must be a number or null')
+  }
+  return value
+}
+
+function asRatio(value: unknown): number | null {
+  if (value == null) {
+    return null
+  }
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new TypeError('asv compare ratio must be a number or null')
+  }
+  return value
+}
+
+function parseCompareJsonRecord(value: unknown): CompareJsonRecord {
+  if (!isRecord(value) || typeof value.name !== 'string') {
+    throw new Error('asv compare record needs a name')
+  }
+  return {
+    name: value.name,
+    params: asParams(value.params),
+    machine: typeof value.machine === 'string' ? value.machine : '',
+    environment: typeof value.environment === 'string' ? value.environment : '',
+    before: asMeasurement(value.before),
+    after: asMeasurement(value.after),
+    ratio: asRatio(value.ratio),
+    ratioCi: asTriple(value.ratio_ci, 'ratio_ci'),
+    rounds: asRounds(value.rounds),
+    verdict: asVerdict(value.verdict),
+    aaBand: asTriple(value.aa_band, 'aa_band'),
+  }
+}
+
+function parseCompareJsonValue(value: Record<string, unknown>): CompareJsonDocument {
+  if (value.schema_version !== 1) {
+    throw new Error(`Unsupported asv compare schema_version ${String(value.schema_version)}`)
+  }
+  if (!Array.isArray(value.records)) {
+    throw new TypeError('asv compare JSON needs a records list')
+  }
+  const before = isRecord(value.before) ? value.before : {}
+  const after = isRecord(value.after) ? value.after : {}
+  return {
+    schemaVersion: 1,
+    before: {
+      commit: typeof before.commit === 'string' ? before.commit : '',
+      label: typeof before.label === 'string' ? before.label : '',
+    },
+    after: {
+      commit: typeof after.commit === 'string' ? after.commit : '',
+      label: typeof after.label === 'string' ? after.label : '',
+    },
+    records: value.records.map((record) => parseCompareJsonRecord(record)),
+  }
+}
+
+/**
+ * True when `asv compare --help` lists json among the --format choices.
+ * Older asv builds advertise github, or github and latex, and stay on the
+ * markdown scraper.
+ */
+export function helpSupportsCompareJson(helpText: string): boolean {
+  return /\{[^}\n]*\bjson\b[^}\n]*\}/.test(helpText)
+}
+
+/**
+ * schema_version 1 JSON is parsed. Anything else that is not that document
+ * is the markdown table older asv builds print.
+ */
+export function selectComparison(raw: string): SelectedComparison {
+  const trimmed = raw.trim()
+  if (!trimmed.startsWith('{')) {
+    return { kind: 'markdown', parsed: parseComparison(raw) }
+  }
+  let value: unknown
+  try {
+    value = JSON.parse(trimmed)
+  } catch {
+    return { kind: 'markdown', parsed: parseComparison(raw) }
+  }
+  if (!isRecord(value) || !('schema_version' in value) || !Array.isArray(value.records)) {
+    return { kind: 'markdown', parsed: parseComparison(raw) }
+  }
+  return { kind: 'json', doc: parseCompareJsonValue(value) }
+}
+
+export function compareJsonBenchmarkLabel(record: CompareJsonRecord, showEnv: boolean): string {
+  const params = record.params.map((item) => String(item))
+  const named = params.length > 0 ? `${record.name}(${params.join(', ')})` : record.name
+  const short = shortenBenchmark(named)
+  if (showEnv && (record.machine || record.environment)) {
+    return `${short} [${record.machine}/${record.environment}]`
+  }
+  return short
+}
+
+/**
+ * Widest distance from 1 to an A/A band edge. A smaller change still meets
+ * that band, so this is the smallest change the run can resolve.
+ */
+export function smallestResolvableChange(records: CompareJsonRecord[]): number | null {
+  let widest: number | null = null
+  for (const record of records) {
+    if (!record.aaBand) {
+      continue
+    }
+    const [, low, high] = record.aaBand
+    const edge = Math.max(high - 1, 1 - low)
+    if (!Number.isFinite(edge) || edge < 0) {
+      continue
+    }
+    if (widest === null || edge > widest) {
+      widest = edge
+    }
+  }
+  return widest
+}
+
+export function formatResolvableChange(edge: number): string {
+  const pct = edge * 100
+  const whole = pct >= 10 && Math.abs(pct - Math.round(pct)) < 1e-9
+  return `${pct.toFixed(whole ? 0 : 1)}%`
+}
+
+export function resolvableChangeLine(records: CompareJsonRecord[]): string {
+  const edge = smallestResolvableChange(records)
+  if (edge === null) {
+    return 'This run recorded no A/A band, so the smallest change it can resolve is unknown.'
+  }
+  return `Smallest change this run can resolve: ${formatResolvableChange(edge)}.`
+}
+
+export function formatRatioInterval(triple: [number, number, number] | null): string {
+  if (!triple) {
+    return 'n/a'
+  }
+  const [point, low, high] = triple
+  return `${point.toFixed(2)} [${low.toFixed(2)}, ${high.toFixed(2)}]`
+}
+
+export function jsonCriticalRegression(doc: CompareJsonDocument, threshold: number): boolean {
+  return doc.records.some((record) =>
+    record.verdict === 'slower' && record.ratio !== null && record.ratio >= threshold,
+  )
+}

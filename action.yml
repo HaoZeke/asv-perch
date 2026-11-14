@@ -17,8 +17,10 @@ inputs:
     required: false
   comparison-text-file:
     description: >-
-      Path to pre-computed comparison output file. When provided, skips
-      running asv-spyglass entirely and uses this file as the raw output.
+      Path to pre-computed comparison output. schema_version 1 JSON from
+      `asv compare --format json` is rendered from those records. Any other
+      text is scraped as a markdown table, which is what older asv builds
+      emit. Skips asv-spyglass.
     required: false
   comparison-mode:
     description: >-

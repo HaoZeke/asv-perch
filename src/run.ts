@@ -7,8 +7,10 @@ import { context, getOctokit } from '@actions/github'
 import { create as createGlob } from '@actions/glob'
 import yaml from 'js-yaml'
 import { envDiffSectionFromPaths } from './inventory'
-import { parseCompareMany, parseComparison } from './parse'
-import { renderComment, renderCompareManyComment } from './render'
+import { helpSupportsCompareJson, jsonCriticalRegression, parseCompareMany, selectComparison } from './parse'
+import type { ParsedComparison } from './parse'
+import type { RenderOptions } from './render'
+import { renderCompareJsonComment, renderCompareManyComment, renderTwoWayComment } from './render'
 
 type ComparisonMode = 'compare' | 'compare-many'
 
@@ -544,10 +546,80 @@ export function readComparisonTextFile(path: string): string {
 
 // Step 5: Detect critical regression
 export function detectRegression(
-  parsed: ReturnType<typeof parseComparison>,
+  parsed: ParsedComparison,
   threshold: number,
 ): boolean {
   return parsed.regressed.some((r) => r.ratioNum >= threshold)
+}
+
+export function interpretComparison(
+  raw: string,
+  threshold: number,
+  opts: RenderOptions,
+): { body: string, hasRegression: boolean } {
+  const selected = selectComparison(raw)
+  if (selected.kind === 'json') {
+    return {
+      body: renderCompareJsonComment(selected.doc, raw, opts),
+      hasRegression: jsonCriticalRegression(selected.doc, threshold),
+    }
+  }
+  return {
+    body: renderTwoWayComment(raw, opts),
+    hasRegression: detectRegression(selected.parsed, threshold),
+  }
+}
+
+/**
+ * Run `asv compare --format json` when this asv advertises schema_version 1.
+ * Returns null when the installed asv is older or the command fails, so the
+ * caller can scrape the markdown table instead.
+ */
+export async function readAsvCompareJson(baseSha: string, prSha: string): Promise<string | null> {
+  if (!baseSha || !prSha) {
+    return null
+  }
+  let help
+  try {
+    help = await getExecOutput('asv', ['compare', '--help'], {
+      silent: true,
+      ignoreReturnCode: true,
+    })
+  } catch {
+    info('asv compare is not available; using markdown output')
+    return null
+  }
+  const helpText = `${help.stdout}\n${help.stderr}`
+  if (help.exitCode !== 0 || !helpSupportsCompareJson(helpText)) {
+    info('asv compare has no JSON format; using markdown output')
+    return null
+  }
+  let result
+  try {
+    result = await getExecOutput('asv', ['compare', baseSha, prSha, '--format', 'json'], {
+      silent: true,
+      ignoreReturnCode: true,
+    })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    warning(`asv compare --format json failed (${msg}); falling back to markdown`)
+    return null
+  }
+  if (result.exitCode !== 0) {
+    warning('asv compare --format json failed; falling back to markdown')
+    return null
+  }
+  try {
+    if (selectComparison(result.stdout).kind !== 'json') {
+      warning('asv compare --format json did not return schema_version 1; falling back to markdown')
+      return null
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    warning(`${msg}; falling back to markdown`)
+    return null
+  }
+  return result.stdout
 }
 
 // Step 7: Find PR by SHA
@@ -706,9 +778,7 @@ export async function run(): Promise<void> {
           envDiffSection,
         })
       } else {
-        const parsed = parseComparison(rawOutput)
-        hasRegression = detectRegression(parsed, inputs.regressionThreshold)
-        commentBody = renderComment(parsed, rawOutput, {
+        const interpreted = interpretComparison(rawOutput, inputs.regressionThreshold, {
           baseSha: inputs.baseSha,
           prSha: inputs.prSha,
           runnerInfo: inputs.runnerInfo,
@@ -717,6 +787,8 @@ export async function run(): Promise<void> {
           regressionThreshold: inputs.regressionThreshold,
           envDiffSection,
         })
+        hasRegression = interpreted.hasRegression
+        commentBody = interpreted.body
       }
     } else if (inputs.comparisonMode === 'compare-many') {
       // compare-many mode: resolve files (direct paths or SHA-based lookup)
@@ -776,48 +848,62 @@ export async function run(): Promise<void> {
         envDiffSection,
       })
     } else {
-      // Standard compare mode: resolve files (direct paths or SHA-based lookup)
-      let resolvedBaseFile: string
-      let resolvedPrFile: string
-
-      if (inputs.baseFile && inputs.prFile) {
-        resolvedBaseFile = inputs.baseFile
-        resolvedPrFile = inputs.prFile
-        info(`Base result (direct): ${resolvedBaseFile}`)
-        info(`PR result (direct): ${resolvedPrFile}`)
+      // Prefer asv compare JSON when this asv knows schema_version 1.
+      // Older asv falls through to the markdown table.
+      const jsonOutput = await readAsvCompareJson(inputs.baseSha, inputs.prSha)
+      let envDiffSection: string | undefined
+      if (jsonOutput) {
+        info('Using asv compare --format json')
+        rawOutput = jsonOutput
+        if (inputs.baseFile && inputs.prFile) {
+          envDiffBaseFile = inputs.baseFile
+          envDiffContenderFile = inputs.prFile
+          envDiffSection = maybeBuildEnvDiffSection(
+            inputs.envDiff,
+            envDiffBaseFile,
+            envDiffContenderFile,
+          )
+        }
       } else {
-        const found = await findResultFiles(
+        let resolvedBaseFile: string
+        let resolvedPrFile: string
+
+        if (inputs.baseFile && inputs.prFile) {
+          resolvedBaseFile = inputs.baseFile
+          resolvedPrFile = inputs.prFile
+          info(`Base result (direct): ${resolvedBaseFile}`)
+          info(`PR result (direct): ${resolvedPrFile}`)
+        } else {
+          const found = await findResultFiles(
+            inputs.resultsPath,
+            inputs.baseSha,
+            inputs.prSha,
+          )
+          resolvedBaseFile = found.baseFile
+          resolvedPrFile = found.prFile
+        }
+
+        envDiffBaseFile = resolvedBaseFile
+        envDiffContenderFile = resolvedPrFile
+
+        rawOutput = await runComparison(
+          resolvedBaseFile,
+          resolvedPrFile,
           inputs.resultsPath,
-          inputs.baseSha,
-          inputs.prSha,
+          inputs.labelBefore,
+          inputs.labelAfter,
+          inputs.asvSpyglassRef,
+          inputs.asvSpyglassArgs,
         )
-        resolvedBaseFile = found.baseFile
-        resolvedPrFile = found.prFile
+        envDiffSection = maybeBuildEnvDiffSection(
+          inputs.envDiff,
+          envDiffBaseFile,
+          envDiffContenderFile,
+        )
       }
-
-      envDiffBaseFile = resolvedBaseFile
-      envDiffContenderFile = resolvedPrFile
-
-      rawOutput = await runComparison(
-        resolvedBaseFile,
-        resolvedPrFile,
-        inputs.resultsPath,
-        inputs.labelBefore,
-        inputs.labelAfter,
-        inputs.asvSpyglassRef,
-        inputs.asvSpyglassArgs,
-      )
       setOutput('comparison', rawOutput)
 
-      const envDiffSection = maybeBuildEnvDiffSection(
-        inputs.envDiff,
-        envDiffBaseFile,
-        envDiffContenderFile,
-      )
-
-      const parsed = parseComparison(rawOutput)
-      hasRegression = detectRegression(parsed, inputs.regressionThreshold)
-      commentBody = renderComment(parsed, rawOutput, {
+      const interpreted = interpretComparison(rawOutput, inputs.regressionThreshold, {
         baseSha: inputs.baseSha,
         prSha: inputs.prSha,
         runnerInfo: inputs.runnerInfo,
@@ -826,6 +912,8 @@ export async function run(): Promise<void> {
         regressionThreshold: inputs.regressionThreshold,
         envDiffSection,
       })
+      hasRegression = interpreted.hasRegression
+      commentBody = interpreted.body
     }
 
     setOutput('regression-detected', hasRegression.toString())
