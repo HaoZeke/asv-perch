@@ -295,36 +295,51 @@ export function writeCommentBodyFile(path: string, body: string): void {
   info(`Wrote comment body to ${path}`)
 }
 
+/**
+ * asv names the interleaved base' environment `{env}~aa`. That file shares
+ * the base commit's hash prefix with the real result, and it is not the
+ * baseline measurement.
+ */
+export function isAaEnvironmentResult(filePath: string): boolean {
+  const basename = filePath.split('/').pop() || ''
+  return basename.includes('~aa.json')
+}
+
+/**
+ * Pick the result file for a commit. When the A/A copy and the real result
+ * both match the hash prefix, keep the real result. Several machines still
+ * resolve to the last primary match, as before.
+ */
+export function selectResultFile(files: string[], sha: string): string {
+  const prefix = sha.slice(0, 8)
+  if (!prefix) {
+    return ''
+  }
+  const matches = files.filter((filePath) => {
+    const basename = filePath.split('/').pop() || ''
+    return basename.startsWith(prefix)
+  })
+  const primary = matches.filter((filePath) => !isAaEnvironmentResult(filePath))
+  const pool = primary.length > 0 ? primary : matches
+  return pool.length > 0 ? pool[pool.length - 1] : ''
+}
+
 // Step 2: Find result files by SHA prefix
 export async function findResultFiles(
   resultsPath: string,
   baseSha: string,
   prSha: string,
 ): Promise<{ baseFile: string, prFile: string }> {
-  const basePrefix = baseSha.slice(0, 8)
-  const prPrefix = prSha.slice(0, 8)
-
   const globber = await createGlob(`${resultsPath}/**/*.json`)
   const allFiles = await globber.glob()
-
-  let baseFile = ''
-  let prFile = ''
-
-  for (const f of allFiles) {
-    const basename = f.split('/').pop() || ''
-    if (basename.startsWith(basePrefix)) {
-      baseFile = f
-    }
-    if (basename.startsWith(prPrefix)) {
-      prFile = f
-    }
-  }
+  const baseFile = selectResultFile(allFiles, baseSha)
+  const prFile = selectResultFile(allFiles, prSha)
 
   if (!baseFile) {
-    throw new Error(`No result file found for base SHA prefix ${basePrefix} in ${resultsPath}`)
+    throw new Error(`No result file found for base SHA prefix ${baseSha.slice(0, 8)} in ${resultsPath}`)
   }
   if (!prFile) {
-    throw new Error(`No result file found for PR SHA prefix ${prPrefix} in ${resultsPath}`)
+    throw new Error(`No result file found for PR SHA prefix ${prSha.slice(0, 8)} in ${resultsPath}`)
   }
 
   info(`Base result: ${baseFile}`)
@@ -380,18 +395,14 @@ export async function findResultFileByPrefix(
   resultsPath: string,
   sha: string,
 ): Promise<string> {
-  const prefix = sha.slice(0, 8)
   const globber = await createGlob(`${resultsPath}/**/*.json`)
   const allFiles = await globber.glob()
-
-  for (const f of allFiles) {
-    const basename = f.split('/').pop() || ''
-    if (basename.startsWith(prefix)) {
-      return f
-    }
+  const found = selectResultFile(allFiles, sha)
+  if (found) {
+    return found
   }
 
-  throw new Error(`No result file found for SHA prefix ${prefix} in ${resultsPath}`)
+  throw new Error(`No result file found for SHA prefix ${sha.slice(0, 8)} in ${resultsPath}`)
 }
 
 // Step 3b: Run asv-spyglass compare-many
@@ -855,14 +866,22 @@ export async function run(): Promise<void> {
       if (jsonOutput) {
         info('Using asv compare --format json')
         rawOutput = jsonOutput
-        if (inputs.baseFile && inputs.prFile) {
-          envDiffBaseFile = inputs.baseFile
-          envDiffContenderFile = inputs.prFile
-          envDiffSection = maybeBuildEnvDiffSection(
-            inputs.envDiff,
-            envDiffBaseFile,
-            envDiffContenderFile,
-          )
+        if (inputs.envDiff && ((inputs.baseFile && inputs.prFile) || inputs.resultsPath)) {
+          try {
+            const files = (inputs.baseFile && inputs.prFile)
+              ? { baseFile: inputs.baseFile, prFile: inputs.prFile }
+              : await findResultFiles(inputs.resultsPath, inputs.baseSha, inputs.prSha)
+            envDiffBaseFile = files.baseFile
+            envDiffContenderFile = files.prFile
+            envDiffSection = maybeBuildEnvDiffSection(
+              inputs.envDiff,
+              envDiffBaseFile,
+              envDiffContenderFile,
+            )
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err)
+            warning(`env-diff skipped: ${msg}`)
+          }
         }
       } else {
         let resolvedBaseFile: string

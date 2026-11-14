@@ -10,6 +10,7 @@ import {
   readAsvCompareJson,
   readComparisonTextFile,
   resolveInputs,
+  selectResultFile,
   writeCommentBodyFile,
 } from '../src/run'
 import { parseCompareMany, parseComparison } from '../src/parse'
@@ -571,6 +572,27 @@ describe('maybeBuildEnvDiffSection', () => {
     expect(section).toBeDefined()
     expect(section).toContain('## Environment inventory')
     expect(section).toContain('numpy')
+  })
+})
+
+describe('selectResultFile', () => {
+  const sha = '2bd67fb24b18483faa6a393370cb511a0e91897d'
+  const primary = '/results/ci/2bd67fb2-virtualenv-py3.12.json'
+  const aaCopy = '/results/ci/2bd67fb2-virtualenv-py3.12~aa.json'
+  const head = '/results/ci/08d496fd-virtualenv-py3.12.json'
+
+  it('keeps the real result when an A/A copy shares the hash prefix', () => {
+    expect(selectResultFile([primary, aaCopy, head], sha)).toBe(primary)
+    expect(selectResultFile([aaCopy, primary], sha)).toBe(primary)
+  })
+
+  it('uses the A/A copy only when it is the only match', () => {
+    expect(selectResultFile([aaCopy, head], sha)).toBe(aaCopy)
+  })
+
+  it('returns empty when nothing matches', () => {
+    expect(selectResultFile([head], sha)).toBe('')
+    expect(selectResultFile([primary], '')).toBe('')
   })
 })
 
