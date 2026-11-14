@@ -177,9 +177,12 @@ that band.
 Smallest change this run can resolve: 4.0%.
 #+end_example
 
-The ratio column is =1.03 [1.02, 1.04]=. Missing intervals, rounds, and
-bands are =n/a=. The raw section is the JSON document. With =env-diff=
-left on, the environment inventory is still read from the result files.
+The ratio column is =1.03 [1.02, 1.04]=. A unit other than seconds, such
+as bytes from a memray peak, is written next to the benchmark name.
+Missing intervals, rounds, and bands are =n/a=. An A/A band that is a
+single point means any nonzero change is outside it. The raw section is
+the JSON document. With =env-diff= left on, the environment inventory
+is still read from the result files.
 The interleaved base-prime copy shares the base hash prefix and is not
 used as that baseline file.
 

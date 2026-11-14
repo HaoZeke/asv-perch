@@ -496,7 +496,12 @@ function renderJsonTable(rows: CompareJsonRecord[], showEnv: boolean, includeEmo
     lines.push('|---|---|--:|--:|--:|')
   }
   for (const row of rows) {
-    const name = `\`${compareJsonBenchmarkLabel(row, showEnv)}\``
+    const label = compareJsonBenchmarkLabel(row, showEnv)
+    const unit = row.before.unit
+    const withUnit = unit && unit !== 'seconds' && unit === row.after.unit
+      ? `${label} (${unit})`
+      : label
+    const name = `\`${withUnit}\``
     const ratio = formatRatioCell(row)
     const rounds = formatRounds(row.rounds)
     const band = formatRatioInterval(row.aaBand)

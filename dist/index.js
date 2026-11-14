@@ -34315,7 +34315,7 @@ function aw(e) {
 }
 function cw(e) {
   const s = ow(e);
-  return s === null ? "This run recorded no A/A band, so the smallest change it can resolve is unknown." : `Smallest change this run can resolve: ${aw(s)}.`;
+  return s === null ? "This run recorded no A/A band, so the smallest change it can resolve is unknown." : s === 0 ? "Smallest change this run can resolve: any nonzero change." : `Smallest change this run can resolve: ${aw(s)}.`;
 }
 function YB(e) {
   if (!e)
@@ -34507,12 +34507,12 @@ function In(e, s, t) {
   const r = [];
   t ? (r.push("| | Benchmark | Verdict | Ratio (95% CI) | Rounds | A/A |"), r.push("|---|---|---|--:|--:|--:|")) : (r.push("| Benchmark | Verdict | Ratio (95% CI) | Rounds | A/A |"), r.push("|---|---|--:|--:|--:|"));
   for (const A of e) {
-    const i = `\`${iw(A, s)}\``, n = pw(A), l = fw(A.rounds), c = YB(A.aaBand);
+    const i = iw(A, s), n = A.before.unit, c = `\`${n && n !== "seconds" && n === A.after.unit ? `${i} (${n})` : i}\``, g = pw(A), o = fw(A.rounds), a = YB(A.aaBand);
     if (t) {
-      const g = A.verdict === "slower" ? ":red_circle:" : A.verdict === "faster" ? ":green_circle:" : ":warning:";
-      r.push(`| ${g} | ${i} | ${A.verdict} | ${n} | ${l} | ${c} |`);
+      const u = A.verdict === "slower" ? ":red_circle:" : A.verdict === "faster" ? ":green_circle:" : ":warning:";
+      r.push(`| ${u} | ${c} | ${A.verdict} | ${g} | ${o} | ${a} |`);
     } else
-      r.push(`| ${i} | ${A.verdict} | ${n} | ${l} | ${c} |`);
+      r.push(`| ${c} | ${A.verdict} | ${g} | ${o} | ${a} |`);
   }
   return r.join(`
 `);

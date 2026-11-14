@@ -72,6 +72,17 @@ describe('parse compare JSON', () => {
     expect(resolvableChangeLine(doc.records)).toBe('Smallest change this run can resolve: 4.0%.')
   })
 
+  it('treats a point A/A band as any nonzero change', () => {
+    const doc = jsonDoc()
+    for (const record of doc.records) {
+      record.aaBand = [1, 1, 1]
+    }
+    expect(smallestResolvableChange(doc.records)).toBe(0)
+    expect(resolvableChangeLine(doc.records)).toBe(
+      'Smallest change this run can resolve: any nonzero change.',
+    )
+  })
+
   it('says the resolvable change is unknown when no A/A band was stored', () => {
     expect(resolvableChangeLine([{
       name: 'bench.time_fail',
@@ -119,6 +130,34 @@ describe('helpSupportsCompareJson', () => {
 })
 
 describe('jSON comment body', () => {
+  it('matches the memray peak-memory golden comment', () => {
+    const memrayRaw = readFileSync(join(__dirname, 'fixtures', 'compare_memray.json'), 'utf-8')
+    const selected = selectComparison(memrayRaw)
+    expect(selected.kind).toBe('json')
+    if (selected.kind !== 'json') {
+      return
+    }
+    const payload = JSON.parse(memrayRaw) as {
+      before: { commit: string }
+      after: { commit: string }
+      records: Array<{ name: string, verdict: string, before: { unit: string } }>
+    }
+    expect(payload.records.map((record) => [record.name, record.verdict, record.before.unit])).toEqual([
+      ['bench.Mem.ray_grow', 'slower', 'bytes'],
+      ['bench.Mem.ray_same', 'unchanged', 'bytes'],
+    ])
+    const body = renderCompareJsonComment(selected.doc, memrayRaw, {
+      ...opts,
+      baseSha: payload.before.commit,
+      prSha: payload.after.commit,
+      runnerInfo: 'e2e',
+    })
+    const golden = readFileSync(join(__dirname, 'fixtures', 'compare_memray_comment.md'), 'utf-8').replace(/\n$/, '')
+    expect(body).toBe(golden)
+    expect(body).toContain('`bench.Mem.ray_grow (bytes)`')
+    expect(body).toContain('any nonzero change')
+  })
+
   it('matches the golden comment', () => {
     const doc = jsonDoc()
     const body = renderCompareJsonComment(doc, raw, opts)

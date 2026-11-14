@@ -543,6 +543,9 @@ export function resolvableChangeLine(records: CompareJsonRecord[]): string {
   if (edge === null) {
     return 'This run recorded no A/A band, so the smallest change it can resolve is unknown.'
   }
+  if (edge === 0) {
+    return 'Smallest change this run can resolve: any nonzero change.'
+  }
   return `Smallest change this run can resolve: ${formatResolvableChange(edge)}.`
 }
 
