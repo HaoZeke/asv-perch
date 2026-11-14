@@ -1,4 +1,4 @@
-export type ChangeKind = 'regressed' | 'improved' | 'unchanged' | 'incomparable' | 'failed'
+export type ChangeKind = 'regressed' | 'improved' | 'unchanged' | 'incomparable' | 'failed' | 'unknown'
 
 export interface BenchmarkRow {
   change: ChangeKind
@@ -17,6 +17,7 @@ export interface ParsedComparison {
   unchanged: BenchmarkRow[]
   incomparable: BenchmarkRow[]
   failed: BenchmarkRow[]
+  unknown: BenchmarkRow[]
 }
 
 export interface CompareManyContenderCell {
@@ -43,17 +44,43 @@ export interface ParsedCompareMany {
     unchanged: number
     incomparable: number
     failed: number
+    unknown: number
   }>
 }
 
-function classifyMark(mark: string): ChangeKind {
-  switch (mark.trim()) {
-    case '+': return 'regressed'
-    case '-': return 'improved'
-    case 'x': return 'incomparable'
-    case '!': return 'failed'
-    default: return 'unchanged'
+/**
+ * A `+`/`-`/`x`/`!` mark is the table's own call. A `~` ratio, or a blank
+ * mark whose ratio is not 1, has no ratio interval in this table: that is
+ * not "unchanged". A ratio outside the threshold is never "unchanged".
+ */
+export function classifyComparison(mark: string, ratioStr: string, threshold = 10): ChangeKind {
+  const trimmed = mark.trim()
+  switch (trimmed) {
+    case '+':
+      return 'regressed'
+    case '-':
+      return 'improved'
+    case 'x':
+      return 'incomparable'
+    case '!':
+      return 'failed'
+    default:
+      break
   }
+  const ratioNum = parseRatio(ratioStr)
+  const hedged = trimmed === '~' || ratioStr.trim().startsWith('~')
+  if (Number.isFinite(ratioNum) && ratioNum > 0 && Number.isFinite(threshold) && threshold > 0) {
+    if (ratioNum >= threshold) {
+      return 'regressed'
+    }
+    if (ratioNum <= 1 / threshold) {
+      return 'improved'
+    }
+  }
+  if (hedged || (Number.isFinite(ratioNum) && ratioNum !== 1)) {
+    return 'unknown'
+  }
+  return 'unchanged'
 }
 
 function parseRatio(ratioStr: string): number {
@@ -89,7 +116,7 @@ function deduplicateRows<T extends { benchmark: string }>(rows: T[]): T[] {
   return [...seen.values()]
 }
 
-export function parseComparison(raw: string): ParsedComparison {
+export function parseComparison(raw: string, threshold = 10): ParsedComparison {
   const lines = raw.split('\n')
   const rows: BenchmarkRow[] = []
 
@@ -136,7 +163,7 @@ export function parseComparison(raw: string): ParsedComparison {
       continue
     }
 
-    const change = classifyMark(mark)
+    const change = classifyComparison(mark, ratioStr, threshold)
     const ratioNum = parseRatio(ratioStr)
 
     rows.push({
@@ -162,10 +189,11 @@ export function parseComparison(raw: string): ParsedComparison {
     unchanged: deduped.filter((r) => r.change === 'unchanged'),
     incomparable: deduped.filter((r) => r.change === 'incomparable'),
     failed: deduped.filter((r) => r.change === 'failed'),
+    unknown: deduped.filter((r) => r.change === 'unknown'),
   }
 }
 
-function parseContenderCell(cell: string): CompareManyContenderCell {
+function parseContenderCell(cell: string, threshold: number): CompareManyContenderCell {
   // Format: "value (mark ratio)" e.g. "187+/-3ns (+ 1.12)" or "1.07+/-0us (  ~0.91)"
   // Also handles: "n/a (x n/a)"
   // Find last opening paren to split value from (mark ratio) suffix
@@ -201,7 +229,7 @@ function parseContenderCell(cell: string): CompareManyContenderCell {
   return {
     value,
     mark,
-    change: classifyMark(mark),
+    change: classifyComparison(mark, ratioStr, threshold),
     ratio: ratioStr,
     ratioNum: parseRatio(ratioStr),
   }
@@ -229,7 +257,7 @@ function parseCompareManyHeader(cells: string[]): { baselineLabel: string, conte
   return { baselineLabel, contenderLabels }
 }
 
-export function parseCompareMany(raw: string): ParsedCompareMany {
+export function parseCompareMany(raw: string, threshold = 10): ParsedCompareMany {
   const lines = raw.split('\n')
   const rows: CompareManyRow[] = []
   let contenderLabels: string[] = []
@@ -276,7 +304,7 @@ export function parseCompareMany(raw: string): ParsedCompareMany {
 
     for (let i = 3; i < 3 + contenderLabels.length; i++) {
       const cellText = cells[i]?.trim() || ''
-      contenders.push(parseContenderCell(cellText))
+      contenders.push(parseContenderCell(cellText, threshold))
     }
 
     rows.push({ benchmark, baseline, contenders })
@@ -287,7 +315,7 @@ export function parseCompareMany(raw: string): ParsedCompareMany {
 
   // Build per-contender summary
   const summaryPerContender = contenderLabels.map((label, idx) => {
-    const counts = { label, regressed: 0, improved: 0, unchanged: 0, incomparable: 0, failed: 0 }
+    const counts = { label, regressed: 0, improved: 0, unchanged: 0, incomparable: 0, failed: 0, unknown: 0 }
     for (const row of dedupedRows) {
       const cell = row.contenders[idx]
       if (cell) {
@@ -455,19 +483,19 @@ export function helpSupportsCompareJson(helpText: string): boolean {
  * schema_version 1 JSON is parsed. Anything else that is not that document
  * is the markdown table older asv builds print.
  */
-export function selectComparison(raw: string): SelectedComparison {
+export function selectComparison(raw: string, threshold = 10): SelectedComparison {
   const trimmed = raw.trim()
   if (!trimmed.startsWith('{')) {
-    return { kind: 'markdown', parsed: parseComparison(raw) }
+    return { kind: 'markdown', parsed: parseComparison(raw, threshold) }
   }
   let value: unknown
   try {
     value = JSON.parse(trimmed)
   } catch {
-    return { kind: 'markdown', parsed: parseComparison(raw) }
+    return { kind: 'markdown', parsed: parseComparison(raw, threshold) }
   }
   if (!isRecord(value) || !('schema_version' in value) || !Array.isArray(value.records)) {
-    return { kind: 'markdown', parsed: parseComparison(raw) }
+    return { kind: 'markdown', parsed: parseComparison(raw, threshold) }
   }
   return { kind: 'json', doc: parseCompareJsonValue(value) }
 }
@@ -526,8 +554,18 @@ export function formatRatioInterval(triple: [number, number, number] | null): st
   return `${point.toFixed(2)} [${low.toFixed(2)}, ${high.toFixed(2)}]`
 }
 
-export function jsonCriticalRegression(doc: CompareJsonDocument, threshold: number): boolean {
-  return doc.records.some((record) =>
-    record.verdict === 'slower' && record.ratio !== null && record.ratio >= threshold,
-  )
+export function jsonCriticalRegression(
+  doc: CompareJsonDocument,
+  threshold: number,
+  onVerdict = false,
+): boolean {
+  return doc.records.some((record) => {
+    if (record.verdict !== 'slower') {
+      return false
+    }
+    if (onVerdict) {
+      return true
+    }
+    return record.ratio !== null && record.ratio >= threshold
+  })
 }

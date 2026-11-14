@@ -92,6 +92,7 @@ describe('parse compare JSON', () => {
     const doc = jsonDoc()
     expect(jsonCriticalRegression(doc, 10)).toBe(false)
     expect(jsonCriticalRegression(doc, 1.1)).toBe(true)
+    expect(jsonCriticalRegression(doc, 10, true)).toBe(true)
   })
 
   it('rejects a newer schema', () => {
@@ -134,6 +135,10 @@ describe('jSON comment body', () => {
     expect(interpreted.body).toContain('Raw asv-spyglass output')
     expect(interpreted.hasRegression).toBe(detectRegression(parseComparison(markdown), 10))
     const fromJson = interpretComparison(raw, 1.1, opts)
+    const byVerdict = interpretComparison(raw, 10, { ...opts, regressionOnVerdict: true })
+    expect(byVerdict.hasRegression).toBe(true)
+    const byThreshold = interpretComparison(raw, 10, opts)
+    expect(byThreshold.hasRegression).toBe(false)
     expect(fromJson.body).toContain('Smallest change this run can resolve: 4.0%.')
     expect(fromJson.body).toContain('`group.time_grid(left, 2)`')
     expect(fromJson.body).toContain('1.20 [1.15, 1.25]')

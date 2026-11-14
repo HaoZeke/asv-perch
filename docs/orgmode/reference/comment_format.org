@@ -196,5 +196,8 @@ The action classifies each benchmark row based on the change mark from
 | =x= | Incomparable | =:grey_question:= |
 | =!= | Failed | =:warning:= |
 
-The =~= prefix on ratio values indicates statistically insignificant changes
-(the benchmark likely has high variance).
+The =~= prefix on a ratio means the table withheld a significance mark.
+That row is not reported as unchanged. A ratio at or beyond
+=regression-threshold= (or at or below its reciprocal) is a regression or
+an improvement even when the change column is blank. Where the table has
+no ratio interval, the comment says so: significance is unknown.

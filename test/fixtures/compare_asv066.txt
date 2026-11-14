@@ -1,0 +1,7 @@
+
+All benchmarks:
+
+| Change   | Before [2bd67fb2] <main~1>   | After [08d496fd] <main>   |   Ratio | Benchmark (Parameter)   |
+|----------|------------------------------|---------------------------|---------|-------------------------|
+|          | 2.01±0.01ms                  | 2.01±0.01ms               |    1    | bench.time_same         |
+|          | 2.01±0ms                     | 2.07±0.01ms               |    1.03 | bench.time_slow         |

@@ -14,6 +14,8 @@ export interface RenderOptions {
   dashboardUrl?: string
   commentMarker: string
   regressionThreshold: number
+  /** When true, a JSON `slower` verdict sets regression-detected below the ratio threshold. */
+  regressionOnVerdict?: boolean
   rawOutputLabel?: string
   contenderMeta?: ContenderMeta[]
   /** Optional "## Environment inventory" markdown section (env-diff). */
@@ -76,7 +78,7 @@ function renderBenchmarkTable(rows: BenchmarkRow[], includeEmoji: boolean): stri
     lines.push('|---|--:|--:|--:|')
     for (const row of rows) {
       const name = `\`${shortenBenchmark(row.benchmark)}\``
-      lines.push(`| ${name} | ${row.before} | ${row.after} | ~${row.ratio}x |`)
+      lines.push(`| ${name} | ${row.before} | ${row.after} | ${row.ratio}x |`)
     }
   }
 
@@ -96,6 +98,9 @@ function renderSummaryTable(parsed: ParsedComparison): string {
   }
   if (parsed.unchanged.length > 0) {
     lines.push(`| :white_circle: Unchanged | ${parsed.unchanged.length} |`)
+  }
+  if (parsed.unknown.length > 0) {
+    lines.push(`| :question: Significance unknown | ${parsed.unknown.length} |`)
   }
   if (parsed.incomparable.length > 0) {
     lines.push(`| :grey_question: Incomparable | ${parsed.incomparable.length} |`)
@@ -117,8 +122,13 @@ function renderAlert(parsed: ParsedComparison): string {
   if (impCount > 0) {
     return `> [!TIP]\n> **${impCount} benchmark(s) improved**`
   }
+  if (parsed.unknown.length > 0) {
+    return `> [!NOTE]\n> **Significance is unknown** for ${parsed.unknown.length} benchmark(s)`
+  }
   return `> [!NOTE]\n> **All benchmarks unchanged**`
 }
+
+export const SIGNIFICANCE_UNKNOWN_LINE = 'This table has no ratio interval, so significance is unknown.'
 
 export function renderComment(parsed: ParsedComparison, rawOutput: string, opts: RenderOptions): string {
   const parts: string[] = []
@@ -127,6 +137,10 @@ export function renderComment(parsed: ParsedComparison, rawOutput: string, opts:
   parts.push('## Benchmark Results')
   parts.push('')
   parts.push(renderAlert(parsed))
+  if (parsed.unknown.length > 0) {
+    parts.push('')
+    parts.push(SIGNIFICANCE_UNKNOWN_LINE)
+  }
   parts.push('')
   parts.push(renderSummaryTable(parsed))
 
@@ -152,6 +166,13 @@ export function renderComment(parsed: ParsedComparison, rawOutput: string, opts:
     parts.push('### Failed')
     parts.push('')
     parts.push(renderBenchmarkTable(parsed.failed, true))
+  }
+
+  if (parsed.unknown.length > 0) {
+    parts.push('')
+    parts.push('### Significance unknown')
+    parts.push('')
+    parts.push(renderBenchmarkTable(parsed.unknown, false))
   }
 
   // Incomparable section
@@ -286,6 +307,10 @@ function renderCompareManyAlert(parsed: ParsedCompareMany): string {
   if (totalImproved > 0) {
     return `> [!TIP]\n> **${totalImproved} improvement(s) detected across contenders**`
   }
+  const totalUnknown = parsed.summaryPerContender.reduce((sum, s) => sum + s.unknown, 0)
+  if (totalUnknown > 0) {
+    return `> [!NOTE]\n> **Significance is unknown** for ${totalUnknown} contender result(s)`
+  }
   return `> [!NOTE]\n> **All benchmarks unchanged across contenders**`
 }
 
@@ -294,13 +319,13 @@ function renderCompareManySummary(parsed: ParsedCompareMany): string {
 
   const headerCols = ['| | Contender']
   const sepCols = ['|---', '---']
-  const metrics = [':red_circle: Regressed', ':green_circle: Improved', ':white_circle: Unchanged']
+  const metrics = [':red_circle: Regressed', ':green_circle: Improved', ':white_circle: Unchanged', ':question: Unknown']
 
   lines.push(`${headerCols.join(' | ')} | ${metrics.join(' | ')} |`)
-  lines.push(`${sepCols.join('|')}|---:|---:|---:|`)
+  lines.push(`${sepCols.join('|')}|---:|---:|---:|---:|`)
 
   for (const s of parsed.summaryPerContender) {
-    lines.push(`| | ${s.label} | ${s.regressed} | ${s.improved} | ${s.unchanged} |`)
+    lines.push(`| | ${s.label} | ${s.regressed} | ${s.improved} | ${s.unchanged} | ${s.unknown} |`)
   }
 
   return lines.join('\n')
@@ -313,12 +338,21 @@ export function renderCompareManyComment(parsed: ParsedCompareMany, rawOutput: s
   parts.push('## Benchmark Results (Multi-Way Comparison)')
   parts.push('')
   parts.push(renderCompareManyAlert(parsed))
+  const unknownCount = parsed.summaryPerContender.reduce((sum, s) => sum + s.unknown, 0)
+  if (unknownCount > 0) {
+    parts.push('')
+    parts.push(SIGNIFICANCE_UNKNOWN_LINE)
+  }
   parts.push('')
   parts.push(renderCompareManySummary(parsed))
 
   // Separate changed from unchanged rows
   const changedRows = parsed.rows.filter((row) =>
     row.contenders.some((c) => c.change === 'regressed' || c.change === 'improved' || c.change === 'failed'),
+  )
+  const unknownRows = parsed.rows.filter((row) =>
+    !changedRows.includes(row)
+    && row.contenders.some((c) => c.change === 'unknown'),
   )
   const unchangedRows = parsed.rows.filter((row) =>
     row.contenders.every((c) => c.change === 'unchanged' || c.change === 'incomparable'),
@@ -330,6 +364,13 @@ export function renderCompareManyComment(parsed: ParsedCompareMany, rawOutput: s
     parts.push('### Changed Benchmarks')
     parts.push('')
     parts.push(renderCompareManyTable(changedRows, parsed.contenderLabels))
+  }
+
+  if (unknownRows.length > 0) {
+    parts.push('')
+    parts.push('### Significance unknown')
+    parts.push('')
+    parts.push(renderCompareManyTable(unknownRows, parsed.contenderLabels))
   }
 
   // Unchanged collapsible
@@ -561,7 +602,7 @@ export function renderCompareJsonComment(
 }
 
 export function renderTwoWayComment(raw: string, opts: RenderOptions): string {
-  const selected = selectComparison(raw)
+  const selected = selectComparison(raw, opts.regressionThreshold)
   if (selected.kind === 'json') {
     return renderCompareJsonComment(selected.doc, raw, opts)
   }

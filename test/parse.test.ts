@@ -24,7 +24,8 @@ describe('parseComparison', () => {
     expect(result.rows).toHaveLength(10)
     expect(result.regressed).toHaveLength(3)
     expect(result.improved).toHaveLength(2)
-    expect(result.unchanged).toHaveLength(5)
+    expect(result.unchanged).toHaveLength(0)
+    expect(result.unknown).toHaveLength(5)
     expect(result.incomparable).toHaveLength(0)
     expect(result.failed).toHaveLength(0)
   })
@@ -51,12 +52,26 @@ describe('parseComparison', () => {
     expect(first.ratioNum).toBeCloseTo(0.87)
   })
 
-  it('handles ~ prefix on ratio for unchanged rows', () => {
+  it('reads a ~ ratio as unknown significance, not unchanged', () => {
     const result = parseComparison(fixture)
-    const unchanged = result.unchanged[0]
-    expect(unchanged.ratio).toBe('~0.91')
-    expect(unchanged.ratioNum).toBeCloseTo(0.91)
-    expect(unchanged.change).toBe('unchanged')
+    const hedged = result.unknown[0]
+    expect(hedged.ratio).toBe('~0.91')
+    expect(hedged.ratioNum).toBeCloseTo(0.91)
+    expect(hedged.change).toBe('unknown')
+  })
+
+  it('does not call a ratio outside the threshold unchanged', () => {
+    const input = `| Change | Before | After | Ratio | Benchmark (Parameter) |
+|--------|--------|-------|-------|-----------------------|
+|        | 1ms    | 1ms   |     1 | bench.time_same        |
+|        | 1ms    | 15ms  |    15 | bench.time_slow        |
+|        | 10ms   | 1ms   |  0.05 | bench.time_fast        |
+|        | 1ms    | 1.03ms | 1.03 | bench.time_small       |`
+    const result = parseComparison(input, 10)
+    expect(result.unchanged.map((row) => row.benchmark)).toEqual(['bench.time_same'])
+    expect(result.regressed.map((row) => row.benchmark)).toEqual(['bench.time_slow'])
+    expect(result.improved.map((row) => row.benchmark)).toEqual(['bench.time_fast'])
+    expect(result.unknown.map((row) => row.benchmark)).toEqual(['bench.time_small'])
   })
 
   it('handles empty input', () => {
@@ -137,12 +152,12 @@ describe('parseCompareMany', () => {
     expect(row.contenders[1].ratioNum).toBeCloseTo(0.98)
   })
 
-  it('handles ~ prefix on unchanged contender cells', () => {
+  it('reads a ~ ratio on a contender cell as unknown significance', () => {
     const result = parseCompareMany(compareManyFixture)
     // Row 4 (time_keys(200)), contender 0: "1.07+/-0us (  ~0.91)"
     const row = result.rows[4]
     expect(row.contenders[0].ratio).toBe('~0.91')
-    expect(row.contenders[0].change).toBe('unchanged')
+    expect(row.contenders[0].change).toBe('unknown')
     expect(row.contenders[0].ratioNum).toBeCloseTo(0.91)
   })
 
@@ -156,15 +171,17 @@ describe('parseCompareMany', () => {
 
   it('builds correct per-contender summary', () => {
     const result = parseCompareMany(compareManyFixture)
-    // opt-build: 3 regressed (+), 1 improved (-), 3 unchanged (~), 1 incomparable (x)
+    // opt-build: 3 regressed (+), 1 improved (-), 3 unknown (~), 1 incomparable (x)
     expect(result.summaryPerContender[0].regressed).toBe(3)
     expect(result.summaryPerContender[0].improved).toBe(1)
-    expect(result.summaryPerContender[0].unchanged).toBe(3)
+    expect(result.summaryPerContender[0].unchanged).toBe(0)
+    expect(result.summaryPerContender[0].unknown).toBe(3)
     expect(result.summaryPerContender[0].incomparable).toBe(1)
-    // debug-build: 1 regressed, 1 improved, 6 unchanged, 0 incomparable
+    // debug-build: 1 regressed, 1 improved, 6 unknown (~), 0 incomparable
     expect(result.summaryPerContender[1].regressed).toBe(1)
     expect(result.summaryPerContender[1].improved).toBe(1)
-    expect(result.summaryPerContender[1].unchanged).toBe(6)
+    expect(result.summaryPerContender[1].unchanged).toBe(0)
+    expect(result.summaryPerContender[1].unknown).toBe(6)
   })
 
   it('handles empty input', () => {
@@ -183,7 +200,8 @@ describe('parseComparison with --split output', () => {
     expect(result.rows).toHaveLength(6)
     expect(result.improved).toHaveLength(2)
     expect(result.regressed).toHaveLength(2)
-    expect(result.unchanged).toHaveLength(2)
+    expect(result.unchanged).toHaveLength(0)
+    expect(result.unknown).toHaveLength(2)
   })
 })
 

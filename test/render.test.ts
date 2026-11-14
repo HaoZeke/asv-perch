@@ -40,7 +40,8 @@ describe('renderComment', () => {
     // Summary table
     expect(body).toContain(':red_circle: Regressed | 3')
     expect(body).toContain(':green_circle: Improved | 2')
-    expect(body).toContain(':white_circle: Unchanged | 5')
+    expect(body).toContain(':question: Significance unknown | 5')
+    expect(body).toContain('This table has no ratio interval, so significance is unknown.')
 
     // Regressions section
     expect(body).toContain('### Regressions')
@@ -50,8 +51,8 @@ describe('renderComment', () => {
     expect(body).toContain('### Improvements')
     expect(body).toContain('`TimeSuite.time_keys(10)`')
 
-    // Unchanged collapsible
-    expect(body).toContain('5 unchanged benchmark(s)')
+    expect(body).toContain('### Significance unknown')
+    expect(body).not.toContain('unchanged benchmark(s)')
     expect(body).toContain('<details>')
 
     // Details section
@@ -110,7 +111,24 @@ describe('renderComment', () => {
     expect(body).not.toContain('### Regressions')
   })
 
-  it('renders NOTE alert when all unchanged', () => {
+  it('matches the asv 0.6.6 golden comment', () => {
+    const raw = readFileSync(join(__dirname, 'fixtures', 'compare_asv066.txt'), 'utf-8')
+    const parsed = parseComparison(raw)
+    const body = renderComment(parsed, raw, {
+      ...defaultOpts,
+      baseSha: '2bd67fb24b18483faa6a393370cb511a0e91897d',
+      prSha: '08d496fdf93b907cd49b35b725e166498fb59cd6',
+      runnerInfo: 'e2e',
+    })
+    const golden = readFileSync(join(__dirname, 'fixtures', 'compare_asv066_comment.md'), 'utf-8').replace(/\n$/, '')
+    expect(parsed.unknown.map((row) => row.benchmark)).toEqual(['bench.time_slow'])
+    expect(parsed.unchanged.map((row) => row.benchmark)).toEqual(['bench.time_same'])
+    expect(body).toBe(golden)
+    expect(body).not.toContain('All benchmarks unchanged')
+    expect(body).toContain('1.03x')
+  })
+
+  it('does not call a hedged ratio unchanged', () => {
     const input = `| Change | Before | After | Ratio | Benchmark (Parameter) |
 |--------|--------|-------|-------|-----------------------|
 |        | 100ns  | 101ns | ~1.01 | benchmarks.Same.test   |`
@@ -118,7 +136,9 @@ describe('renderComment', () => {
     const body = renderComment(parsed, input, defaultOpts)
 
     expect(body).toContain('> [!NOTE]')
-    expect(body).toContain('All benchmarks unchanged')
+    expect(body).toContain('Significance is unknown')
+    expect(body).toContain('This table has no ratio interval, so significance is unknown.')
+    expect(body).not.toContain('All benchmarks unchanged')
     expect(body).not.toContain('### Regressions')
     expect(body).not.toContain('### Improvements')
   })
@@ -190,8 +210,8 @@ describe('renderCompareManyComment', () => {
     // Changed benchmarks section
     expect(body).toContain('### Changed Benchmarks')
 
-    // Unchanged collapsible
-    expect(body).toContain('unchanged benchmark(s)')
+    expect(body).toContain('### Significance unknown')
+    expect(body).toContain('This table has no ratio interval, so significance is unknown.')
     expect(body).toContain('<details>')
   })
 
@@ -206,7 +226,7 @@ describe('renderCompareManyComment', () => {
     expect(body).toContain('improvement(s) detected across contenders')
   })
 
-  it('renders NOTE alert when all unchanged', () => {
+  it('does not call a hedged contender ratio unchanged', () => {
     const input = `| Benchmark (Parameter)     | baseline   | same (Ratio)         |
 |---------------------------|------------|----------------------|
 | benchmarks.Same.test      | 100ns      | 101ns (  ~1.01)      |`
@@ -214,7 +234,9 @@ describe('renderCompareManyComment', () => {
     const body = renderCompareManyComment(parsed, input, defaultOpts)
 
     expect(body).toContain('> [!NOTE]')
-    expect(body).toContain('All benchmarks unchanged across contenders')
+    expect(body).toContain('Significance is unknown')
+    expect(body).toContain('This table has no ratio interval, so significance is unknown.')
+    expect(body).not.toContain('All benchmarks unchanged across contenders')
   })
 
   it('uses configurable rawOutputLabel', () => {

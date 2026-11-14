@@ -124,6 +124,14 @@ inputs:
     description: Ratio above which a benchmark is a critical regression
     required: false
     default: '10'
+  regression-on-verdict:
+    description: >-
+      When true and the comparison is asv compare JSON, regression-detected
+      follows each record's verdict. A slower verdict is a regression even
+      when its ratio is under regression-threshold. Default false keeps the
+      threshold check.
+    required: false
+    default: 'false'
   auto-draft-on-regression:
     description: Convert PR to draft when critical regression detected
     required: false

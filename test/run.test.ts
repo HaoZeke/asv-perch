@@ -523,6 +523,7 @@ describe('env-diff / comment delivery inputs', () => {
     const result = resolveInputs()
     expect(result.envDiff).toBe(true)
     expect(result.postComment).toBe(true)
+    expect(result.regressionOnVerdict).toBe(false)
     expect(result.uploadCommentArtifact).toBe(false)
   })
 
@@ -532,6 +533,7 @@ describe('env-diff / comment delivery inputs', () => {
       'env-diff': 'false',
       'post-comment': 'false',
       'upload-comment-artifact': 'true',
+      'regression-on-verdict': 'true',
       'comment-artifact-name': 'bench-md',
       'comment-artifact-path': 'out/comment.md',
     })
@@ -539,6 +541,7 @@ describe('env-diff / comment delivery inputs', () => {
     expect(result.envDiff).toBe(false)
     expect(result.postComment).toBe(false)
     expect(result.uploadCommentArtifact).toBe(true)
+    expect(result.regressionOnVerdict).toBe(true)
     expect(result.commentArtifactName).toBe('bench-md')
     expect(result.commentArtifactPath).toBe('out/comment.md')
   })

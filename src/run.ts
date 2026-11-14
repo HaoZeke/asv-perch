@@ -56,6 +56,7 @@ interface ResolvedInputs {
   preservePaths: string[]
   asvSpyglassArgs: string[]
   regressionThreshold: number
+  regressionOnVerdict: boolean
   autoDraftOnRegression: boolean
   commentMarker: string
   labelBefore: string
@@ -246,6 +247,7 @@ export function resolveInputs(): ResolvedInputs {
     preservePaths,
     asvSpyglassArgs,
     regressionThreshold: Number.parseFloat(getInput('regression-threshold') || '10'),
+    regressionOnVerdict: parseBoolInput(getInput('regression-on-verdict') || '', false),
     autoDraftOnRegression,
     commentMarker: getInput('comment-marker') || '<!-- asv-benchmark-result -->',
     labelBefore: getInput('label-before') || baselineConfig?.label || 'main',
@@ -568,11 +570,11 @@ export function interpretComparison(
   threshold: number,
   opts: RenderOptions,
 ): { body: string, hasRegression: boolean } {
-  const selected = selectComparison(raw)
+  const selected = selectComparison(raw, threshold)
   if (selected.kind === 'json') {
     return {
       body: renderCompareJsonComment(selected.doc, raw, opts),
-      hasRegression: jsonCriticalRegression(selected.doc, threshold),
+      hasRegression: jsonCriticalRegression(selected.doc, threshold, opts.regressionOnVerdict === true),
     }
   }
   return {
@@ -776,7 +778,7 @@ export async function run(): Promise<void> {
       )
 
       if (inputs.comparisonMode === 'compare-many') {
-        const parsed = parseCompareMany(rawOutput)
+        const parsed = parseCompareMany(rawOutput, inputs.regressionThreshold)
         hasRegression = parsed.summaryPerContender.some((s) => s.regressed > 0)
         commentBody = renderCompareManyComment(parsed, rawOutput, {
           baseSha: inputs.baselineSha || inputs.baseSha,
@@ -785,6 +787,7 @@ export async function run(): Promise<void> {
           dashboardUrl: inputs.dashboardUrl || undefined,
           commentMarker: inputs.commentMarker,
           regressionThreshold: inputs.regressionThreshold,
+          regressionOnVerdict: inputs.regressionOnVerdict,
           contenderMeta,
           envDiffSection,
         })
@@ -796,6 +799,7 @@ export async function run(): Promise<void> {
           dashboardUrl: inputs.dashboardUrl || undefined,
           commentMarker: inputs.commentMarker,
           regressionThreshold: inputs.regressionThreshold,
+          regressionOnVerdict: inputs.regressionOnVerdict,
           envDiffSection,
         })
         hasRegression = interpreted.hasRegression
@@ -846,7 +850,7 @@ export async function run(): Promise<void> {
         envDiffContenderFile,
       )
 
-      const parsed = parseCompareMany(rawOutput)
+      const parsed = parseCompareMany(rawOutput, inputs.regressionThreshold)
       hasRegression = parsed.summaryPerContender.some((s) => s.regressed > 0)
       commentBody = renderCompareManyComment(parsed, rawOutput, {
         baseSha: inputs.baselineSha,
@@ -855,6 +859,7 @@ export async function run(): Promise<void> {
         dashboardUrl: inputs.dashboardUrl || undefined,
         commentMarker: inputs.commentMarker,
         regressionThreshold: inputs.regressionThreshold,
+        regressionOnVerdict: inputs.regressionOnVerdict,
         contenderMeta,
         envDiffSection,
       })
@@ -929,6 +934,7 @@ export async function run(): Promise<void> {
         dashboardUrl: inputs.dashboardUrl || undefined,
         commentMarker: inputs.commentMarker,
         regressionThreshold: inputs.regressionThreshold,
+        regressionOnVerdict: inputs.regressionOnVerdict,
         envDiffSection,
       })
       hasRegression = interpreted.hasRegression
