@@ -1,0 +1,22 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "asv-perch",
+  "description": "GitHub Action posting asv benchmark comparisons on PRs.",
+  "folders": [
+    "docs/orgmode"
+  ],
+  "excludeFolders": [
+    "docs/source",
+    "changelog.d",
+    "scripts",
+    ".github",
+    "dist",
+    "test"
+  ],
+  "excludeFiles": [
+    "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md",
+    "LICENSE"
+  ],
+  "rules": []
+}
