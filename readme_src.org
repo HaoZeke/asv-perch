@@ -1,5 +1,10 @@
 #+title: ASV Perch
 #+author: Rohit Goswami
+#+OPTIONS: toc:nil
+
+A GitHub Action that posts asv benchmark comparisons as pull request comments, with Mann-Whitney U significance tests and multi-way comparisons.
+
+#+TOC: headlines 2
 
 * About
 
