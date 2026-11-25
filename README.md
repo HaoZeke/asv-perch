@@ -3,19 +3,19 @@ A GitHub Action that posts asv benchmark comparisons as pull request comments, w
 
 # Table of Contents
 
-1.  [About](#orga11d74d)
-2.  [Quick Start (Two-Way)](#orgf7f81d7)
-3.  [Quick Start (Multi-Way)](#orgde03e6d)
-4.  [Quick Start (Full Pipeline &#x2013; Single Job)](#org663638c)
-5.  [Essential Inputs](#orgb8a1861)
-6.  [Using with GitHub Actions](#org84a461a)
-7.  [Why This Action](#org86b8612)
-    1.  [Outputs](#orgec9a163)
-8.  [Development](#org2cbce77)
-9.  [License](#org4fc31af)
+1.  [About](#orga6b751b)
+2.  [Quick Start (Two-Way)](#org0ea12e4)
+3.  [Quick Start (Multi-Way)](#org4ff1e12)
+4.  [Quick Start (Full Pipeline &#x2013; Single Job)](#org48c083b)
+5.  [Essential Inputs](#org04bd128)
+6.  [Using with GitHub Actions](#orge9de173)
+7.  [Why This Action](#orgedb9160)
+    1.  [Outputs](#org0d2b461)
+8.  [Development](#org58b8b26)
+9.  [License](#org9fcb389)
 
 
-<a id="orga11d74d"></a>
+<a id="orga6b751b"></a>
 
 # About
 
@@ -63,7 +63,7 @@ runners, or whatever you need.
 Pair with [asv-tachyon](https://github.com/HaoZeke/asv_tachyon) for the local/published dashboard (Overview · Compare · Inventory) and [asv-spyglass](https://github.com/airspeed-velocity/asv_spyglass) for the CLI that powers both.
 
 
-<a id="orgf7f81d7"></a>
+<a id="org0ea12e4"></a>
 
 # Quick Start (Two-Way)
 
@@ -74,7 +74,7 @@ Pair with [asv-tachyon](https://github.com/HaoZeke/asv_tachyon) for the local/pu
         metadata-file: results/metadata.txt
 
 
-<a id="orgde03e6d"></a>
+<a id="org4ff1e12"></a>
 
 # Quick Start (Multi-Way)
 
@@ -88,7 +88,7 @@ Pair with [asv-tachyon](https://github.com/HaoZeke/asv_tachyon) for the local/pu
         contender-labels: 'optimized, debug'
 
 
-<a id="org663638c"></a>
+<a id="org48c083b"></a>
 
 # Quick Start (Full Pipeline &#x2013; Single Job)
 
@@ -149,7 +149,7 @@ For pure Python projects with `run-prefix` only (no build step):
             run-prefix: pixi run -e bench
 
 
-<a id="orgb8a1861"></a>
+<a id="org04bd128"></a>
 
 # Essential Inputs
 
@@ -173,7 +173,6 @@ For pure Python projects with `run-prefix` only (no build step):
 <th scope="col" class="org-left">Description</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td class="org-left"><code>github-token</code></td>
@@ -182,14 +181,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">GitHub token for API access</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>results-path</code></td>
 <td class="org-left">conditional</td>
 <td class="org-left">--</td>
 <td class="org-left">Path to ASV results dir (not needed with <code>comparison-text-file</code>)</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>comparison-text-file</code></td>
@@ -198,14 +195,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">Pre-computed comparison output (skips asv-spyglass)</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>comparison-mode</code></td>
 <td class="org-left">no</td>
 <td class="org-left"><code>compare</code></td>
 <td class="org-left"><code>compare</code> (two-way) or <code>compare-many</code> (multi-way)</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>base-sha</code> / <code>pr-sha</code></td>
@@ -214,14 +209,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">SHAs for <code>compare</code> mode</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>base-file</code> / <code>pr-file</code></td>
 <td class="org-left">conditional</td>
 <td class="org-left">--</td>
 <td class="org-left">Direct file paths for <code>compare</code> mode</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>baseline-sha</code></td>
@@ -230,14 +223,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">SHA for <code>compare-many</code> baseline</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>contender-shas</code></td>
 <td class="org-left">conditional</td>
 <td class="org-left">--</td>
 <td class="org-left">Comma-separated SHAs for <code>compare-many</code> contenders</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>baseline-file</code></td>
@@ -246,14 +237,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">Direct path to baseline result JSON</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>contender-files</code></td>
 <td class="org-left">conditional</td>
 <td class="org-left">--</td>
 <td class="org-left">Comma-separated direct paths to contender JSONs</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>contender-labels</code></td>
@@ -262,14 +251,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">Comma-separated labels for contenders</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>baseline</code></td>
 <td class="org-left">no</td>
 <td class="org-left">--</td>
 <td class="org-left">YAML config for baseline (label, sha, run-prefix/setup)</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>contenders</code></td>
@@ -278,14 +265,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">YAML list of contenders (label, sha, run-prefix/setup)</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>benchmark-command</code></td>
 <td class="org-left">no</td>
 <td class="org-left"><code>asv run --record-samples {sha}^!</code></td>
 <td class="org-left">Shell command template; <code>{sha}</code> replaced in all fields</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>init-command</code></td>
@@ -294,14 +279,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">One-time setup before benchmarks (e.g. <code>asv machine --yes</code>)</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>preserve-paths</code></td>
 <td class="org-left">no</td>
 <td class="org-left">--</td>
 <td class="org-left">Paths to preserve across git checkouts (e.g. <code>benchmarks/, asv.conf.json</code>)</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>asv-spyglass-args</code></td>
@@ -310,14 +293,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">Extra flags for asv-spyglass CLI</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>regression-threshold</code></td>
 <td class="org-left">no</td>
 <td class="org-left"><code>10</code></td>
 <td class="org-left">Ratio for critical regression</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>auto-draft-on-regression</code></td>
@@ -326,14 +307,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">Convert PR to draft on regression</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>env-diff</code></td>
 <td class="org-left">no</td>
 <td class="org-left"><code>true</code></td>
 <td class="org-left">Append <code>## Environment inventory</code> from result JSON (pure TS)</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>post-comment</code></td>
@@ -342,7 +321,6 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">Post/update PR comment (<code>false</code> for token-less artifact mode)</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>upload-comment-artifact</code></td>
 <td class="org-left">no</td>
@@ -350,14 +328,12 @@ For pure Python projects with `run-prefix` only (no build step):
 <td class="org-left">Write comment markdown and upload as workflow artifact</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>comment-artifact-name</code></td>
 <td class="org-left">no</td>
 <td class="org-left"><code>asv-perch-comment</code></td>
 <td class="org-left">Artifact name when uploading</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>comment-artifact-path</code></td>
@@ -372,7 +348,7 @@ See [full documentation](https://asv-perch.rgoswami.me) for all
 inputs, outputs, and configuration details.
 
 
-<a id="org84a461a"></a>
+<a id="orge9de173"></a>
 
 # Using with GitHub Actions
 
@@ -403,7 +379,7 @@ CI recipe context for ASV itself: [asv#1448](https://github.com/airspeed-velocit
 workflow patterns: [Using with GitHub Actions](https://asv-perch.rgoswami.me/howto/github_actions.html).
 
 
-<a id="org86b8612"></a>
+<a id="orgedb9160"></a>
 
 # Why This Action
 
@@ -418,7 +394,7 @@ See [the
 full comparison](https://asv-perch.rgoswami.me/explanation/why_this_action.html) with CodSpeed, benchmark-action, and inline scripts.
 
 
-<a id="orgec9a163"></a>
+<a id="org0d2b461"></a>
 
 ## Outputs
 
@@ -436,37 +412,31 @@ full comparison](https://asv-perch.rgoswami.me/explanation/why_this_action.html)
 <th scope="col" class="org-left">Description</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td class="org-left"><code>comparison</code></td>
 <td class="org-left">Raw asv-spyglass comparison output</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>regression-detected</code></td>
 <td class="org-left"><code>'true'</code> or <code>'false'</code></td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>comment-id</code></td>
 <td class="org-left">ID of created/updated comment</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>pr-number</code></td>
 <td class="org-left">Number of the associated PR</td>
 </tr>
 
-
 <tr>
 <td class="org-left"><code>comment-body-path</code></td>
 <td class="org-left">Path to markdown when <code>upload-comment-artifact</code> is true</td>
 </tr>
-
 
 <tr>
 <td class="org-left"><code>comment-artifact-name</code></td>
@@ -476,7 +446,7 @@ full comparison](https://asv-perch.rgoswami.me/explanation/why_this_action.html)
 </table>
 
 
-<a id="org2cbce77"></a>
+<a id="org58b8b26"></a>
 
 # Development
 
@@ -489,7 +459,7 @@ Built with [bun](https://bun.sh) and TypeScript.
     bun run typecheck  # tsc --noEmit
 
 
-<a id="org4fc31af"></a>
+<a id="org9fcb389"></a>
 
 # License
 
